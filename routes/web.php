@@ -2,6 +2,7 @@
 
 use App\Http\Controllers\AuthController;
 use App\Http\Controllers\UserController;
+use App\Http\Controllers\AnneeScolaireController;
 
 /*
 |--------------------------------------------------------------------------
@@ -43,3 +44,33 @@ Route::middleware('auth')->prefix('utilisateurs')->group(function () {
 
 });
 
+
+
+/*|--------------------------------------------------------------------------
+| Années scolaires
+|--------------------------------------------------------------------------*/
+
+Route::middleware('auth')->prefix('annees-scolaires')->group(function () {
+
+    Route::get('/', [AnneeScolaireController::class, 'index'])
+        ->name('annees.index');
+
+    Route::get('/create', [AnneeScolaireController::class, 'create'])
+        ->name('annees.create');
+
+    Route::post('/store', [AnneeScolaireController::class, 'store'])
+        ->name('annees.store');
+
+    Route::get('/{annee}/show', [AnneeScolaireController::class, 'show'])
+        ->name('annees.show');
+
+    Route::get('/{annee}/edit', [AnneeScolaireController::class, 'edit'])
+        ->name('annees.edit');
+
+    Route::put('/{annee}', [AnneeScolaireController::class, 'update'])
+        ->name('annees.update');
+
+    Route::patch('/{annee}/toggle-status', [AnneeScolaireController::class, 'toggleStatus'])
+        ->name('annees.toggle-status');
+
+});

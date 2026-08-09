@@ -85,7 +85,7 @@
 
             </a>
 
-            <a href="#"
+            <a href="{{ route('annees.index') }}"
 
                 class="flex items-center px-6 py-3 hover:bg-slate-800">
 
