@@ -22,7 +22,7 @@ class AnneeScolaireController extends Controller
      */
     public function create()
     {
-        return view('annees_scolaires.form');
+        return view('annees_scolaires.create');
     }
 
     /**

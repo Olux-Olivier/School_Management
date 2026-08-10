@@ -3,6 +3,7 @@
 use App\Http\Controllers\AuthController;
 use App\Http\Controllers\UserController;
 use App\Http\Controllers\AnneeScolaireController;
+use App\Http\Controllers\ClasseController;
 
 /*
 |--------------------------------------------------------------------------
@@ -74,3 +75,41 @@ Route::middleware('auth')->prefix('annees-scolaires')->group(function () {
         ->name('annees.toggle-status');
 
 });
+
+/*|--------------------------------------------------------------------------
+| Classes
+|--------------------------------------------------------------------------*/
+
+Route::prefix('classes')
+    ->middleware('auth')
+    ->group(function () {
+
+        // Liste
+        Route::get('/', [ClasseController::class, 'index'])
+            ->name('classes.index');
+
+        // Formulaire d'ajout
+        Route::get('/create', [ClasseController::class, 'create'])
+            ->name('classes.create');
+
+        // Enregistrement
+        Route::post('/store', [ClasseController::class, 'store'])
+            ->name('classes.store');
+
+        // Modification
+        Route::get('/{classe}/edit', [ClasseController::class, 'edit'])
+            ->name('classes.edit');
+
+        // Mise à jour
+        Route::put('/{classe}', [ClasseController::class, 'update'])
+            ->name('classes.update');
+
+        // Consultation
+        Route::get('/{classe}/show', [ClasseController::class, 'show'])
+            ->name('classes.show');
+
+        // Activation / désactivation
+        Route::patch('/{classe}/toggle-status', [ClasseController::class, 'toggleStatus'])
+            ->name('classes.toggle-status');
+
+    });

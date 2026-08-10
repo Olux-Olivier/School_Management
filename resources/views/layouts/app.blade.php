@@ -95,7 +95,7 @@
 
             </a>
 
-            <a href="#"
+            <a href="{{ route('classes.index') }}"
 
                 class="flex items-center px-6 py-3 hover:bg-slate-800">
 
