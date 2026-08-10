@@ -83,6 +83,21 @@
                 </div>
 
 
+                <div>
+
+                    <p class="text-sm text-slate-500 mb-1">
+                        Nombre d'élèves
+                    </p>
+
+                    <h2 class="text-3xl font-bold text-slate-800">
+
+                        27{{-- $classe->eleves_count }} --}}
+
+                    </h2>
+
+                </div>
+
+
                 {{-- ================================================= --}}
                 {{-- STATUT CLIQUABLE --}}
                 {{-- ================================================= --}}
