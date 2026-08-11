@@ -3,7 +3,7 @@
 @section('title', 'Élèves')
 
 @section('breadcrumb')
-    Accueil / Eleves
+    Accueil/tous les élèves de l'etablissement
 @endsection
 
 @section('content')
@@ -15,7 +15,8 @@
     {{-- ===================================================== --}}
 
     <div class="flex flex-col md:flex-row
-                md:items-center md:justify-between gap-4 mb-6">
+                md:items-center md:justify-between
+                gap-4 mb-6">
 
         <div>
 
@@ -28,6 +29,7 @@
             </p>
 
         </div>
+
 
         <a
             href="{{ route('eleves.create') }}"
@@ -80,7 +82,10 @@
 
             </label>
 
+
             <div class="relative">
+
+                {{-- Icône recherche --}}
 
                 <div
                     class="absolute inset-y-0 left-0
@@ -91,9 +96,15 @@
 
                 </div>
 
+
+                {{-- Champ recherche --}}
+
                 <input
                     type="text"
+
                     id="searchInput"
+
+                    value="{{ $search ?? '' }}"
 
                     placeholder="Matricule, nom, postnom, prénom ou téléphone..."
 
@@ -106,15 +117,21 @@
                            focus:ring-blue-500
                            focus:outline-none">
 
+
                 {{-- Bouton effacer --}}
 
                 <button
                     type="button"
+
                     id="clearSearch"
 
-                    class="hidden absolute inset-y-0 right-0
-                           px-4 text-slate-400
-                           hover:text-slate-700">
+                    class="{{ !empty($search)
+                        ? ''
+                        : 'hidden' }}
+
+                        absolute inset-y-0 right-0
+                        px-4 text-slate-400
+                        hover:text-slate-700">
 
                     <i class="fas fa-times"></i>
 
@@ -128,56 +145,140 @@
 
 
     {{-- ===================================================== --}}
+    {{-- INFORMATIONS DE RÉSULTATS --}}
+    {{-- ===================================================== --}}
+
+    <div class="flex flex-col md:flex-row
+                md:items-center md:justify-between
+                gap-2 mb-4">
+
+        <div class="text-sm text-slate-500">
+
+            @if($eleves->total() > 0)
+
+                Affichage de
+
+                <span class="font-semibold text-slate-700">
+                    {{ $eleves->firstItem() }}
+                </span>
+
+                à
+
+                <span class="font-semibold text-slate-700">
+                    {{ $eleves->lastItem() }}
+                </span>
+
+                sur
+
+                <span class="font-semibold text-slate-700">
+                    {{ $eleves->total() }}
+                </span>
+
+                élève(s)
+
+            @else
+
+                Aucun élève trouvé.
+
+            @endif
+
+        </div>
+
+
+        @if(!empty($search))
+
+            <div class="text-sm text-slate-500">
+
+                Recherche :
+
+                <span
+                    class="font-semibold text-blue-600">
+
+                    "{{ $search }}"
+
+                </span>
+
+            </div>
+
+        @endif
+
+    </div>
+
+
+    {{-- ===================================================== --}}
     {{-- TABLEAU --}}
     {{-- ===================================================== --}}
 
-    <div class="bg-white rounded-xl shadow-sm border overflow-hidden">
+    <div class="bg-white rounded-xl shadow-sm
+                border overflow-hidden">
 
         <div class="overflow-x-auto">
 
             <table class="w-full text-left">
 
+                {{-- ================================================= --}}
+                {{-- THEAD --}}
+                {{-- ================================================= --}}
+
                 <thead class="bg-slate-50 border-b">
 
                     <tr>
 
-                        <th class="px-6 py-4 text-sm font-semibold
+                        <th
+                            class="px-6 py-4
+                                   text-sm font-semibold
                                    text-slate-600">
 
                             Matricule
 
                         </th>
 
-                        <th class="px-6 py-4 text-sm font-semibold
+
+                        <th
+                            class="px-6 py-4
+                                   text-sm font-semibold
                                    text-slate-600">
 
                             Élève
 
                         </th>
 
-                        <th class="px-6 py-4 text-sm font-semibold
+
+                        <th
+                            class="px-6 py-4
+                                   text-sm font-semibold
                                    text-slate-600">
 
                             Sexe
 
                         </th>
 
-                        <th class="px-6 py-4 text-sm font-semibold
+
+                        <th
+                            class="px-6 py-4
+                                   text-sm font-semibold
                                    text-slate-600">
 
                             Téléphone
 
                         </th>
 
-                        <th class="px-6 py-4 text-sm font-semibold
+
+                        <th
+                            class="px-6 py-4
+                                   text-sm font-semibold
                                    text-slate-600">
 
                             Statut
 
                         </th>
 
-                        <th class="px-6 py-4 text-sm font-semibold
-                                   text-slate-600 text-right">
+
+                        <th
+                            class="px-6 py-4
+                                   text-sm font-semibold
+                                   text-slate-600
+                                   text-right">
 
                             Actions
 
@@ -188,31 +289,22 @@
                 </thead>
 
 
-                <tbody
-                    id="elevesTableBody"
-                    class="divide-y">
+                {{-- ================================================= --}}
+                {{-- TBODY --}}
+                {{-- ================================================= --}}
+
+                <tbody class="divide-y">
 
                     @forelse($eleves as $eleve)
 
                         <tr
-                            class="eleve-row hover:bg-slate-50 transition"
-
-                            data-search="
-
-                                {{ strtolower(
-                                    $eleve->matricule . ' ' .
-                                    $eleve->nom . ' ' .
-                                    $eleve->postnom . ' ' .
-                                    $eleve->prenom . ' ' .
-                                    $eleve->telephone
-                                ) }}
-
-                            ">
+                            class="hover:bg-slate-50
+                                   transition">
 
 
-                            {{-- =============================== --}}
+                            {{-- ========================================= --}}
                             {{-- MATRICULE --}}
-                            {{-- =============================== --}}
+                            {{-- ========================================= --}}
 
                             <td class="px-6 py-4">
 
@@ -227,13 +319,15 @@
                             </td>
 
 
-                            {{-- =============================== --}}
-                            {{-- NOM COMPLET --}}
-                            {{-- =============================== --}}
+                            {{-- ========================================= --}}
+                            {{-- ÉLÈVE --}}
+                            {{-- ========================================= --}}
 
                             <td class="px-6 py-4">
 
-                                <div class="flex items-center gap-3">
+                                <div
+                                    class="flex items-center
+                                           gap-3">
 
 
                                     {{-- PHOTO --}}
@@ -246,7 +340,8 @@
                                                 $eleve->photo
                                             ) }}"
 
-                                            alt="Photo"
+                                            alt="Photo de
+                                                {{ $eleve->nom_complet }}"
 
                                             class="w-10 h-10
                                                    rounded-full
@@ -272,6 +367,8 @@
                                     @endif
 
 
+                                    {{-- NOM --}}
+
                                     <div>
 
                                         <p
@@ -289,9 +386,9 @@
                             </td>
 
 
-                            {{-- =============================== --}}
+                            {{-- ========================================= --}}
                             {{-- SEXE --}}
-                            {{-- =============================== --}}
+                            {{-- ========================================= --}}
 
                             <td class="px-6 py-4">
 
@@ -304,9 +401,9 @@
                             </td>
 
 
-                            {{-- =============================== --}}
+                            {{-- ========================================= --}}
                             {{-- TELEPHONE --}}
-                            {{-- =============================== --}}
+                            {{-- ========================================= --}}
 
                             <td class="px-6 py-4">
 
@@ -319,19 +416,22 @@
                             </td>
 
 
-                            {{-- =============================== --}}
+                            {{-- ========================================= --}}
                             {{-- STATUT --}}
-                            {{-- =============================== --}}
+                            {{-- ========================================= --}}
 
                             <td class="px-6 py-4">
 
                                 <span
                                     class="px-3 py-1
-                                           rounded-full text-sm
+                                           rounded-full
+                                           text-sm
 
                                            {{ $eleve->actif
-                                                ? 'bg-green-100 text-green-700'
-                                                : 'bg-red-100 text-red-700' }}">
+                                                ? 'bg-green-100
+                                                   text-green-700'
+                                                : 'bg-red-100
+                                                   text-red-700' }}">
 
                                     {{ $eleve->statut_libelle }}
 
@@ -340,18 +440,20 @@
                             </td>
 
 
-                            {{-- =============================== --}}
+                            {{-- ========================================= --}}
                             {{-- ACTIONS --}}
-                            {{-- =============================== --}}
+                            {{-- ========================================= --}}
 
                             <td class="px-6 py-4">
 
                                 <div
-                                    class="flex justify-end
-                                           items-center gap-2">
+                                    class="flex
+                                           justify-end
+                                           items-center
+                                           gap-2">
 
 
-                                    {{-- Consultation --}}
+                                    {{-- CONSULTATION --}}
 
                                     <a
                                         href="{{ route(
@@ -362,8 +464,10 @@
                                         title="Consulter"
 
                                         class="w-9 h-9
-                                               flex items-center
+                                               flex
+                                               items-center
                                                justify-center
+
                                                rounded-lg
 
                                                bg-slate-100
@@ -372,12 +476,14 @@
                                                hover:bg-slate-200
                                                transition">
 
-                                        <i class="fas fa-eye"></i>
+                                        <i
+                                            class="fas fa-eye">
+                                        </i>
 
                                     </a>
 
 
-                                    {{-- Modification --}}
+                                    {{-- MODIFICATION --}}
 
                                     <a
                                         href="{{ route(
@@ -388,8 +494,10 @@
                                         title="Modifier"
 
                                         class="w-9 h-9
-                                               flex items-center
+                                               flex
+                                               items-center
                                                justify-center
+
                                                rounded-lg
 
                                                bg-blue-100
@@ -398,7 +506,9 @@
                                                hover:bg-blue-200
                                                transition">
 
-                                        <i class="fas fa-edit"></i>
+                                        <i
+                                            class="fas fa-edit">
+                                        </i>
 
                                     </a>
 
@@ -410,27 +520,83 @@
 
                     @empty
 
+                        {{-- ============================================= --}}
+                        {{-- AUCUN RESULTAT --}}
+                        {{-- ============================================= --}}
+
                         <tr>
 
                             <td
                                 colspan="6"
-                                class="px-6 py-12
-                                       text-center
-                                       text-slate-500">
+                                class="px-6 py-14
+                                       text-center">
 
-                                <div class="flex flex-col
-                                            items-center">
+                                <div
+                                    class="flex flex-col
+                                           items-center">
 
-                                    <i
-                                        class="fas fa-users
-                                               text-4xl
-                                               text-slate-300
-                                               mb-3">
-                                    </i>
 
-                                    <p>
-                                        Aucun élève enregistré.
-                                    </p>
+                                    <div
+                                        class="w-16 h-16
+                                               rounded-full
+                                               bg-slate-100
+
+                                               flex
+                                               items-center
+                                               justify-center
+                                               mb-4">
+
+                                        <i
+                                            class="fas fa-users
+                                                   text-2xl
+                                                   text-slate-400">
+                                        </i>
+
+                                    </div>
+
+
+                                    @if(!empty($search))
+
+                                        <p
+                                            class="font-medium
+                                                   text-slate-600">
+
+                                            Aucun élève trouvé.
+
+                                        </p>
+
+
+                                        <p
+                                            class="text-sm
+                                                   text-slate-400
+                                                   mt-1">
+
+                                            Aucun résultat pour
+                                            "{{ $search }}".
+
+                                        </p>
+
+                                    @else
+
+                                        <p
+                                            class="font-medium
+                                                   text-slate-600">
+
+                                            Aucun élève enregistré.
+
+                                        </p>
+
+                                        <p
+                                            class="text-sm
+                                                   text-slate-400
+                                                   mt-1">
+
+                                            Commencez par ajouter
+                                            un élève.
+
+                                        </p>
+
+                                    @endif
 
                                 </div>
 
@@ -440,40 +606,29 @@
 
                     @endforelse
 
-
-                    {{-- ================================================= --}}
-                    {{-- AUCUN RÉSULTAT DE RECHERCHE --}}
-                    {{-- ================================================= --}}
-
-                    <tr id="noSearchResult" class="hidden">
-
-                        <td
-                            colspan="6"
-                            class="px-6 py-12
-                                   text-center
-                                   text-slate-500">
-
-                            <i
-                                class="fas fa-search
-                                       text-3xl
-                                       text-slate-300
-                                       mb-3">
-                            </i>
-
-                            <p>
-                                Aucun élève ne correspond
-                                à votre recherche.
-                            </p>
-
-                        </td>
-
-                    </tr>
-
                 </tbody>
 
             </table>
 
         </div>
+
+
+        {{-- ===================================================== --}}
+        {{-- PAGINATION --}}
+        {{-- ===================================================== --}}
+
+        @if($eleves->hasPages())
+
+            <div
+                class="px-6 py-4
+                       border-t
+                       flex justify-center">
+
+                {{ $eleves->links() }}
+
+            </div>
+
+        @endif
 
     </div>
 
@@ -497,28 +652,28 @@ document.addEventListener('DOMContentLoaded', function () {
         document.getElementById('clearSearch');
 
 
-    const rows =
-        document.querySelectorAll('.eleve-row');
+    let timer = null;
 
 
-    const noSearchResult =
-        document.getElementById('noSearchResult');
-
+    /*
+    |--------------------------------------------------------------------------
+    | Recherche
+    |--------------------------------------------------------------------------
+    */
 
     searchInput.addEventListener('input', function () {
 
+
+        clearTimeout(timer);
+
+
         const search =
-            this.value
-                .toLowerCase()
-                .trim();
-
-
-        let visibleRows = 0;
+            this.value.trim();
 
 
         /*
         |--------------------------------------------------------------------------
-        | Afficher / cacher le bouton X
+        | Afficher / cacher le bouton effacer
         |--------------------------------------------------------------------------
         */
 
@@ -535,53 +690,47 @@ document.addEventListener('DOMContentLoaded', function () {
 
         /*
         |--------------------------------------------------------------------------
-        | Parcourir les élèves
+        | Attendre avant d'envoyer la requête
         |--------------------------------------------------------------------------
         */
 
-        rows.forEach(function (row) {
-
-            const content =
-                row.dataset.search
-                    .toLowerCase();
+        timer = setTimeout(function () {
 
 
-            if (
-                search === '' ||
-                content.includes(search)
-            ) {
+            const url =
+                new URL(
+                    "{{ route('eleves.index') }}",
+                    window.location.origin
+                );
 
-                row.classList.remove('hidden');
 
-                visibleRows++;
+            if (search !== '') {
 
-            } else {
-
-                row.classList.add('hidden');
+                url.searchParams.set(
+                    'search',
+                    search
+                );
 
             }
 
-        });
+
+            /*
+            |--------------------------------------------------------------------------
+            | Retour à la première page
+            |--------------------------------------------------------------------------
+            */
+
+            url.searchParams.set(
+                'page',
+                '1'
+            );
 
 
-        /*
-        |--------------------------------------------------------------------------
-        | Aucun résultat
-        |--------------------------------------------------------------------------
-        */
+            window.location.href =
+                url.toString();
 
-        if (
-            search !== '' &&
-            visibleRows === 0
-        ) {
 
-            noSearchResult.classList.remove('hidden');
-
-        } else {
-
-            noSearchResult.classList.add('hidden');
-
-        }
+        }, 1500); // 1 seconde de recherche après la dernière frappe
 
     });
 
@@ -594,13 +743,13 @@ document.addEventListener('DOMContentLoaded', function () {
 
     clearSearch.addEventListener('click', function () {
 
+
         searchInput.value = '';
 
-        searchInput.dispatchEvent(
-            new Event('input')
-        );
 
-        searchInput.focus();
+        window.location.href =
+            "{{ route('eleves.index') }}";
+
 
     });
 

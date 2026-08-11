@@ -18,21 +18,34 @@ class EleveController extends Controller
         $search = $request->search;
 
         $eleves = Eleve::query()
+
             ->when($search, function ($query) use ($search) {
 
-                $query->where('matricule', 'like', "%{$search}%")
-                    ->orWhere('nom', 'like', "%{$search}%")
-                    ->orWhere('postnom', 'like', "%{$search}%")
-                    ->orWhere('prenom', 'like', "%{$search}%")
-                    ->orWhere('telephone', 'like', "%{$search}%");
+                $query->where(function ($q) use ($search) {
+
+                    $q->where('matricule', 'like', "%{$search}%")
+                        ->orWhere('nom', 'like', "%{$search}%")
+                        ->orWhere('postnom', 'like', "%{$search}%")
+                        ->orWhere('prenom', 'like', "%{$search}%")
+                        ->orWhere('telephone', 'like', "%{$search}%");
+
+                });
 
             })
+
             ->orderBy('nom')
             ->orderBy('postnom')
             ->orderBy('prenom')
-            ->get();
 
-        return view('eleves.index', compact('eleves'));
+            ->paginate(2)
+
+            ->withQueryString();
+
+
+            return view('eleves.index', compact(
+                'eleves',
+                'search'
+        ));
     }
 
 
