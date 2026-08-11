@@ -105,7 +105,7 @@
 
             </a>
 
-            <a href="#"
+            <a href="{{ route('eleves.index') }}"
 
                 class="flex items-center px-6 py-3 hover:bg-slate-800">
 

@@ -4,6 +4,7 @@ use App\Http\Controllers\AuthController;
 use App\Http\Controllers\UserController;
 use App\Http\Controllers\AnneeScolaireController;
 use App\Http\Controllers\ClasseController;
+use App\Http\Controllers\EleveController;
 
 /*
 |--------------------------------------------------------------------------
@@ -111,5 +112,44 @@ Route::prefix('classes')
         // Activation / désactivation
         Route::patch('/{classe}/toggle-status', [ClasseController::class, 'toggleStatus'])
             ->name('classes.toggle-status');
+
+    });
+
+/*|--------------------------------------------------------------------------
+| Élèves
+|--------------------------------------------------------------------------*/
+
+
+Route::prefix('eleves')
+    ->middleware('auth')
+    ->group(function () {
+
+        // Liste des élèves
+        Route::get('/', [EleveController::class, 'index'])
+            ->name('eleves.index');
+
+        // Formulaire d'ajout
+        Route::get('/create', [EleveController::class, 'create'])
+            ->name('eleves.create');
+
+        // Enregistrer un élève
+        Route::post('/store', [EleveController::class, 'store'])
+            ->name('eleves.store');
+
+        // Formulaire de modification
+        Route::get('/{eleve}/edit', [EleveController::class, 'edit'])
+            ->name('eleves.edit');
+
+        // Modifier un élève
+        Route::put('/{eleve}', [EleveController::class, 'update'])
+            ->name('eleves.update');
+
+        // Consultation
+        Route::get('/{eleve}/show', [EleveController::class, 'show'])
+            ->name('eleves.show');
+
+        // Activer / désactiver
+        Route::patch('/{eleve}/toggle-status', [EleveController::class, 'toggleStatus'])
+            ->name('eleves.toggle-status');
 
     });
