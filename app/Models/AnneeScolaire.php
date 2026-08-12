@@ -39,4 +39,11 @@ class AnneeScolaire extends Model
     {
         return $this->belongsTo(User::class, 'updated_by');
     }
+
+    public function inscriptions()
+    {
+        return $this->hasMany(
+            Inscription::class
+        );
+    }
 }

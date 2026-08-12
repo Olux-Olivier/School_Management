@@ -5,6 +5,7 @@ use App\Http\Controllers\UserController;
 use App\Http\Controllers\AnneeScolaireController;
 use App\Http\Controllers\ClasseController;
 use App\Http\Controllers\EleveController;
+use App\Http\Controllers\InscriptionController;
 
 /*
 |--------------------------------------------------------------------------
@@ -153,3 +154,97 @@ Route::prefix('eleves')
             ->name('eleves.toggle-status');
 
     });
+
+
+Route::prefix('inscriptions')->name('inscriptions.')->group(function () {
+
+    /*
+    |--------------------------------------------------------------------------
+    | LISTE
+    |--------------------------------------------------------------------------
+    */
+
+    Route::get('/', [InscriptionController::class, 'index'])
+        ->name('index');
+
+
+    /*
+    |--------------------------------------------------------------------------
+    | CRÉATION
+    |--------------------------------------------------------------------------
+    */
+
+    Route::get('/create', [InscriptionController::class, 'create'])
+        ->name('create');
+
+
+    /*
+    |--------------------------------------------------------------------------
+    | RECHERCHE ÉLÈVES
+    |--------------------------------------------------------------------------
+    */
+
+    Route::get('/search-eleves', [InscriptionController::class, 'searchEleves'])
+        ->name('search-eleves');
+
+
+    /*
+    |--------------------------------------------------------------------------
+    | CLASSES SELON LA SECTION
+    |--------------------------------------------------------------------------
+    */
+
+    Route::get('/classes', [InscriptionController::class, 'classes'])
+        ->name('classes');
+
+
+    /*
+    |--------------------------------------------------------------------------
+    | ENREGISTREMENT
+    |--------------------------------------------------------------------------
+    */
+
+    Route::post('/', [InscriptionController::class, 'store'])
+        ->name('store');
+
+
+    /*
+    |--------------------------------------------------------------------------
+    | CONSULTATION
+    |--------------------------------------------------------------------------
+    */
+
+    Route::get('/{inscription}', [InscriptionController::class, 'show'])
+        ->name('show');
+
+
+    /*
+    |--------------------------------------------------------------------------
+    | MODIFICATION
+    |--------------------------------------------------------------------------
+    */
+
+    Route::get('/{inscription}/edit', [InscriptionController::class, 'edit'])
+        ->name('edit');
+
+
+    /*
+    |--------------------------------------------------------------------------
+    | MISE À JOUR
+    |--------------------------------------------------------------------------
+    */
+
+    Route::put('/{inscription}', [InscriptionController::class, 'update'])
+        ->name('update');
+
+
+    /*
+    |--------------------------------------------------------------------------
+    | SUPPRESSION
+    |--------------------------------------------------------------------------
+    */
+
+    Route::delete('/{inscription}', [InscriptionController::class, 'destroy'])
+        ->name('destroy');
+
+});
