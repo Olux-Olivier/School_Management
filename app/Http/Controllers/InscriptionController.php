@@ -19,14 +19,23 @@ class InscriptionController extends Controller
 
     public function index(Request $request)
     {
-        $search = $request->search;
-
-        $inscriptions = Inscription::with([
+        $query = Inscription::with([
             'eleve',
             'classe',
-            'anneeScolaire'
-        ])
-        ->when($search, function ($query) use ($search) {
+            'anneeScolaire',
+            'createdBy',
+        ]);
+
+
+        /*
+        |--------------------------------------------------------------------------
+        | Recherche élève
+        |--------------------------------------------------------------------------
+        */
+
+        if ($request->filled('search')) {
+
+            $search = $request->search;
 
             $query->whereHas('eleve', function ($q) use ($search) {
 
@@ -37,16 +46,67 @@ class InscriptionController extends Controller
 
             });
 
-        })
-        ->latest()
-        ->paginate(25)
-        ->withQueryString();
+        }
+
+
+        /*
+        |--------------------------------------------------------------------------
+        | Filtre année scolaire
+        |--------------------------------------------------------------------------
+        */
+
+        if ($request->filled('annee_scolaire_id')) {
+
+            $query->where(
+                'annee_scolaire_id',
+                $request->annee_scolaire_id
+            );
+
+        }
+
+
+        /*
+        |--------------------------------------------------------------------------
+        | Filtre statut
+        |--------------------------------------------------------------------------
+        */
+
+        if ($request->has('actif') && $request->actif !== '') {
+
+            $query->where(
+                'actif',
+                $request->actif
+            );
+
+        }
+
+
+        /*
+        |--------------------------------------------------------------------------
+        | Pagination
+        |--------------------------------------------------------------------------
+        */
+
+        $inscriptions = $query
+            ->latest('id')
+            ->paginate(25);
+
+
+        /*
+        |--------------------------------------------------------------------------
+        | Années scolaires pour le filtre
+        |--------------------------------------------------------------------------
+        */
+
+        $anneesScolaires = AnneeScolaire::orderByDesc('id')
+            ->get();
+
 
         return view(
             'inscriptions.index',
             compact(
                 'inscriptions',
-                'search'
+                'anneesScolaires'
             )
         );
     }

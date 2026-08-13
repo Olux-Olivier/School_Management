@@ -3,6 +3,9 @@
 namespace App\Http\Controllers;
 
 use App\Models\Classe;
+use App\Models\AnneeScolaire;
+use App\Models\Inscription;
+use App\Models\Eleve;
 use Illuminate\Http\Request;
 
 class ClasseController extends Controller
@@ -151,17 +154,26 @@ class ClasseController extends Controller
     |--------------------------------------------------------------------------
     */
 
-    public function show(Classe $classe)
+    public function show(Request $request, Classe $classe)
     {
-        $classe->load([
-            'createdBy',
-            'updatedBy',
-        ]);
+        $anneesScolaires = AnneeScolaire::orderByDesc('id')->get();
 
-        return view(
-            'classe.show',
-            compact('classe')
-        );
+        $anneeScolaire = $request->filled('annee_scolaire_id')
+            ? AnneeScolaire::findOrFail($request->annee_scolaire_id)
+            : AnneeScolaire::where('actif', true)->firstOrFail();
+
+        $inscriptions = $classe->inscriptions()
+            ->where('annee_scolaire_id', $anneeScolaire->id)
+            ->with('eleve')
+            ->latest('id')
+            ->paginate(25);
+
+        return view('classe.show', compact(
+            'classe',
+            'anneesScolaires',
+            'anneeScolaire',
+            'inscriptions'
+        ));
     }
 
 
