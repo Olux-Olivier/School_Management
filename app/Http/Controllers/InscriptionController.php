@@ -7,6 +7,7 @@ use App\Models\Eleve;
 use App\Models\Classe;
 use App\Models\AnneeScolaire;
 use Illuminate\Http\Request;
+use Barryvdh\DomPDF\Facade\Pdf;
 
 class InscriptionController extends Controller
 {
@@ -404,6 +405,33 @@ class InscriptionController extends Controller
                 ];
 
             })
+        );
+    }
+
+    /*
+    |--------------------------------------------------------------------------
+    | Génération du PDF de l'inscription
+    |--------------------------------------------------------------------------
+    */
+    public function pdf(Inscription $inscription)
+    {
+        $inscription->load([
+            'eleve',
+            'classe',
+            'anneeScolaire',
+            'createdBy',
+            'updatedBy',
+        ]);
+
+        $pdf = Pdf::loadView(
+            'inscriptions.pdf',
+            compact('inscription')
+        );
+
+        $pdf->setPaper('A4', 'portrait');
+
+        return $pdf->download(
+            'fiche-inscription-' . $inscription->eleve->matricule . '.pdf'
         );
     }
 }

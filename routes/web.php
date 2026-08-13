@@ -207,6 +207,14 @@ Route::prefix('inscriptions')->name('inscriptions.')->group(function () {
     Route::post('/', [InscriptionController::class, 'store'])
         ->name('store');
 
+    /*
+    |--------------------------------------------------------------------------
+    | generation pdf
+    |--------------------------------------------------------------------------
+    */
+
+    Route::get('/{inscription}/pdf', [InscriptionController::class, 'pdf'])
+        ->name('pdf');
 
     /*
     |--------------------------------------------------------------------------
