@@ -312,3 +312,5 @@ class ClasseController extends Controller
         ]);
     }
 }
+
+/*classes show revue avec inscription et eleve et annee scolaire et pdf pour inscription*/
