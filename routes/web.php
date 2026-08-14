@@ -6,6 +6,7 @@ use App\Http\Controllers\AnneeScolaireController;
 use App\Http\Controllers\ClasseController;
 use App\Http\Controllers\EleveController;
 use App\Http\Controllers\InscriptionController;
+use App\Http\Controllers\ReinscriptionController;
 
 /*
 |--------------------------------------------------------------------------
@@ -254,5 +255,22 @@ Route::prefix('inscriptions')->name('inscriptions.')->group(function () {
 
     Route::delete('/{inscription}', [InscriptionController::class, 'destroy'])
         ->name('destroy');
+
+});
+
+/*|--------------------------------------------------------------------------
+| Réinscriptions
+|--------------------------------------------------------------------------*/
+
+Route::prefix('reinscriptions')->name('reinscriptions.')->group(function () {
+
+    Route::get('/', [ReinscriptionController::class, 'index'])
+        ->name('index');
+
+    Route::get('/{inscription}/create', [ReinscriptionController::class, 'create'])
+        ->name('create');
+
+    Route::post('/', [ReinscriptionController::class, 'store'])
+        ->name('store');
 
 });
