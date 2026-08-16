@@ -102,6 +102,60 @@ class ReinscriptionController extends Controller
 
         /*
         |--------------------------------------------------------------------------
+        | Section → Niveau
+        |--------------------------------------------------------------------------
+        |
+        | On utilise le niveau de la classe et non directement
+        | la valeur "section" de la base.
+        |
+        | Maternelle = 0
+        | Primaire   = 1
+        | Secondaire = 2
+        | Humanités  = 3
+        |
+        */
+
+        $niveau = null;
+
+        if ($request->filled('section')) {
+
+            $niveau = match ($request->section) {
+
+                'maternelle' => 0,
+
+                'primaire' => 1,
+
+                'secondaire' => 2,
+
+                'humanites' => 3,
+
+                default => null,
+
+            };
+        }
+
+
+        /*
+        |--------------------------------------------------------------------------
+        | Filtre par section / niveau
+        |--------------------------------------------------------------------------
+        */
+
+        if ($niveau !== null) {
+
+            $query->whereHas('classe', function ($q) use ($niveau) {
+
+                $q->where(
+                    'niveau',
+                    $niveau
+                );
+
+            });
+        }
+
+
+        /*
+        |--------------------------------------------------------------------------
         | Filtre par classe
         |--------------------------------------------------------------------------
         */
@@ -129,7 +183,7 @@ class ReinscriptionController extends Controller
 
         /*
         |--------------------------------------------------------------------------
-        | Classes de l'année précédente
+        | Classes ayant des inscriptions dans l'année précédente
         |--------------------------------------------------------------------------
         */
 
@@ -148,7 +202,7 @@ class ReinscriptionController extends Controller
 
         /*
         |--------------------------------------------------------------------------
-        | Vérification des élèves déjà réinscrits
+        | Élèves déjà réinscrits
         |--------------------------------------------------------------------------
         */
 
@@ -169,7 +223,7 @@ class ReinscriptionController extends Controller
 
         /*
         |--------------------------------------------------------------------------
-        | Retour
+        | Retour vers la vue
         |--------------------------------------------------------------------------
         */
 
@@ -184,4 +238,145 @@ class ReinscriptionController extends Controller
             )
         );
     }
+
+    /*
+    |--------------------------------------------------------------------------
+    | Formulaire de réinscription
+    |--------------------------------------------------------------------------*/
+
+    public function create(Inscription $inscription)
+    {
+        /*
+        |--------------------------------------------------------------------------
+        | Année scolaire active
+        |--------------------------------------------------------------------------
+        */
+
+        $anneeScolaireActive = AnneeScolaire::where('actif', true)
+            ->firstOrFail();
+
+
+        /*
+        |--------------------------------------------------------------------------
+        | Charger l'inscription précédente
+        |--------------------------------------------------------------------------
+        */
+
+        $inscription->load([
+            'eleve',
+            'classe',
+            'anneeScolaire',
+        ]);
+
+
+        /*
+        |--------------------------------------------------------------------------
+        | Vérifier que l'inscription appartient bien
+        | à l'année scolaire précédente
+        |--------------------------------------------------------------------------
+        */
+
+        $anneeScolairePrecedente = AnneeScolaire::where(
+            'date_fin',
+            '<',
+            $anneeScolaireActive->date_debut
+        )
+            ->orderByDesc('date_fin')
+            ->first();
+
+
+        if (!$anneeScolairePrecedente) {
+
+            return redirect()
+                ->route('reinscriptions.index')
+                ->with(
+                    'error',
+                    'Aucune année scolaire précédente disponible.'
+                );
+        }
+
+
+        /*
+        |--------------------------------------------------------------------------
+        | Vérifier que l'inscription sélectionnée
+        | appartient bien à l'année précédente
+        |--------------------------------------------------------------------------
+        */
+
+        if (
+            $inscription->annee_scolaire_id
+            != $anneeScolairePrecedente->id
+        ) {
+
+            return redirect()
+                ->route('reinscriptions.index')
+                ->with(
+                    'error',
+                    'Cette inscription ne peut pas être utilisée pour une réinscription.'
+                );
+        }
+
+
+        /*
+        |--------------------------------------------------------------------------
+        | Vérifier si l'élève est déjà réinscrit
+        |--------------------------------------------------------------------------
+        */
+
+        $dejaReinscrit = Inscription::where(
+            'annee_scolaire_id',
+            $anneeScolaireActive->id
+        )
+            ->where(
+                'eleve_id',
+                $inscription->eleve_id
+            )
+            ->exists();
+
+
+        if ($dejaReinscrit) {
+
+            return redirect()
+                ->route('reinscriptions.index')
+                ->with(
+                    'error',
+                    'Cet élève est déjà réinscrit dans l’année scolaire active.'
+                );
+        }
+
+
+        /*
+        |--------------------------------------------------------------------------
+        | Classes actives
+        |--------------------------------------------------------------------------
+        |
+        | On charge toutes les classes actives.
+        | Le JavaScript du formulaire se chargera ensuite
+        | de filtrer selon la section.
+        |
+        */
+
+        $classes = Classe::where('actif', true)
+            ->orderBy('niveau')
+            ->orderBy('nom')
+            ->get();
+
+
+        /*
+        |--------------------------------------------------------------------------
+        | Retour vers le formulaire
+        |--------------------------------------------------------------------------
+        */
+
+        return view(
+            'reinscriptions.create',
+            compact(
+                'inscription',
+                'anneeScolaireActive',
+                'anneeScolairePrecedente',
+                'classes'
+            )
+        );
+    }
+
 }

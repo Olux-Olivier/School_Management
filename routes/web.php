@@ -264,13 +264,40 @@ Route::prefix('inscriptions')->name('inscriptions.')->group(function () {
 
 Route::prefix('reinscriptions')->name('reinscriptions.')->group(function () {
 
-    Route::get('/', [ReinscriptionController::class, 'index'])
-        ->name('index');
+     /*
+        |--------------------------------------------------------------------------
+        | Liste des élèves à réinscrire
+        |--------------------------------------------------------------------------
+        */
 
-    Route::get('/{inscription}/create', [ReinscriptionController::class, 'create'])
-        ->name('create');
+        Route::get(
+            '/',
+            [ReinscriptionController::class, 'index']
+        )->name('index');
 
-    Route::post('/', [ReinscriptionController::class, 'store'])
-        ->name('store');
+
+        /*
+        |--------------------------------------------------------------------------
+        | Formulaire de réinscription
+        |--------------------------------------------------------------------------
+        */
+
+        Route::get(
+            '/{inscription}/create',
+            [ReinscriptionController::class, 'create']
+        )->name('create');
+
+
+        /*
+        |--------------------------------------------------------------------------
+        | Enregistrer la réinscription
+        |--------------------------------------------------------------------------
+        */
+
+        Route::post(
+            '/',
+            [ReinscriptionController::class, 'store']
+        )->name('store');
+
 
 });

@@ -54,8 +54,7 @@
     {{-- ANNÉES SCOLAIRES --}}
     {{-- ========================================================= --}}
 
-    <div
-        class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
 
 
         {{-- Année précédente --}}
@@ -166,7 +165,7 @@
 
 
     {{-- ========================================================= --}}
-    {{-- SI AUCUNE ANNÉE PRÉCÉDENTE --}}
+    {{-- AUCUNE ANNÉE PRÉCÉDENTE --}}
     {{-- ========================================================= --}}
 
     @if(!$anneeScolairePrecedente)
@@ -203,7 +202,7 @@
 
 
         {{-- ===================================================== --}}
-        {{-- RECHERCHE + FILTRE --}}
+        {{-- RECHERCHE + FILTRES --}}
         {{-- ===================================================== --}}
 
         <div
@@ -223,9 +222,11 @@
                 <div class="grid grid-cols-1 md:grid-cols-3 gap-5">
 
 
-                    {{-- Recherche --}}
+                    {{-- ================================================= --}}
+                    {{-- RECHERCHE ÉLÈVE --}}
+                    {{-- ================================================= --}}
 
-                    <div class="md:col-span-2">
+                    <div>
 
                         <label
                             for="search"
@@ -281,7 +282,106 @@
                     </div>
 
 
-                    {{-- Classe --}}
+
+                    {{-- ================================================= --}}
+                    {{-- SECTION --}}
+                    {{-- ================================================= --}}
+
+                    <div>
+
+                        <label
+                            for="section"
+                            class="block
+                                   text-sm
+                                   font-medium
+                                   text-slate-700
+                                   mb-2">
+
+                            Section
+
+                        </label>
+
+
+                        <select
+                            name="section"
+                            id="section"
+
+                            class="w-full
+                                   border border-slate-300
+                                   rounded-lg
+                                   px-4
+                                   py-3
+                                   focus:ring-2
+                                   focus:ring-blue-500
+                                   focus:border-blue-500
+                                   focus:outline-none">
+
+
+                            <option value="">
+                                Toutes les sections
+                            </option>
+
+
+                            <option
+                                value="maternelle"
+                                data-niveau="0"
+
+                                {{ request('section') === 'maternelle'
+                                    ? 'selected'
+                                    : '' }}>
+
+                                Maternelle
+
+                            </option>
+
+
+                            <option
+                                value="primaire"
+                                data-niveau="1"
+
+                                {{ request('section') === 'primaire'
+                                    ? 'selected'
+                                    : '' }}>
+
+                                Primaire
+
+                            </option>
+
+
+                            <option
+                                value="secondaire"
+                                data-niveau="2"
+
+                                {{ request('section') === 'secondaire'
+                                    ? 'selected'
+                                    : '' }}>
+
+                                Secondaire
+
+                            </option>
+
+
+                            <option
+                                value="humanites"
+                                data-niveau="3"
+
+                                {{ request('section') === 'humanites'
+                                    ? 'selected'
+                                    : '' }}>
+
+                                Humanités
+
+                            </option>
+
+                        </select>
+
+                    </div>
+
+
+
+                    {{-- ================================================= --}}
+                    {{-- CLASSE --}}
+                    {{-- ================================================= --}}
 
                     <div>
 
@@ -312,6 +412,7 @@
                                    focus:border-blue-500
                                    focus:outline-none">
 
+
                             <option value="">
                                 Toutes les classes
                             </option>
@@ -321,6 +422,8 @@
 
                                 <option
                                     value="{{ $classe->id }}"
+
+                                    data-niveau="{{ $classe->niveau }}"
 
                                     {{ request('classe_id') == $classe->id
                                         ? 'selected'
@@ -339,7 +442,10 @@
                 </div>
 
 
-                {{-- Boutons --}}
+
+                {{-- ================================================= --}}
+                {{-- BOUTONS --}}
+                {{-- ================================================= --}}
 
                 <div
                     class="flex
@@ -370,7 +476,11 @@
                     </button>
 
 
-                    @if(request()->filled('search') || request()->filled('classe_id'))
+                    @if(
+                        request()->filled('search')
+                        || request()->filled('section')
+                        || request()->filled('classe_id')
+                    )
 
                         <a
                             href="{{ route('reinscriptions.index') }}"
@@ -402,9 +512,9 @@
 
 
 
-        {{-- ===================================================== --}}
+        {{-- ========================================================= --}}
         {{-- LISTE --}}
-        {{-- ===================================================== --}}
+        {{-- ========================================================= --}}
 
         <div
             class="bg-white
@@ -414,7 +524,7 @@
                    overflow-hidden">
 
 
-            {{-- En-tête de la liste --}}
+            {{-- En-tête --}}
 
             <div
                 class="px-6
@@ -440,6 +550,7 @@
                     <p class="text-sm text-slate-500 mt-1">
 
                         Élèves inscrits en
+
                         <span class="font-medium text-slate-700">
 
                             {{ $anneeScolairePrecedente->libelle }}
@@ -475,7 +586,6 @@
             <div class="overflow-x-auto">
 
                 <table class="w-full text-sm">
-
 
                     <thead class="bg-slate-50">
 
@@ -551,8 +661,7 @@
                     </thead>
 
 
-                    <tbody
-                        class="divide-y divide-slate-100">
+                    <tbody class="divide-y divide-slate-100">
 
 
                         @forelse($inscriptions as $index => $inscription)
@@ -562,8 +671,6 @@
                                        transition">
 
 
-                                {{-- Numéro --}}
-
                                 <td
                                     class="px-6 py-4
                                            text-slate-500">
@@ -572,8 +679,6 @@
 
                                 </td>
 
-
-                                {{-- Matricule --}}
 
                                 <td class="px-6 py-4">
 
@@ -587,8 +692,6 @@
 
                                 </td>
 
-
-                                {{-- Élève --}}
 
                                 <td class="px-6 py-4">
 
@@ -605,12 +708,9 @@
                                 </td>
 
 
-                                {{-- Classe --}}
-
                                 <td class="px-6 py-4">
 
-                                    <span
-                                        class="text-slate-700">
+                                    <span class="text-slate-700">
 
                                         {{ $inscription->classe->nom_complet ?? '—' }}
 
@@ -618,8 +718,6 @@
 
                                 </td>
 
-
-                                {{-- Statut --}}
 
                                 <td class="px-6 py-4">
 
@@ -677,8 +775,6 @@
 
                                 </td>
 
-
-                                {{-- Action --}}
 
                                 <td
                                     class="px-6 py-4
@@ -739,7 +835,6 @@
 
                         @empty
 
-
                             <tr>
 
                                 <td
@@ -748,12 +843,10 @@
                                            py-12
                                            text-center">
 
-
                                     <div
                                         class="flex
                                                flex-col
                                                items-center">
-
 
                                         <div
                                             class="w-14
@@ -772,7 +865,6 @@
 
                                         </div>
 
-
                                         <p
                                             class="font-medium
                                                    text-slate-700">
@@ -780,7 +872,6 @@
                                             Aucun élève trouvé
 
                                         </p>
-
 
                                         <p
                                             class="text-sm
@@ -820,9 +911,7 @@
                            border-t
                            border-slate-200">
 
-                    {{ $inscriptions
-                        ->withQueryString()
-                        ->links() }}
+                    {{ $inscriptions->links() }}
 
                 </div>
 
@@ -833,5 +922,144 @@
     @endif
 
 </div>
+
+
+
+{{-- ============================================================= --}}
+{{-- JAVASCRIPT --}}
+{{-- ============================================================= --}}
+
+<script>
+
+document.addEventListener('DOMContentLoaded', function () {
+
+    const section = document.getElementById('section');
+
+    const classe = document.getElementById('classe_id');
+
+
+    /*
+    |--------------------------------------------------------------------------
+    | Filtrer les classes selon le niveau
+    |--------------------------------------------------------------------------
+    */
+
+    function filtrerClasses() {
+
+        const selectedSection =
+            section.options[section.selectedIndex];
+
+
+        const selectedNiveau =
+            selectedSection
+                ? selectedSection.dataset.niveau
+                : '';
+
+
+        Array.from(classe.options).forEach(function (option) {
+
+            /*
+            |--------------------------------------------------------------------------
+            | "Toutes les classes"
+            |--------------------------------------------------------------------------
+            */
+
+            if (!option.value) {
+
+                option.hidden = false;
+
+                return;
+            }
+
+
+            /*
+            |--------------------------------------------------------------------------
+            | Niveau de la classe
+            |--------------------------------------------------------------------------
+            */
+
+            const classeNiveau =
+                option.dataset.niveau;
+
+
+            /*
+            |--------------------------------------------------------------------------
+            | Affichage
+            |--------------------------------------------------------------------------
+            */
+
+            if (
+                selectedNiveau === ''
+                ||
+                classeNiveau === selectedNiveau
+            ) {
+
+                option.hidden = false;
+
+            } else {
+
+                option.hidden = true;
+
+            }
+
+        });
+
+
+        /*
+        |--------------------------------------------------------------------------
+        | Réinitialiser la classe si elle ne correspond plus
+        |--------------------------------------------------------------------------
+        */
+
+        const selectedClasse =
+            classe.options[classe.selectedIndex];
+
+
+        if (
+            selectedClasse
+            &&
+            selectedClasse.value
+            &&
+            selectedNiveau !== ''
+            &&
+            selectedClasse.dataset.niveau !== selectedNiveau
+        ) {
+
+            classe.value = '';
+
+        }
+
+    }
+
+
+    /*
+    |--------------------------------------------------------------------------
+    | Changement de section
+    |--------------------------------------------------------------------------
+    */
+
+    section.addEventListener(
+        'change',
+        function () {
+
+            classe.value = '';
+
+            filtrerClasses();
+
+        }
+    );
+
+
+    /*
+    |--------------------------------------------------------------------------
+    | Initialisation
+    |--------------------------------------------------------------------------
+    */
+
+    filtrerClasses();
+
+});
+
+</script>
 
 @endsection
