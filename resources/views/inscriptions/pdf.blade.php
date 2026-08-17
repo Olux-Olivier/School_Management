@@ -6,7 +6,11 @@
     <meta charset="UTF-8">
 
     <title>
-        Fiche d'inscription
+        @if($estReinscription)
+            Fiche de réinscription
+        @else
+            Fiche d'inscription
+        @endif
     </title>
 
     <style>
@@ -106,6 +110,21 @@
             color: #991b1b;
         }
 
+        .reinscription-box {
+            margin-top: 15px;
+            padding: 10px;
+            border: 1px solid #cbd5e1;
+            background: #f8fafc;
+            text-align: center;
+            font-weight: bold;
+        }
+
+        .arrow {
+            font-size: 16px;
+            font-weight: bold;
+            padding: 0 10px;
+        }
+
         .signature-table {
             margin-top: 50px;
         }
@@ -148,7 +167,17 @@
     </div>
 
     <div class="document-title">
-        FICHE D'INSCRIPTION
+
+        @if($estReinscription)
+
+            FICHE DE RÉINSCRIPTION
+
+        @else
+
+            FICHE D'INSCRIPTION
+
+        @endif
+
     </div>
 
     <div class="document-subtitle">
@@ -239,6 +268,27 @@
         </tr>
 
 
+        @if(!empty($inscription->eleve->date_naissance))
+
+            <tr>
+
+                <td class="label">
+                    Date de naissance
+                </td>
+
+                <td class="value">
+
+                    {{ \Carbon\Carbon::parse(
+                        $inscription->eleve->date_naissance
+                    )->format('d/m/Y') }}
+
+                </td>
+
+            </tr>
+
+        @endif
+
+
         <tr>
 
             <td class="label">
@@ -262,67 +312,211 @@
 
 <div class="section">
 
-    <div class="section-title">
-        2. Informations scolaires
-    </div>
+    @if($estReinscription)
+
+        {{-- ================================================= --}}
+        {{-- CAS RÉINSCRIPTION --}}
+        {{-- ================================================= --}}
+
+        <div class="section-title">
+            2. Parcours scolaire
+        </div>
 
 
-    <table>
+        <table>
 
-        <tr>
+            <tr>
 
-            <td class="label">
-                Année scolaire
-            </td>
+                <td class="label">
+                    Année scolaire précédente
+                </td>
 
-            <td class="value">
-                {{ $inscription->anneeScolaire->libelle ?? '—' }}
-            </td>
+                <td class="value">
 
-        </tr>
+                    {{ $ancienneInscription->anneeScolaire->libelle ?? '—' }}
 
+                </td>
 
-        <tr>
-
-            <td class="label">
-                Section
-            </td>
-
-            <td class="value">
-                {{ $inscription->classe->section ?? '—' }}
-            </td>
-
-        </tr>
+            </tr>
 
 
-        <tr>
+            <tr>
 
-            <td class="label">
-                Classe
-            </td>
+                <td class="label">
+                    Ancienne classe
+                </td>
 
-            <td class="value">
-                {{ $inscription->classe->nom ?? '—' }}
-            </td>
+                <td class="value">
 
-        </tr>
+                    {{ $ancienneInscription->classe->nom_complet
+                        ?? $ancienneInscription->classe->nom
+                        ?? '—' }}
+
+                </td>
+
+            </tr>
 
 
-        <tr>
+            <tr>
 
-            <td class="label">
-                Option
-            </td>
+                <td class="label">
+                    Année scolaire actuelle
+                </td>
 
-            <td class="value">
+                <td class="value">
 
-                {{ $inscription->classe->option ?: '—' }}
+                    {{ $inscription->anneeScolaire->libelle ?? '—' }}
 
-            </td>
+                </td>
 
-        </tr>
+            </tr>
 
-    </table>
+
+            <tr>
+
+                <td class="label">
+                    Nouvelle classe
+                </td>
+
+                <td class="value">
+
+                    {{ $inscription->classe->nom_complet
+                        ?? $inscription->classe->nom
+                        ?? '—' }}
+
+                </td>
+
+            </tr>
+
+
+            <tr>
+
+                <td class="label">
+                    Section
+                </td>
+
+                <td class="value">
+
+                    {{ $inscription->classe->section ?? '—' }}
+
+                </td>
+
+            </tr>
+
+
+            <tr>
+
+                <td class="label">
+                    Option
+                </td>
+
+                <td class="value">
+
+                    {{ $inscription->classe->option ?: '—' }}
+
+                </td>
+
+            </tr>
+
+        </table>
+
+
+        {{-- Résumé ancien → nouveau --}}
+
+        <div class="reinscription-box">
+
+            {{ $ancienneInscription->classe->nom_complet
+                ?? $ancienneInscription->classe->nom
+                ?? '—' }}
+
+            <span class="arrow">
+                →
+            </span>
+
+            {{ $inscription->classe->nom_complet
+                ?? $inscription->classe->nom
+                ?? '—' }}
+
+        </div>
+
+
+    @else
+
+        {{-- ================================================= --}}
+        {{-- CAS PREMIÈRE INSCRIPTION --}}
+        {{-- ================================================= --}}
+
+        <div class="section-title">
+            2. Informations scolaires
+        </div>
+
+
+        <table>
+
+            <tr>
+
+                <td class="label">
+                    Année scolaire
+                </td>
+
+                <td class="value">
+
+                    {{ $inscription->anneeScolaire->libelle ?? '—' }}
+
+                </td>
+
+            </tr>
+
+
+            <tr>
+
+                <td class="label">
+                    Section
+                </td>
+
+                <td class="value">
+
+                    {{ $inscription->classe->section ?? '—' }}
+
+                </td>
+
+            </tr>
+
+
+            <tr>
+
+                <td class="label">
+                    Classe
+                </td>
+
+                <td class="value">
+
+                    {{ $inscription->classe->nom_complet
+                        ?? $inscription->classe->nom
+                        ?? '—' }}
+
+                </td>
+
+            </tr>
+
+
+            <tr>
+
+                <td class="label">
+                    Option
+                </td>
+
+                <td class="value">
+
+                    {{ $inscription->classe->option ?: '—' }}
+
+                </td>
+
+            </tr>
+
+        </table>
+
+    @endif
 
 </div>
 

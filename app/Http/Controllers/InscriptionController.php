@@ -483,15 +483,42 @@ class InscriptionController extends Controller
             'updatedBy',
         ]);
 
+        // Recherche de l'inscription précédente de l'élève
+        $ancienneInscription = Inscription::with([
+            'classe',
+            'anneeScolaire',
+        ])
+            ->where('eleve_id', $inscription->eleve_id)
+            ->where('id', '<>', $inscription->id)
+            ->orderByDesc('date_inscription')
+            ->first();
+
+        // Si une inscription précédente existe,
+        // il s'agit automatiquement d'une réinscription.
+        $estReinscription = $ancienneInscription !== null;
+
         $pdf = Pdf::loadView(
             'inscriptions.pdf',
-            compact('inscription')
+            compact(
+                'inscription',
+                'ancienneInscription',
+                'estReinscription'
+            )
         );
 
         $pdf->setPaper('A4', 'portrait');
 
-        return $pdf->download(
-            'fiche-inscription-' . $inscription->eleve->matricule . '.pdf'
-        );
+        // Nom du fichier selon le type d'inscription
+        if ($estReinscription) {
+            $nomFichier = 'fiche-de-reinscription-'
+                . $inscription->eleve->matricule
+                . '.pdf';
+        } else {
+            $nomFichier = 'fiche-inscription-'
+                . $inscription->eleve->matricule
+                . '.pdf';
+        }
+
+        return $pdf->download($nomFichier);
     }
 }
