@@ -5,6 +5,8 @@ use App\Http\Controllers\UserController;
 use App\Http\Controllers\AnneeScolaireController;
 use App\Http\Controllers\ClasseController;
 use App\Http\Controllers\EleveController;
+use App\Http\Controllers\InscriptionController;
+use App\Http\Controllers\ReinscriptionController;
 
 /*
 |--------------------------------------------------------------------------
@@ -153,3 +155,149 @@ Route::prefix('eleves')
             ->name('eleves.toggle-status');
 
     });
+
+
+Route::prefix('inscriptions')->name('inscriptions.')->group(function () {
+
+    /*
+    |--------------------------------------------------------------------------
+    | LISTE
+    |--------------------------------------------------------------------------
+    */
+
+    Route::get('/', [InscriptionController::class, 'index'])
+        ->name('index');
+
+
+    /*
+    |--------------------------------------------------------------------------
+    | CRÉATION
+    |--------------------------------------------------------------------------
+    */
+
+    Route::get('/create', [InscriptionController::class, 'create'])
+        ->name('create');
+
+
+    /*
+    |--------------------------------------------------------------------------
+    | RECHERCHE ÉLÈVES
+    |--------------------------------------------------------------------------
+    */
+
+    Route::get('/search-eleves', [InscriptionController::class, 'searchEleves'])
+        ->name('search-eleves');
+
+
+    /*
+    |--------------------------------------------------------------------------
+    | CLASSES SELON LA SECTION
+    |--------------------------------------------------------------------------
+    */
+
+    Route::get('/classes', [InscriptionController::class, 'classes'])
+        ->name('classes');
+
+
+    /*
+    |--------------------------------------------------------------------------
+    | ENREGISTREMENT
+    |--------------------------------------------------------------------------
+    */
+
+    Route::post('/', [InscriptionController::class, 'store'])
+        ->name('store');
+
+    /*
+    |--------------------------------------------------------------------------
+    | generation pdf
+    |--------------------------------------------------------------------------
+    */
+
+    Route::get('/{inscription}/pdf', [InscriptionController::class, 'pdf'])
+        ->name('pdf');
+
+    /*
+    |--------------------------------------------------------------------------
+    | CONSULTATION
+    |--------------------------------------------------------------------------
+    */
+
+    Route::get('/{inscription}', [InscriptionController::class, 'show'])
+        ->name('show');
+
+
+    /*
+    |--------------------------------------------------------------------------
+    | MODIFICATION
+    |--------------------------------------------------------------------------
+    */
+
+    Route::get('/{inscription}/edit', [InscriptionController::class, 'edit'])
+        ->name('edit');
+
+
+    /*
+    |--------------------------------------------------------------------------
+    | MISE À JOUR
+    |--------------------------------------------------------------------------
+    */
+
+    Route::put('/{inscription}', [InscriptionController::class, 'update'])
+        ->name('update');
+
+
+    /*
+    |--------------------------------------------------------------------------
+    | SUPPRESSION
+    |--------------------------------------------------------------------------
+    */
+
+    Route::delete('/{inscription}', [InscriptionController::class, 'destroy'])
+        ->name('destroy');
+
+});
+
+/*|--------------------------------------------------------------------------
+| Réinscriptions
+|--------------------------------------------------------------------------*/
+
+Route::prefix('reinscriptions')->name('reinscriptions.')->group(function () {
+
+     /*
+        |--------------------------------------------------------------------------
+        | Liste des élèves à réinscrire
+        |--------------------------------------------------------------------------
+        */
+
+        Route::get(
+            '/',
+            [ReinscriptionController::class, 'index']
+        )->name('index');
+
+
+        /*
+        |--------------------------------------------------------------------------
+        | Formulaire de réinscription
+        |--------------------------------------------------------------------------
+        */
+
+        Route::get(
+            '/{inscription}/create',
+            [ReinscriptionController::class, 'create']
+        )->name('create');
+
+
+        /*
+        |--------------------------------------------------------------------------
+        | Enregistrer la réinscription
+        |--------------------------------------------------------------------------
+        */
+
+        Route::post(
+            '/',
+            [ReinscriptionController::class, 'store']
+        )->name('store');
+
+
+});

@@ -128,4 +128,17 @@ class Eleve extends Model
             'updated_by'
         );
     }
+
+    /*
+    |--------------------------------------------------------------------------
+    | Relations avec les autres modèles
+    |--------------------------------------------------------------------------
+    */
+
+    public function inscriptions()
+    {
+        return $this->hasMany(
+            Inscription::class
+        );
+    }
 }
