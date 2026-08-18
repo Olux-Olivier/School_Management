@@ -400,36 +400,36 @@ class InscriptionController extends Controller
     */
 
     public function searchEleves(Request $request)
-    {
-        $search = trim($request->search);
+{
+    $search = trim($request->input('search', ''));
 
-        if (strlen($search) < 2) {
-            return response()->json([]);
-        }
-
-        $eleves = Eleve::where('actif', true)
-            ->where(function ($query) use ($search) {
-
-                $query->where('matricule', 'like', "%{$search}%")
-                    ->orWhere('nom', 'like', "%{$search}%")
-                    ->orWhere('postnom', 'like', "%{$search}%")
-                    ->orWhere('prenom', 'like', "%{$search}%");
-
-            })
-            ->orderBy('nom')
-            ->orderBy('postnom')
-            ->orderBy('prenom')
-            ->limit(10)
-            ->get([
-                'id',
-                'matricule',
-                'nom',
-                'postnom',
-                'prenom'
-            ]);
-
-        return response()->json($eleves);
+    if (mb_strlen($search) < 2) {
+        return response()->json([]);
     }
+
+    $eleves = Eleve::where('actif', true)
+        ->where(function ($query) use ($search) {
+
+            $query->where('matricule', 'ILIKE', "%{$search}%")
+                ->orWhere('nom', 'ILIKE', "%{$search}%")
+                ->orWhere('postnom', 'ILIKE', "%{$search}%")
+                ->orWhere('prenom', 'ILIKE', "%{$search}%");
+
+        })
+        ->orderBy('nom')
+        ->orderBy('postnom')
+        ->orderBy('prenom')
+        ->limit(10)
+        ->get([
+            'id',
+            'matricule',
+            'nom',
+            'postnom',
+            'prenom',
+        ]);
+
+    return response()->json($eleves);
+}
 
     public function classes(Request $request)
 {
