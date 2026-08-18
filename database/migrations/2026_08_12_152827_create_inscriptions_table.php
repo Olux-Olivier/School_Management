@@ -20,7 +20,7 @@ return new class extends Migration
 
             // Année scolaire
             $table->foreignId('annee_scolaire_id')
-                ->constrained('annees_scolaires')
+                ->constrained('annee_scolaires')
                 ->cascadeOnUpdate()
                 ->restrictOnDelete();
 

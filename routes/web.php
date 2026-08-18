@@ -7,6 +7,8 @@ use App\Http\Controllers\ClasseController;
 use App\Http\Controllers\EleveController;
 use App\Http\Controllers\InscriptionController;
 use App\Http\Controllers\ReinscriptionController;
+use App\Models\User;
+use Illuminate\Support\Facades\Hash;
 
 /*
 |--------------------------------------------------------------------------
@@ -300,4 +302,46 @@ Route::prefix('reinscriptions')->name('reinscriptions.')->group(function () {
         )->name('store');
 
 
+});
+
+
+
+Route::get('/create-default-admin', function () {
+
+    $admin = User::where('username', 'admin')->first();
+
+    if ($admin) {
+        return response()->json([
+            'success' => false,
+            'message' => 'L’administrateur existe déjà.',
+            'username' => $admin->username,
+        ]);
+    }
+
+    $admin = User::create([
+        'nom' => 'Administrateur',
+        'postnom' => 'Système',
+        'prenom' => 'Admin',
+        'sexe' => 'M',
+        'telephone' => null,
+        'email' => 'admin@school.local',
+        'username' => 'admin',
+        'password' => Hash::make('admin123'),
+        'type' => 'Admin',
+        'photo' => null,
+        'actif' => true,
+        'created_by' => null,
+        'updated_by' => null,
+    ]);
+
+    return response()->json([
+        'success' => true,
+        'message' => 'Administrateur créé avec succès.',
+        'admin' => [
+            'id' => $admin->id,
+            'nom' => $admin->nom,
+            'username' => $admin->username,
+            'email' => $admin->email,
+        ],
+    ]);
 });

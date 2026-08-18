@@ -432,41 +432,37 @@ class InscriptionController extends Controller
     }
 
     public function classes(Request $request)
-    {
-        $request->validate([
-            'section' => [
-                'required',
-                'in:maternelle,primaire,secondaire,humanites',
-            ],
+{
+    $request->validate([
+        'section' => [
+            'required',
+            'in:maternelle,primaire,secondaire,humanites',
+        ],
+    ]);
+
+    $section = strtolower(trim($request->section));
+
+    $classes = Classe::where('actif', true)
+        ->whereRaw('LOWER(section) = ?', [$section])
+        ->orderBy('niveau')
+        ->orderBy('nom')
+        ->get([
+            'id',
+            'nom',
+            'niveau',
+            'section',
+            'option',
         ]);
 
-
-        $classes = Classe::where('actif', true)
-            ->where('section', $request->section)
-            ->orderBy('niveau')
-            ->orderBy('nom')
-            ->get([
-                'id',
-                'nom',
-                'niveau',
-                'section',
-                'option',
-            ]);
-
-
-        return response()->json(
-            $classes->map(function ($classe) {
-
-                return [
-                    'id' => $classe->id,
-
-                    'nom_complet' =>
-                        $classe->nom_complet,
-                ];
-
-            })
-        );
-    }
+    return response()->json(
+        $classes->map(function ($classe) {
+            return [
+                'id' => $classe->id,
+                'nom_complet' => $classe->nom_complet,
+            ];
+        })
+    );
+}
 
     /*
     |--------------------------------------------------------------------------
