@@ -46,4 +46,11 @@ class AnneeScolaire extends Model
             Inscription::class
         );
     }
+
+    public function frais()
+    {
+        return $this->hasMany(
+            Frais::class
+        );
+    }
 }

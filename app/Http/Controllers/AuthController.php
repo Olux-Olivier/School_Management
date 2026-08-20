@@ -68,7 +68,7 @@ class AuthController extends Controller
         // Régénérer la session (sécurité)
         $request->session()->regenerate();
 
-        return redirect()->route('users.index');
+        return redirect()->route('dashboard');
     }
 
     /**

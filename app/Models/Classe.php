@@ -66,6 +66,13 @@ class Classe extends Model
         );
     }
 
+    public function frais()
+    {
+        return $this->hasMany(
+            Frais::class
+        );
+    }
+
 
     /*
     |--------------------------------------------------------------------------

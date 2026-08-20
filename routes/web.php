@@ -7,6 +7,8 @@ use App\Http\Controllers\ClasseController;
 use App\Http\Controllers\EleveController;
 use App\Http\Controllers\InscriptionController;
 use App\Http\Controllers\ReinscriptionController;
+use App\Http\Controllers\FraisController;
+use App\Http\Controllers\HistoriqueFraisController;
 use App\Models\User;
 use Illuminate\Support\Facades\Hash;
 
@@ -24,6 +26,14 @@ Route::post('/login', [AuthController::class, 'login'])
 
 Route::post('/logout', [AuthController::class, 'logout'])
     ->name('logout');
+
+Route::get('/dashboard', function () {
+    return view('dashboard');
+})->middleware('auth')->name('dashboard');
+
+route::get('/', function () {
+    return redirect()->route('dashboard');
+})->middleware('auth');
 
 /*
 |--------------------------------------------------------------------------
@@ -304,7 +314,34 @@ Route::prefix('reinscriptions')->name('reinscriptions.')->group(function () {
 
 });
 
+/* Route pour les frais */
 
+Route::prefix('frais')
+    ->name('frais.')
+    ->controller(FraisController::class)
+    ->group(function () {
+
+        Route::get('/dashboard', 'dashboard')
+            ->name('dashboard');
+        Route::get('/', 'index')->name('index');
+        Route::get('/create', 'create')->name('create');
+        Route::post('/', 'store')->name('store');
+        Route::get('/{frais}/edit', 'edit')->name('edit');
+        Route::put('/{frais}', 'update')->name('update');
+        Route::get('/comparaison', 'comparaison')
+    ->name('comparaison');
+
+
+
+    });
+Route::get('/historique-frais', [HistoriqueFraisController::class,'index'])->name('frais.historique');
+Route::get('/evolution-frais', [HistoriqueFraisController::class,'evolution'])->name('frais.evolution');
+
+
+
+/*|--------------------------------------------------------------------------
+| Route pour créer un administrateur par défaut
+|--------------------------------------------------------------------------*/
 
 Route::get('/create-default-admin', function () {
 

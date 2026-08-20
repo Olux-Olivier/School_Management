@@ -88,7 +88,7 @@
 
         <nav class="flex-1 min-h-0 mt-6 overflow-y-auto overflow-x-hidden">
 
-            <a href="#"
+            <a href="{{ route('dashboard') }}"
 
                 class="flex items-center px-6 py-3 hover:bg-slate-800 transition">
 
@@ -164,13 +164,13 @@
 
             </a>
 
-            <a href="#"
+            <a href="{{ route('frais.dashboard') }}"
 
                 class="flex items-center px-6 py-3 hover:bg-slate-800">
 
                 <i class="fas fa-money-bill-wave w-6"></i>
 
-                <span>Paiements</span>
+                <span>Gestion des frais</span>
 
             </a>
 
