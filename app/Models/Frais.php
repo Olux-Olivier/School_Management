@@ -12,6 +12,7 @@ class Frais extends Model
     protected $fillable = [
         'intitule',
         'montant',
+        'section',
         'classe_id',
         'annee_scolaire_id',
         'created_by',

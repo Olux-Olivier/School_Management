@@ -13,9 +13,6 @@ class FraisController extends Controller
     |--------------------------------------------------------------------------
     | INDEX
     |--------------------------------------------------------------------------
-    |
-    | Afficher uniquement les frais de l'année scolaire active.
-    |
     */
 
     public function index(Request $request)
@@ -32,7 +29,7 @@ class FraisController extends Controller
 
         /*
         |--------------------------------------------------------------------------
-        | Requête des frais
+        | Requête
         |--------------------------------------------------------------------------
         */
 
@@ -62,6 +59,12 @@ class FraisController extends Controller
 
                 $q->where(
                     'intitule',
+                    'like',
+                    "%{$search}%"
+                )
+
+                ->orWhere(
+                    'section',
                     'like',
                     "%{$search}%"
                 )
@@ -102,18 +105,9 @@ class FraisController extends Controller
 
         if ($request->filled('section')) {
 
-            $section = $request->section;
-
-            $query->whereHas(
-                'classe',
-                function ($q) use ($section) {
-
-                    $q->where(
-                        'section',
-                        $section
-                    );
-
-                }
+            $query->where(
+                'section',
+                $request->section
             );
         }
 
@@ -130,12 +124,6 @@ class FraisController extends Controller
             ->withQueryString();
 
 
-        /*
-        |--------------------------------------------------------------------------
-        | Retour vue
-        |--------------------------------------------------------------------------
-        */
-
         return view(
             'frais.index',
             compact(
@@ -150,16 +138,13 @@ class FraisController extends Controller
     |--------------------------------------------------------------------------
     | CREATE
     |--------------------------------------------------------------------------
-    |
-    | Formulaire d'ajout d'un nouveau frais.
-    |
     */
 
     public function create()
     {
         /*
         |--------------------------------------------------------------------------
-        | Année scolaire active
+        | Année active
         |--------------------------------------------------------------------------
         */
 
@@ -193,13 +178,6 @@ class FraisController extends Controller
     |--------------------------------------------------------------------------
     | STORE
     |--------------------------------------------------------------------------
-    |
-    | Création d'un frais.
-    |
-    | IMPORTANT :
-    | L'année scolaire n'est jamais récupérée depuis
-    | le formulaire.
-    |
     */
 
     public function store(Request $request)
@@ -208,6 +186,12 @@ class FraisController extends Controller
         |--------------------------------------------------------------------------
         | Validation
         |--------------------------------------------------------------------------
+        |
+        | IMPORTANT :
+        |
+        | section n'est PAS utilisée pour déterminer la section réelle.
+        | Elle sert uniquement à l'interface.
+        |
         */
 
         $validated = $request->validate([
@@ -222,6 +206,11 @@ class FraisController extends Controller
                 'required',
                 'numeric',
                 'min:0',
+            ],
+
+            'section' => [
+                'required',
+                'string',
             ],
 
             'classe_id' => [
@@ -249,6 +238,9 @@ class FraisController extends Controller
 
             'montant.min' =>
                 'Le montant ne peut pas être négatif.',
+
+            'section.required' =>
+                'Veuillez sélectionner une section.',
 
             'classe_id.required' =>
                 'Veuillez sélectionner une classe.',
@@ -282,22 +274,15 @@ class FraisController extends Controller
 
         /*
         |--------------------------------------------------------------------------
-        | Vérifier la classe
+        | Récupérer la classe
         |--------------------------------------------------------------------------
         |
-        | Une classe inactive ne peut pas recevoir
-        | un nouveau frais.
+        | On récupère la section directement depuis la classe.
         |
         */
 
-        $classe = Classe::where(
-            'id',
-            $validated['classe_id']
-        )
-            ->where(
-                'actif',
-                true
-            )
+        $classe = Classe::where('id', $validated['classe_id'])
+            ->where('actif', true)
             ->first();
 
 
@@ -314,15 +299,20 @@ class FraisController extends Controller
 
         /*
         |--------------------------------------------------------------------------
-        | Vérifier si le même frais existe déjà
+        | SECTION RÉELLE
         |--------------------------------------------------------------------------
         |
-        | Exemple :
+        | La section enregistrée dans frais provient de la classe.
         |
-        | Minerval + 1ère Commerciale + 2026-2027
-        |
-        | ne doit pas être enregistré deux fois.
-        |
+        */
+
+        $section = $classe->section;
+
+
+        /*
+        |--------------------------------------------------------------------------
+        | Vérification du doublon
+        |--------------------------------------------------------------------------
         */
 
         $fraisExiste = Frais::where(
@@ -335,7 +325,11 @@ class FraisController extends Controller
             )
             ->whereRaw(
                 'LOWER(intitule) = ?',
-                [strtolower(trim($validated['intitule']))]
+                [
+                    strtolower(
+                        trim($validated['intitule'])
+                    )
+                ]
             )
             ->exists();
 
@@ -365,12 +359,15 @@ class FraisController extends Controller
             'montant' =>
                 $validated['montant'],
 
+            /*
+            | Section récupérée depuis la classe
+            */
+
+            'section' =>
+                $section,
+
             'classe_id' =>
                 $classe->id,
-
-            /*
-            | Année active récupérée côté serveur.
-            */
 
             'annee_scolaire_id' =>
                 $anneeScolaire->id,
@@ -400,18 +397,13 @@ class FraisController extends Controller
     |--------------------------------------------------------------------------
     | EDIT
     |--------------------------------------------------------------------------
-    |
-    | Modifier un frais de l'année active.
-    |
-    | L'année scolaire n'est PAS modifiable.
-    |
     */
 
     public function edit(Frais $frais)
     {
         /*
         |--------------------------------------------------------------------------
-        | Année scolaire active
+        | Année active
         |--------------------------------------------------------------------------
         */
 
@@ -421,12 +413,8 @@ class FraisController extends Controller
 
         /*
         |--------------------------------------------------------------------------
-        | Vérifier que le frais appartient à l'année active
+        | Vérifier l'année
         |--------------------------------------------------------------------------
-        |
-        | Un frais d'une ancienne année est historique.
-        | Il ne doit pas être modifié depuis cette interface.
-        |
         */
 
         if (
@@ -451,18 +439,12 @@ class FraisController extends Controller
 
         /*
         |--------------------------------------------------------------------------
-        | Charger la classe
+        | Charger les relations
         |--------------------------------------------------------------------------
         */
 
         $frais->load('classe');
 
-
-        /*
-        |--------------------------------------------------------------------------
-        | Retour vue
-        |--------------------------------------------------------------------------
-        */
 
         return view(
             'frais.edit',
@@ -479,17 +461,6 @@ class FraisController extends Controller
     |--------------------------------------------------------------------------
     | UPDATE
     |--------------------------------------------------------------------------
-    |
-    | Modifier :
-    |
-    | - intitulé
-    | - montant
-    | - classe
-    |
-    | MAIS PAS :
-    |
-    | - annee_scolaire_id
-    |
     */
 
     public function update(
@@ -499,7 +470,7 @@ class FraisController extends Controller
 
         /*
         |--------------------------------------------------------------------------
-        | Année scolaire active
+        | Année active
         |--------------------------------------------------------------------------
         */
 
@@ -509,8 +480,7 @@ class FraisController extends Controller
 
         /*
         |--------------------------------------------------------------------------
-        | Vérifier que le frais appartient
-        | à l'année active
+        | Vérifier l'année
         |--------------------------------------------------------------------------
         */
 
@@ -542,6 +512,11 @@ class FraisController extends Controller
                 'min:0',
             ],
 
+            'section' => [
+                'required',
+                'string',
+            ],
+
             'classe_id' => [
                 'required',
                 'integer',
@@ -567,6 +542,9 @@ class FraisController extends Controller
 
             'montant.min' =>
                 'Le montant ne peut pas être négatif.',
+
+            'section.required' =>
+                'Veuillez sélectionner une section.',
 
             'classe_id.required' =>
                 'Veuillez sélectionner une classe.',
@@ -607,11 +585,17 @@ class FraisController extends Controller
 
         /*
         |--------------------------------------------------------------------------
+        | Section réelle
+        |--------------------------------------------------------------------------
+        */
+
+        $section = $classe->section;
+
+
+        /*
+        |--------------------------------------------------------------------------
         | Vérifier le doublon
         |--------------------------------------------------------------------------
-        |
-        | On exclut le frais actuellement modifié.
-        |
         */
 
         $fraisExiste = Frais::where(
@@ -624,7 +608,11 @@ class FraisController extends Controller
             )
             ->whereRaw(
                 'LOWER(intitule) = ?',
-                [strtolower(trim($validated['intitule']))]
+                [
+                    strtolower(
+                        trim($validated['intitule'])
+                    )
+                ]
             )
             ->where(
                 'id',
@@ -649,18 +637,6 @@ class FraisController extends Controller
         |--------------------------------------------------------------------------
         | Mise à jour
         |--------------------------------------------------------------------------
-        |
-        | IMPORTANT :
-        |
-        | Nous ne mettons volontairement PAS :
-        |
-        | 'annee_scolaire_id'
-        |
-        | dans update().
-        |
-        | Elle reste donc définitivement liée à l'année
-        | dans laquelle le frais a été créé.
-        |
         */
 
         $frais->update([
@@ -670,6 +646,13 @@ class FraisController extends Controller
 
             'montant' =>
                 $validated['montant'],
+
+            /*
+            | Toujours synchroniser la section avec la classe.
+            */
+
+            'section' =>
+                $section,
 
             'classe_id' =>
                 $classe->id,
@@ -694,462 +677,453 @@ class FraisController extends Controller
             );
     }
 
+
     /*
     |--------------------------------------------------------------------------
-    | COMPARAISON DES FRAIS
+    | COMPARAISON
     |--------------------------------------------------------------------------
-    |
-    | Comparer les frais d'une année scolaire à une autre.
-    |
     */
 
     public function comparaison(Request $request)
-{
-    /*
-    |--------------------------------------------------------------------------
-    | Toutes les années scolaires
-    |--------------------------------------------------------------------------
-    */
-
-    $anneesScolaires = AnneeScolaire::orderByDesc('id')
-        ->get();
-
-
-    /*
-    |--------------------------------------------------------------------------
-    | Classes
-    |--------------------------------------------------------------------------
-    */
-
-    $classes = Classe::orderBy('niveau')
-        ->orderBy('nom')
-        ->get();
-
-
-    /*
-    |--------------------------------------------------------------------------
-    | Années sélectionnées
-    |--------------------------------------------------------------------------
-    */
-
-    $annee1 = null;
-    $annee2 = null;
-
-    $resultats = collect();
-
-
-    /*
-    |--------------------------------------------------------------------------
-    | Si l'utilisateur lance une comparaison
-    |--------------------------------------------------------------------------
-    */
-
-    if (
-        $request->filled('annee_1') &&
-        $request->filled('annee_2')
-    ) {
-
+    {
         /*
-        |----------------------------------------------------------------------
-        | Vérifier que les deux années existent
-        |----------------------------------------------------------------------
+        |--------------------------------------------------------------------------
+        | Années scolaires
+        |--------------------------------------------------------------------------
         */
 
-        $annee1 = AnneeScolaire::findOrFail(
-            $request->annee_1
-        );
-
-        $annee2 = AnneeScolaire::findOrFail(
-            $request->annee_2
-        );
-
-
-        /*
-        |----------------------------------------------------------------------
-        | Les deux années doivent être différentes
-        |----------------------------------------------------------------------
-        */
-
-        if ($annee1->id === $annee2->id) {
-
-            return back()
-                ->withInput()
-                ->withErrors([
-                    'annee_2' =>
-                        'Veuillez sélectionner deux années scolaires différentes.',
-                ]);
-        }
-
-
-        /*
-        |----------------------------------------------------------------------
-        | Requête année 1
-        |----------------------------------------------------------------------
-        */
-
-        $query1 = Frais::with('classe')
-            ->where(
-                'annee_scolaire_id',
-                $annee1->id
-            );
-
-
-        /*
-        |----------------------------------------------------------------------
-        | Requête année 2
-        |----------------------------------------------------------------------
-        */
-
-        $query2 = Frais::with('classe')
-            ->where(
-                'annee_scolaire_id',
-                $annee2->id
-            );
-
-
-        /*
-        |----------------------------------------------------------------------
-        | Filtre section
-        |----------------------------------------------------------------------
-        */
-
-        if ($request->filled('section')) {
-
-            $query1->whereHas(
-                'classe',
-                function ($query) use ($request) {
-
-                    $query->where(
-                        'section',
-                        $request->section
-                    );
-                }
-            );
-
-            $query2->whereHas(
-                'classe',
-                function ($query) use ($request) {
-
-                    $query->where(
-                        'section',
-                        $request->section
-                    );
-                }
-            );
-        }
-
-
-        /*
-        |----------------------------------------------------------------------
-        | Filtre classe
-        |----------------------------------------------------------------------
-        */
-
-        if ($request->filled('classe_id')) {
-
-            $query1->where(
-                'classe_id',
-                $request->classe_id
-            );
-
-            $query2->where(
-                'classe_id',
-                $request->classe_id
-            );
-        }
-
-
-        /*
-        |----------------------------------------------------------------------
-        | Filtre intitulé
-        |----------------------------------------------------------------------
-        */
-
-        if ($request->filled('intitule')) {
-
-            $intitule = trim(
-                $request->intitule
-            );
-
-            $query1->where(
-                'intitule',
-                'like',
-                "%{$intitule}%"
-            );
-
-            $query2->where(
-                'intitule',
-                'like',
-                "%{$intitule}%"
-            );
-        }
-
-
-        /*
-        |----------------------------------------------------------------------
-        | Récupération
-        |----------------------------------------------------------------------
-        */
-
-        $frais1 = $query1->get();
-
-        $frais2 = $query2->get();
+        $anneesScolaires = AnneeScolaire::orderByDesc('id')
+            ->get();
 
 
         /*
         |--------------------------------------------------------------------------
-        | Construction de la comparaison
+        | Classes
         |--------------------------------------------------------------------------
-        |
-        | On crée une clé unique :
-        |
-        | intitulé + classe
-        |
         */
 
-        $fraisCollection = $frais1
-            ->concat($frais2)
-            ->map(function ($frais) {
-
-                return [
-                    'key' =>
-                        strtolower(
-                            trim($frais->intitule)
-                        )
-                        . '|'
-                        . $frais->classe_id,
-
-                    'intitule' =>
-                        $frais->intitule,
-
-                    'classe' =>
-                        $frais->classe,
-
-                ];
-            })
-            ->unique('key')
-            ->values();
+        $classes = Classe::orderBy('niveau')
+            ->orderBy('nom')
+            ->get();
 
 
         /*
         |--------------------------------------------------------------------------
-        | Construire les résultats
+        | Initialisation
         |--------------------------------------------------------------------------
         */
 
-        foreach ($fraisCollection as $item) {
+        $annee1 = null;
+        $annee2 = null;
 
-            $fraisAnnee1 = $frais1
-                ->first(function ($frais) use ($item) {
-
-                    return strtolower(
-                        trim($frais->intitule)
-                    )
-                    . '|'
-                    . $frais->classe_id
-                    === $item['key'];
-                });
+        $resultats = collect();
 
 
-            $fraisAnnee2 = $frais2
-                ->first(function ($frais) use ($item) {
+        /*
+        |--------------------------------------------------------------------------
+        | Comparaison demandée
+        |--------------------------------------------------------------------------
+        */
 
-                    return strtolower(
-                        trim($frais->intitule)
-                    )
-                    . '|'
-                    . $frais->classe_id
-                    === $item['key'];
-                });
+        if (
+            $request->filled('annee_1') &&
+            $request->filled('annee_2')
+        ) {
 
+            $annee1 = AnneeScolaire::findOrFail(
+                $request->annee_1
+            );
 
-            $montant1 = $fraisAnnee1?->montant;
-
-            $montant2 = $fraisAnnee2?->montant;
+            $annee2 = AnneeScolaire::findOrFail(
+                $request->annee_2
+            );
 
 
             /*
-            |------------------------------------------------------------------
-            | Différence
-            |------------------------------------------------------------------
+            | Les années doivent être différentes
             */
 
-            $difference = null;
+            if ($annee1->id === $annee2->id) {
 
-            $pourcentage = null;
-
-            $statut = 'absent';
-
-
-            if (
-                $montant1 !== null &&
-                $montant2 !== null
-            ) {
-
-                $difference =
-                    $montant2 - $montant1;
-
-
-                if ($montant1 > 0) {
-
-                    $pourcentage =
-                        (
-                            $difference
-                            / $montant1
-                        ) * 100;
-                }
-
-
-                if ($difference > 0) {
-
-                    $statut = 'augmentation';
-
-                } elseif ($difference < 0) {
-
-                    $statut = 'diminution';
-
-                } else {
-
-                    $statut = 'stable';
-                }
-
-
-            } elseif ($montant1 === null) {
-
-                $statut = 'nouveau';
-
-            } elseif ($montant2 === null) {
-
-                $statut = 'supprime';
+                return back()
+                    ->withInput()
+                    ->withErrors([
+                        'annee_2' =>
+                            'Veuillez sélectionner deux années scolaires différentes.',
+                    ]);
             }
 
 
-            $resultats->push([
+            /*
+            |--------------------------------------------------------------------------
+            | Requête année 1
+            |--------------------------------------------------------------------------
+            */
 
-                'intitule' =>
-                    $item['intitule'],
+            $query1 = Frais::with('classe')
+                ->where(
+                    'annee_scolaire_id',
+                    $annee1->id
+                );
 
-                'classe' =>
-                    $item['classe'],
 
-                'montant_1' =>
-                    $montant1,
+            /*
+            |--------------------------------------------------------------------------
+            | Requête année 2
+            |--------------------------------------------------------------------------
+            */
 
-                'montant_2' =>
-                    $montant2,
+            $query2 = Frais::with('classe')
+                ->where(
+                    'annee_scolaire_id',
+                    $annee2->id
+                );
 
-                'difference' =>
-                    $difference,
 
-                'pourcentage' =>
-                    $pourcentage,
+            /*
+            |--------------------------------------------------------------------------
+            | Filtre section
+            |--------------------------------------------------------------------------
+            */
 
-                'statut' =>
-                    $statut,
+            if ($request->filled('section')) {
 
-            ]);
+                $query1->where(
+                    'section',
+                    $request->section
+                );
+
+                $query2->where(
+                    'section',
+                    $request->section
+                );
+            }
+
+
+            /*
+            |--------------------------------------------------------------------------
+            | Filtre classe
+            |--------------------------------------------------------------------------
+            */
+
+            if ($request->filled('classe_id')) {
+
+                $query1->where(
+                    'classe_id',
+                    $request->classe_id
+                );
+
+                $query2->where(
+                    'classe_id',
+                    $request->classe_id
+                );
+            }
+
+
+            /*
+            |--------------------------------------------------------------------------
+            | Filtre intitulé
+            |--------------------------------------------------------------------------
+            */
+
+            if ($request->filled('intitule')) {
+
+                $intitule = trim(
+                    $request->intitule
+                );
+
+                $query1->where(
+                    'intitule',
+                    'like',
+                    "%{$intitule}%"
+                );
+
+                $query2->where(
+                    'intitule',
+                    'like',
+                    "%{$intitule}%"
+                );
+            }
+
+
+            /*
+            |--------------------------------------------------------------------------
+            | Récupération
+            |--------------------------------------------------------------------------
+            */
+
+            $frais1 = $query1->get();
+
+            $frais2 = $query2->get();
+
+
+            /*
+            |--------------------------------------------------------------------------
+            | Construction des clés
+            |--------------------------------------------------------------------------
+            */
+
+            $fraisCollection = $frais1
+                ->concat($frais2)
+                ->map(function ($frais) {
+
+                    return [
+
+                        'key' =>
+                            strtolower(
+                                trim($frais->intitule)
+                            )
+                            . '|'
+                            . $frais->classe_id,
+
+                        'intitule' =>
+                            $frais->intitule,
+
+                        'classe' =>
+                            $frais->classe,
+
+                    ];
+                })
+                ->unique('key')
+                ->values();
+
+
+            /*
+            |--------------------------------------------------------------------------
+            | Résultats
+            |--------------------------------------------------------------------------
+            */
+
+            foreach ($fraisCollection as $item) {
+
+                $fraisAnnee1 = $frais1
+                    ->first(function ($frais) use ($item) {
+
+                        return strtolower(
+                            trim($frais->intitule)
+                        )
+                        . '|'
+                        . $frais->classe_id
+                        === $item['key'];
+
+                    });
+
+
+                $fraisAnnee2 = $frais2
+                    ->first(function ($frais) use ($item) {
+
+                        return strtolower(
+                            trim($frais->intitule)
+                        )
+                        . '|'
+                        . $frais->classe_id
+                        === $item['key'];
+
+                    });
+
+
+                $montant1 =
+                    $fraisAnnee1?->montant;
+
+                $montant2 =
+                    $fraisAnnee2?->montant;
+
+
+                $difference = null;
+
+                $pourcentage = null;
+
+                $statut = 'absent';
+
+
+                /*
+                |--------------------------------------------------------------------------
+                | Calcul
+                |--------------------------------------------------------------------------
+                */
+
+                if (
+                    $montant1 !== null &&
+                    $montant2 !== null
+                ) {
+
+                    $difference =
+                        $montant2 - $montant1;
+
+
+                    if ($montant1 > 0) {
+
+                        $pourcentage =
+                            (
+                                $difference
+                                / $montant1
+                            ) * 100;
+                    }
+
+
+                    if ($difference > 0) {
+
+                        $statut = 'augmentation';
+
+                    } elseif ($difference < 0) {
+
+                        $statut = 'diminution';
+
+                    } else {
+
+                        $statut = 'stable';
+                    }
+
+
+                } elseif ($montant1 === null) {
+
+                    $statut = 'nouveau';
+
+                } elseif ($montant2 === null) {
+
+                    $statut = 'supprime';
+                }
+
+
+                $resultats->push([
+
+                    'intitule' =>
+                        $item['intitule'],
+
+                    'classe' =>
+                        $item['classe'],
+
+                    'montant_1' =>
+                        $montant1,
+
+                    'montant_2' =>
+                        $montant2,
+
+                    'difference' =>
+                        $difference,
+
+                    'pourcentage' =>
+                        $pourcentage,
+
+                    'statut' =>
+                        $statut,
+
+                ]);
+            }
         }
+
+
+        /*
+        |--------------------------------------------------------------------------
+        | Vue
+        |--------------------------------------------------------------------------
+        */
+
+        return view(
+            'frais.comparaison_frais',
+            compact(
+                'anneesScolaires',
+                'classes',
+                'annee1',
+                'annee2',
+                'resultats'
+            )
+        );
     }
 
 
     /*
     |--------------------------------------------------------------------------
-    | Retour
+    | DASHBOARD
     |--------------------------------------------------------------------------
     */
 
-    return view(
-        'frais.comparaison_frais',
-        compact(
-            'anneesScolaires',
-            'classes',
-            'annee1',
-            'annee2',
-            'resultats'
-        )
-    );
-}
+    public function dashboard()
+    {
+        /*
+        |--------------------------------------------------------------------------
+        | Année active
+        |--------------------------------------------------------------------------
+        */
 
-/*dashboard*/
-
-public function dashboard()
-{
-    /*
-    |--------------------------------------------------------------------------
-    | Année scolaire active
-    |--------------------------------------------------------------------------
-    */
-
-    $anneeScolaire = AnneeScolaire::where('actif', true)
-        ->firstOrFail();
+        $anneeScolaire = AnneeScolaire::where('actif', true)
+            ->firstOrFail();
 
 
-    /*
-    |--------------------------------------------------------------------------
-    | Frais de l'année active
-    |--------------------------------------------------------------------------
-    */
+        /*
+        |--------------------------------------------------------------------------
+        | Frais
+        |--------------------------------------------------------------------------
+        */
 
-    $frais = Frais::with('classe')
-        ->where(
-            'annee_scolaire_id',
-            $anneeScolaire->id
-        )
-        ->get();
-
-
-    /*
-    |--------------------------------------------------------------------------
-    | Statistiques
-    |--------------------------------------------------------------------------
-    */
-
-    $nombreFrais = $frais->count();
-
-    $nombreClasses = $frais
-        ->pluck('classe_id')
-        ->unique()
-        ->count();
-
-    $montantTotal = $frais->sum('montant');
-
-    $montantMoyen = $nombreFrais > 0
-        ? $frais->avg('montant')
-        : 0;
+        $frais = Frais::with('classe')
+            ->where(
+                'annee_scolaire_id',
+                $anneeScolaire->id
+            )
+            ->get();
 
 
-    /*
-    |--------------------------------------------------------------------------
-    | Derniers frais ajoutés
-    |--------------------------------------------------------------------------
-    */
+        /*
+        |--------------------------------------------------------------------------
+        | Statistiques
+        |--------------------------------------------------------------------------
+        */
 
-    $derniersFrais = Frais::with('classe')
-        ->where(
-            'annee_scolaire_id',
-            $anneeScolaire->id
-        )
-        ->latest('id')
-        ->take(5)
-        ->get();
+        $nombreFrais =
+            $frais->count();
 
 
-    /*
-    |--------------------------------------------------------------------------
-    | Retour
-    |--------------------------------------------------------------------------
-    */
+        $nombreClasses =
+            $frais
+                ->pluck('classe_id')
+                ->unique()
+                ->count();
 
-    return view(
-        'frais.dashboard',
-        compact(
-            'anneeScolaire',
-            'nombreFrais',
-            'nombreClasses',
-            'montantTotal',
-            'montantMoyen',
-            'derniersFrais'
-        )
-    );
-}
+
+        $montantTotal =
+            $frais->sum('montant');
+
+
+        $montantMoyen =
+            $nombreFrais > 0
+                ? $frais->avg('montant')
+                : 0;
+
+
+        /*
+        |--------------------------------------------------------------------------
+        | Derniers frais
+        |--------------------------------------------------------------------------
+        */
+
+        $derniersFrais =
+            Frais::with('classe')
+                ->where(
+                    'annee_scolaire_id',
+                    $anneeScolaire->id
+                )
+                ->latest('id')
+                ->take(5)
+                ->get();
+
+
+        /*
+        |--------------------------------------------------------------------------
+        | Vue
+        |--------------------------------------------------------------------------
+        */
+
+        return view(
+            'frais.dashboard',
+            compact(
+                'anneeScolaire',
+                'nombreFrais',
+                'nombreClasses',
+                'montantTotal',
+                'montantMoyen',
+                'derniersFrais'
+            )
+        );
+    }
 }
