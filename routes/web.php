@@ -404,9 +404,38 @@ Route::prefix('frais')
             ->name('update');
 
     });
-    
+
 Route::get('/historique-frais', [HistoriqueFraisController::class,'index'])->name('frais.historique');
 Route::get('/evolution-frais', [HistoriqueFraisController::class,'evolution'])->name('frais.evolution');
+
+
+/*|--------------------------------------------------------------------------
+| Paiements
+|--------------------------------------------------------------------------*/
+route::prefix('paiements')
+    ->name('paiements.')
+    ->controller(PaiementController::class)
+    ->group(function () {
+
+        /*
+        |--------------------------------------------------------------------------
+        | INDEX
+        |--------------------------------------------------------------------------
+        */
+
+        Route::get('/', 'index')
+            ->name('index');
+        Route::get('/create', 'create')
+            ->name('create');
+        Route::post('/', 'store')
+            ->name('store');
+        Route::get('/{paiement}/show', 'show')
+            ->name('show');
+        Route::get('/{paiement}/edit', 'edit')
+            ->name('edit');
+        Route::put('/{paiement}', 'update')
+            ->name('update');
+    });
 
 
 
