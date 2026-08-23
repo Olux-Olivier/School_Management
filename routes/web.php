@@ -9,6 +9,7 @@ use App\Http\Controllers\InscriptionController;
 use App\Http\Controllers\ReinscriptionController;
 use App\Http\Controllers\FraisController;
 use App\Http\Controllers\HistoriqueFraisController;
+use App\Http\Controllers\PaiementController;
 use App\Models\User;
 use Illuminate\Support\Facades\Hash;
 
@@ -412,29 +413,31 @@ Route::get('/evolution-frais', [HistoriqueFraisController::class,'evolution'])->
 /*|--------------------------------------------------------------------------
 | Paiements
 |--------------------------------------------------------------------------*/
-route::prefix('paiements')
+Route::prefix('paiements')
     ->name('paiements.')
-    ->controller(PaiementController::class)
     ->group(function () {
 
-        /*
-        |--------------------------------------------------------------------------
-        | INDEX
-        |--------------------------------------------------------------------------
-        */
+        // Recherche des élèves et historique
+        Route::get('/', [
+            PaiementController::class,
+            'index'
+        ])->name('index');
 
-        Route::get('/', 'index')
-            ->name('index');
-        Route::get('/create', 'create')
-            ->name('create');
-        Route::post('/', 'store')
-            ->name('store');
-        Route::get('/{paiement}/show', 'show')
-            ->name('show');
-        Route::get('/{paiement}/edit', 'edit')
-            ->name('edit');
-        Route::put('/{paiement}', 'update')
-            ->name('update');
+        Route::get('/{eleve}', [
+            PaiementController::class,
+            'show'
+        ])->name('show');
+
+        Route::get('/{eleve}/create', [
+            PaiementController::class,
+            'create'
+        ])->name('create');
+
+        Route::post('/', [
+            PaiementController::class,
+            'store'
+        ])->name('store');
+
     });
 
 

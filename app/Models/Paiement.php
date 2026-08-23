@@ -13,6 +13,7 @@ class Paiement extends Model
         'eleve_id',
         'annee_scolaire_id',
         'frais_id',
+        'motif',
         'mois',
         'montant_du',
         'montant_paye',
