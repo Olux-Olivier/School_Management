@@ -141,4 +141,12 @@ class Eleve extends Model
             Inscription::class
         );
     }
+
+    public function paiements()
+    {
+        return $this->hasMany(
+            Paiement::class,
+            'eleve_id'
+        );
+    }
 }

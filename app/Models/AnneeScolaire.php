@@ -53,4 +53,12 @@ class AnneeScolaire extends Model
             Frais::class
         );
     }
+
+    public function paiements()
+    {
+        return $this->hasMany(
+            Paiement::class,
+            'annee_scolaire_id'
+        );
+    }
 }

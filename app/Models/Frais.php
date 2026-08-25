@@ -12,6 +12,7 @@ class Frais extends Model
     protected $fillable = [
         'intitule',
         'montant',
+        'section',
         'classe_id',
         'annee_scolaire_id',
         'created_by',
@@ -93,7 +94,8 @@ class Frais extends Model
     public function paiements()
     {
         return $this->hasMany(
-            Paiement::class
+            Paiement::class,
+            'frais_id'
         );
     }
 }

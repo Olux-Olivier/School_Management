@@ -9,6 +9,7 @@ use App\Http\Controllers\InscriptionController;
 use App\Http\Controllers\ReinscriptionController;
 use App\Http\Controllers\FraisController;
 use App\Http\Controllers\HistoriqueFraisController;
+use App\Http\Controllers\PaiementController;
 use App\Models\User;
 use Illuminate\Support\Facades\Hash;
 
@@ -321,21 +322,123 @@ Route::prefix('frais')
     ->controller(FraisController::class)
     ->group(function () {
 
+        /*
+        |--------------------------------------------------------------------------
+        | DASHBOARD
+        |--------------------------------------------------------------------------
+        */
+
         Route::get('/dashboard', 'dashboard')
             ->name('dashboard');
-        Route::get('/', 'index')->name('index');
-        Route::get('/create', 'create')->name('create');
-        Route::post('/', 'store')->name('store');
-        Route::get('/{frais}/edit', 'edit')->name('edit');
-        Route::put('/{frais}', 'update')->name('update');
+
+
+        /*
+        |--------------------------------------------------------------------------
+        | COMPARAISON
+        |--------------------------------------------------------------------------
+        */
+
         Route::get('/comparaison', 'comparaison')
-    ->name('comparaison');
+            ->name('comparaison');
 
 
+        /*
+        |--------------------------------------------------------------------------
+        | CLASSES PAR SECTION
+        |--------------------------------------------------------------------------
+        |
+        | Cette route doit être placée avant /{frais}/edit
+        |
+        */
+
+        Route::get('/classes', 'classesParSection')
+            ->name('classes');
+
+
+        /*
+        |--------------------------------------------------------------------------
+        | INDEX
+        |--------------------------------------------------------------------------
+        */
+
+        Route::get('/', 'index')
+            ->name('index');
+
+
+        /*
+        |--------------------------------------------------------------------------
+        | CREATE
+        |--------------------------------------------------------------------------
+        */
+
+        Route::get('/create', 'create')
+            ->name('create');
+
+
+        /*
+        |--------------------------------------------------------------------------
+        | STORE
+        |--------------------------------------------------------------------------
+        */
+
+        Route::post('/', 'store')
+            ->name('store');
+
+
+        /*
+        |--------------------------------------------------------------------------
+        | EDIT
+        |--------------------------------------------------------------------------
+        */
+
+        Route::get('/{frais}/edit', 'edit')
+            ->name('edit');
+
+
+        /*
+        |--------------------------------------------------------------------------
+        | UPDATE
+        |--------------------------------------------------------------------------
+        */
+
+        Route::put('/{frais}', 'update')
+            ->name('update');
 
     });
+
 Route::get('/historique-frais', [HistoriqueFraisController::class,'index'])->name('frais.historique');
 Route::get('/evolution-frais', [HistoriqueFraisController::class,'evolution'])->name('frais.evolution');
+
+
+/*|--------------------------------------------------------------------------
+| Paiements
+|--------------------------------------------------------------------------*/
+Route::prefix('paiements')
+    ->name('paiements.')
+    ->group(function () {
+
+        // Recherche des élèves et historique
+        Route::get('/', [
+            PaiementController::class,
+            'index'
+        ])->name('index');
+
+        Route::get('/{eleve}', [
+            PaiementController::class,
+            'show'
+        ])->name('show');
+
+        Route::get('/{eleve}/create', [
+            PaiementController::class,
+            'create'
+        ])->name('create');
+
+        Route::post('/', [
+            PaiementController::class,
+            'store'
+        ])->name('store');
+
+    });
 
 
 

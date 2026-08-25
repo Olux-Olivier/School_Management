@@ -174,13 +174,13 @@
 
             </a>
 
-            <a href="#"
+            <a href="{{ route('paiements.index') }}"
 
                 class="flex items-center px-6 py-3 hover:bg-slate-800">
 
                 <i class="fas fa-chart-bar w-6"></i>
 
-                <span>Rapports</span>
+                <span>Paiements</span>
 
             </a>
 
