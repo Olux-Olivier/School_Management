@@ -4,32 +4,23 @@
 
 @section('content')
 
-<div class="max-w-7xl mx-auto py-8 px-4">
-
-    {{-- ================================================================
-         EN-TÊTE
-    ================================================================= --}}
-
-    <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-4 mb-6">
-
-        <div>
-            <h1 class="text-2xl font-bold text-slate-700">
-                Paiements
-            </h1>
-
-            <p class="text-sm text-slate-500 mt-1">
-                Rechercher un élève et consulter son historique de paiements.
-            </p>
-        </div>
-
-    </div>
-
+<div class="max-w-7xl mx-auto px-4 py-6 sm:px-6 sm:py-8 lg:px-8">
 
     {{-- ================================================================
          FILTRES
     ================================================================= --}}
 
-    <div class="bg-white rounded-xl shadow-sm border border-slate-200 p-5 mb-6">
+    <div class="mb-6 rounded-2xl border border-slate-200 bg-white p-5 shadow-sm sm:p-6">
+
+        <div class="mb-5 flex items-center gap-3 border-b border-slate-100 pb-4">
+            <div class="flex h-9 w-9 items-center justify-center rounded-lg bg-blue-50 text-blue-600">
+                <i class="fas fa-filter"></i>
+            </div>
+            <div>
+                <h2 class="font-semibold text-slate-800">Filtres de recherche</h2>
+                <p class="text-xs text-slate-500">Affinez la liste des élèves inscrits.</p>
+            </div>
+        </div>
 
         <form
             method="GET"
@@ -37,7 +28,7 @@
             id="paiementSearchForm"
         >
 
-            <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
+            <div class="grid grid-cols-1 gap-5 sm:grid-cols-2 xl:grid-cols-4">
 
                 {{-- ----------------------------------------------------
                      ANNÉE SCOLAIRE
@@ -55,7 +46,7 @@
                     <select
                         name="annee_scolaire_id"
                         id="annee_scolaire_id"
-                        class="w-full rounded-lg border-slate-300 focus:border-indigo-500 focus:ring-indigo-500"
+                        class="w-full rounded-xl border border-slate-300 bg-slate-50 px-3 py-3 text-sm focus:border-blue-500 focus:bg-white focus:ring-2 focus:ring-blue-500/20"
                     >
 
                         @foreach($anneesScolaires as $annee)
@@ -95,7 +86,7 @@
                     <select
                         name="section"
                         id="section"
-                        class="w-full rounded-lg border-slate-300 focus:border-indigo-500 focus:ring-indigo-500"
+                        class="w-full rounded-xl border border-slate-300 bg-slate-50 px-3 py-3 text-sm focus:border-blue-500 focus:bg-white focus:ring-2 focus:ring-blue-500/20"
                     >
 
                         <option value="">
@@ -151,7 +142,7 @@
                     <select
                         name="classe_id"
                         id="classe_id"
-                        class="w-full rounded-lg border-slate-300 focus:border-indigo-500 focus:ring-indigo-500"
+                        class="w-full rounded-xl border border-slate-300 bg-slate-50 px-3 py-3 text-sm focus:border-blue-500 focus:bg-white focus:ring-2 focus:ring-blue-500/20"
                     >
 
                         <option value="">
@@ -201,7 +192,7 @@
                             id="search"
                             value="{{ request('search') }}"
                             placeholder="Matricule, nom, postnom ou prénom..."
-                            class="w-full rounded-lg border-slate-300 pr-10 focus:border-indigo-500 focus:ring-indigo-500"
+                            class="w-full rounded-xl border border-slate-300 bg-slate-50 py-3 pl-4 pr-10 text-sm focus:border-blue-500 focus:bg-white focus:ring-2 focus:ring-blue-500/20"
                         >
 
                         @if(request('search'))
@@ -228,18 +219,18 @@
                  BOUTONS
             --------------------------------------------------------- --}}
 
-            <div class="flex justify-end gap-3 mt-5">
+            <div class="mt-6 flex flex-col-reverse gap-3 border-t border-slate-100 pt-5 sm:flex-row sm:justify-end">
 
                 <a
                     href="{{ route('paiements.index') }}"
-                    class="px-4 py-2 rounded-lg border border-slate-300 text-slate-600 hover:bg-slate-50 transition"
+                    class="inline-flex items-center justify-center rounded-xl border border-slate-300 px-5 py-2.5 text-sm font-medium text-slate-600 transition hover:bg-slate-50"
                 >
                     Réinitialiser
                 </a>
 
                 <button
                     type="submit"
-                    class="px-5 py-2 rounded-lg bg-indigo-600 text-white hover:bg-indigo-700 transition"
+                    class="inline-flex items-center justify-center rounded-xl bg-blue-600 px-5 py-2.5 text-sm font-semibold text-white shadow-sm transition hover:bg-blue-700"
                 >
                     Rechercher
                 </button>
@@ -259,7 +250,7 @@
 
         <div class="mb-4">
 
-            <div class="inline-flex items-center gap-2 px-3 py-2 rounded-lg bg-indigo-50 text-indigo-700 text-sm">
+            <div class="inline-flex items-center gap-2 rounded-xl border border-blue-100 bg-blue-50 px-4 py-2.5 text-sm text-blue-700">
 
                 <span class="font-medium">
                     Année consultée :
@@ -280,17 +271,25 @@
          TABLEAU DES ÉLÈVES
     ================================================================= --}}
 
-    <div class="bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden">
+    <div class="overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm">
 
-        <div class="px-5 py-4 border-b border-slate-200">
+        <div class="flex flex-col gap-2 border-b border-slate-200 px-5 py-4 sm:flex-row sm:items-center sm:justify-between sm:px-6">
 
-            <h2 class="font-semibold text-slate-700">
+            <div>
+
+            <h2 class="font-semibold text-slate-800">
                 Élèves inscrits
             </h2>
 
             <p class="text-xs text-slate-500 mt-1">
                 Les résultats correspondent à l'année scolaire sélectionnée.
             </p>
+
+            </div>
+
+            <span class="inline-flex w-fit items-center rounded-full bg-blue-50 px-3 py-1 text-xs font-semibold text-blue-700">
+                {{ $inscriptions->total() }} élève(s)
+            </span>
 
         </div>
 
@@ -299,7 +298,7 @@
 
             <div class="overflow-x-auto">
 
-                <table class="w-full text-sm">
+                <table class="w-full min-w-[900px] text-sm">
 
                     <thead class="bg-slate-50 border-b border-slate-200">
 
@@ -338,11 +337,11 @@
 
                         @foreach($inscriptions as $inscription)
 
-                            <tr class="hover:bg-slate-50 transition">
+                            <tr class="transition hover:bg-blue-50/40">
 
                                 {{-- MATRICULE --}}
 
-                                <td class="px-5 py-4 font-medium text-slate-700">
+                                <td class="px-5 py-4 font-semibold text-blue-600">
 
                                     {{ $inscription->eleve->matricule }}
 
@@ -421,7 +420,7 @@
 
                                     <a
                                         href="{{ route('paiements.show', ['eleve' => $inscription->eleve_id,'annee_scolaire_id' => $anneeScolaireId,]) }}"
-                                        class="inline-flex items-center px-3 py-2 rounded-lg bg-indigo-600 text-white hover:bg-indigo-700 transition text-xs font-medium"
+                                        class="inline-flex items-center rounded-lg bg-blue-600 px-3 py-2 text-xs font-semibold text-white transition hover:bg-blue-700"
                                     >
                                         Consulter les paiements
                                     </a>
@@ -451,7 +450,7 @@
 
         @else
 
-            <div class="px-5 py-12 text-center">
+            <div class="px-5 py-14 text-center">
 
                 <div class="text-slate-400 text-4xl mb-3">
                     €
