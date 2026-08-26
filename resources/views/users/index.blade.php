@@ -1,4 +1,4 @@
-@extends('layouts.app')
+@extends('layouts.admin')
 
 @section('title', 'Utilisateurs')
 
@@ -69,7 +69,7 @@ document.addEventListener('DOMContentLoaded', function () {
     const search = document.getElementById('search');
     const table = document.getElementById('usersTable');
     const indexUrl = @json(route('users.index'));
-    const usersBaseUrl = @json(url('/utilisateurs'));
+    const usersBaseUrl = @json(url('/administration/utilisateurs'));
     let timer = null;
     let request = null;
 

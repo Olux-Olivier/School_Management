@@ -10,6 +10,8 @@ use App\Http\Controllers\ReinscriptionController;
 use App\Http\Controllers\FraisController;
 use App\Http\Controllers\HistoriqueFraisController;
 use App\Http\Controllers\PaiementController;
+use App\Http\Controllers\AdminController;
+use App\Http\Controllers\AdminAuthController;
 use App\Models\User;
 use Illuminate\Support\Facades\Hash;
 
@@ -42,22 +44,34 @@ route::get('/', function () {
 |--------------------------------------------------------------------------
 */
 
-Route::middleware('auth')->prefix('utilisateurs')->group(function () {
+Route::prefix('administration')->group(function () {
 
-    Route::get('/', [UserController::class, 'index'])->name('users.index');
+    Route::get('/login', [AdminAuthController::class, 'showLogin'])->name('admin.login');
+    Route::post('/login', [AdminAuthController::class, 'login'])->name('admin.login.post');
 
-    Route::get('/create', [UserController::class, 'create'])->name('users.create');
+    Route::middleware(['auth:admin', 'admin'])->group(function () {
 
-    Route::post('/store', [UserController::class, 'store'])->name('users.store');
+        Route::get('/', [AdminController::class, 'index'])->name('admin.dashboard');
+        Route::post('/logout', [AdminAuthController::class, 'logout'])->name('admin.logout');
 
-    Route::get('/{user}/edit', [UserController::class, 'edit'])->name('users.edit');
+        Route::prefix('utilisateurs')->group(function () {
 
-    Route::put('/{user}', [UserController::class, 'update'])->name('users.update');
+        Route::get('/', [UserController::class, 'index'])->name('users.index');
 
-    Route::get('/{user}/show', [UserController::class, 'show'])->name('users.show');
+        Route::get('/create', [UserController::class, 'create'])->name('users.create');
 
-    Route::patch('/{user}/toggle-status', [UserController::class, 'toggleStatus'])
-        ->name('users.toggle-status');
+        Route::post('/store', [UserController::class, 'store'])->name('users.store');
+
+        Route::get('/{user}/edit', [UserController::class, 'edit'])->name('users.edit');
+
+        Route::put('/{user}', [UserController::class, 'update'])->name('users.update');
+
+        Route::get('/{user}/show', [UserController::class, 'show'])->name('users.show');
+
+        Route::patch('/{user}/toggle-status', [UserController::class, 'toggleStatus'])
+            ->name('users.toggle-status');
+        });
+    });
 
 });
 

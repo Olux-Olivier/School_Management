@@ -6,6 +6,7 @@ use Illuminate\Support\Facades\Hash;
 use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage;
+use Illuminate\Support\Facades\Auth;
 
 class UserController extends Controller
 {
@@ -95,8 +96,8 @@ class UserController extends Controller
 
             'actif' => $request->actif,
 
-            'created_by' => auth()->id(),
-            'updated_by' => auth()->id(),
+            'created_by' => Auth::guard('admin')->id(),
+            'updated_by' => Auth::guard('admin')->id(),
 
         ]);
 
@@ -186,7 +187,7 @@ class UserController extends Controller
 
             'actif'=>$request->actif,
 
-            'updated_by'=>auth()->id(),
+            'updated_by'=>Auth::guard('admin')->id(),
 
         ]);
 
@@ -207,7 +208,7 @@ class UserController extends Controller
     public function toggleStatus(User $user)
     {
         // Empêcher de désactiver son propre compte
-        if ($user->id == auth()->id()) {
+        if ($user->id == Auth::guard('admin')->id()) {
 
             return response()->json([
                 'success' => false,
@@ -217,7 +218,7 @@ class UserController extends Controller
         }
 
         $user->actif = !$user->actif;
-        $user->updated_by = auth()->id();
+        $user->updated_by = Auth::guard('admin')->id();
         $user->save();
 
         return response()->json([

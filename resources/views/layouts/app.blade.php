@@ -52,7 +52,8 @@
         html.sidebar-is-collapsed #appMain,#sidebar.sidebar-collapsed+#sidebarOverlay+#appMain{margin-left:70px}
         html.sidebar-is-collapsed #sidebar nav span,html.sidebar-is-collapsed #sidebar .sidebar-footer,#sidebar.sidebar-collapsed nav span,#sidebar.sidebar-collapsed .sidebar-footer{display:none}
         html.sidebar-is-collapsed #sidebar .sidebar-brand,#sidebar.sidebar-collapsed .sidebar-brand{width:42px;height:42px;font-size:1rem}
-        #sidebar nav a{position:relative}
+        #sidebar nav{padding:1rem}
+        #sidebar nav a{position:relative;gap:.75rem;margin-bottom:.5rem;border-radius:.75rem;padding-left:1rem;padding-right:1rem}
         html.sidebar-is-collapsed #sidebar nav a,#sidebar.sidebar-collapsed nav a{justify-content:center;padding-left:0;padding-right:0}
         html.sidebar-is-collapsed #sidebar nav a i,#sidebar.sidebar-collapsed nav a i{width:auto}
         @media(min-width:1024px){html.sidebar-is-collapsed #sidebar nav a:hover:after,#sidebar.sidebar-collapsed nav a:hover:after{content:attr(data-label);position:absolute;left:62px;z-index:60;white-space:nowrap;border-radius:6px;background:#0f172a;padding:7px 10px;color:#fff;font-size:.75rem;box-shadow:0 8px 20px rgb(15 23 42/.2)}}
@@ -163,22 +164,6 @@
                 <i class="fas fa-home w-6"></i>
 
                 <span>Accueil</span>
-
-            </a>
-
-            <a href="{{ route('users.index') }}"
-
-                class="flex items-center px-6 py-3 transition
-
-                {{ request()->routeIs('users.*')
-
-                    ? 'bg-blue-600 text-white'
-
-                    : 'hover:bg-slate-100' }}">
-
-                <i class="fas fa-users w-6"></i>
-
-                <span>Utilisateurs</span>
 
             </a>
 

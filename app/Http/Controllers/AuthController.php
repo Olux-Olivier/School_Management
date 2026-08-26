@@ -16,7 +16,7 @@ class AuthController extends Controller
     {
         // Si l'utilisateur est déjà connecté
         if (Auth::check()) {
-            return redirect()->route('users.index');
+            return redirect()->route('dashboard');
         }
 
         return view('auth.login');
@@ -51,6 +51,13 @@ class AuthController extends Controller
                 ->withInput()
                 ->with('error', 'Adresse e-mail ou mot de passe incorrect.');
 
+        }
+
+        // Les administrateurs disposent d'un portail et d'une session séparés.
+        if ($user->type === 'Admin') {
+            return back()
+                ->withInput($request->only('email'))
+                ->with('error', 'Utilisez le portail administrateur pour accéder à ce compte.');
         }
 
         // Compte désactivé

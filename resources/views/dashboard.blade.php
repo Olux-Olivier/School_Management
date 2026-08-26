@@ -588,7 +588,7 @@
             {{-- UTILISATEURS --}}
             {{-- ================================================= --}}
 
-            <a
+            <a hidden
                 href="{{ route('users.index') }}"
 
                 class="group
