@@ -60,9 +60,13 @@
                 <a href="{{ route('users.index') }}" class="flex items-center gap-3 rounded-xl px-4 py-3 transition {{ request()->routeIs('users.*') ? 'bg-blue-600 text-white' : 'hover:bg-slate-100 dark:hover:bg-slate-800' }}">
                     <i class="fas fa-users-cog w-5"></i><span>Utilisateurs</span>
                 </a>
+
             </nav>
 
             <div class="border-t border-slate-200 p-4 dark:border-slate-800">
+                 <a href="{{ route('login.post') }}" class="flex items-center  gap-3 rounded-xl px-4 py-3 transition {{ request()->routeIs('login.post') ? 'bg-blue-600 text-white' : 'hover:bg-slate-100 dark:hover:bg-slate-800' }}">
+                    <i class="fas fa-right-to-bracket w-5"></i><span>Login Agent</span>
+                </a>
                 <form method="POST" action="{{ route('admin.logout') }}">
                     @csrf
                     <button class="flex w-full items-center gap-3 rounded-xl px-4 py-3 text-red-300 transition hover:bg-red-500/10 hover:text-red-200">
