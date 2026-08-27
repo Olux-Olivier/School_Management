@@ -1251,4 +1251,363 @@ class PaiementController extends Controller
         );
     }
 }
+
+/**
+ * Dashboard des paiements
+ */
+public function dashboard()
+{
+    /*
+    |--------------------------------------------------------------------------
+    | 1. Récupérer l'année scolaire active
+    |--------------------------------------------------------------------------
+    | On utilise l'année scolaire marquée comme active dans la table
+    | annee_scolaires.
+    */
+    $anneeScolaireActive = AnneeScolaire::where('actif', true)->first();
+
+    /*
+    |--------------------------------------------------------------------------
+    | 2. Vérifier qu'une année scolaire active existe
+    |--------------------------------------------------------------------------
+    | Le dashboard financier doit fonctionner avec une année scolaire.
+    */
+    if (!$anneeScolaireActive) {
+
+        return view('paiements.dashboard', [
+            'anneeScolaireActive' => null,
+            'totalJour' => 0,
+            'totalSemaine' => 0,
+            'totalMois' => 0,
+            'totalAnnee' => 0,
+            'totauxSections' => collect(),
+        ]);
+    }
+
+    /*
+    |--------------------------------------------------------------------------
+    | 3. Définir les dates utilisées pour les statistiques
+    |--------------------------------------------------------------------------
+    | - Aujourd'hui
+    | - Début de la semaine
+    | - Début du mois
+    | - Début de l'année scolaire
+    */
+    $aujourdHui = now()->startOfDay();
+
+    $debutSemaine = now()->startOfWeek();
+
+    $debutMois = now()->startOfMonth();
+
+    /*
+    |--------------------------------------------------------------------------
+    | 4. Total des paiements du jour
+    |--------------------------------------------------------------------------
+    | On additionne uniquement les montants réellement payés.
+    */
+    $totalJour = Paiement::where(
+        'annee_scolaire_id',
+        $anneeScolaireActive->id
+    )
+        ->whereDate('date_paiement', $aujourdHui)
+        ->sum('montant_paye');
+
+    /*
+    |--------------------------------------------------------------------------
+    | 5. Total des paiements de la semaine
+    |--------------------------------------------------------------------------
+    */
+    $totalSemaine = Paiement::where(
+        'annee_scolaire_id',
+        $anneeScolaireActive->id
+    )
+        ->whereBetween('date_paiement', [
+            $debutSemaine,
+            $aujourdHui->copy()->endOfDay(),
+        ])
+        ->sum('montant_paye');
+
+    /*
+    |--------------------------------------------------------------------------
+    | 6. Total des paiements du mois
+    |--------------------------------------------------------------------------
+    */
+    $totalMois = Paiement::where(
+        'annee_scolaire_id',
+        $anneeScolaireActive->id
+    )
+        ->whereBetween('date_paiement', [
+            $debutMois,
+            $aujourdHui->copy()->endOfDay(),
+        ])
+        ->sum('montant_paye');
+
+    /*
+    |--------------------------------------------------------------------------
+    | 7. Total des paiements de l'année scolaire
+    |--------------------------------------------------------------------------
+    | Ici on utilise directement annee_scolaire_id.
+    | On ne dépend donc pas uniquement de la date du paiement.
+    */
+    $totalAnnee = Paiement::where(
+        'annee_scolaire_id',
+        $anneeScolaireActive->id
+    )
+        ->sum('montant_paye');
+
+    /*
+    |--------------------------------------------------------------------------
+    | 8. Récupérer les paiements de l'année scolaire
+    |--------------------------------------------------------------------------
+    | On récupère les relations nécessaires pour déterminer la section
+    | correspondant à la classe de l'élève pour cette année scolaire.
+    */
+    $paiementsAnnee = Paiement::with([
+        'eleve',
+        'frais',
+    ])
+        ->where(
+            'annee_scolaire_id',
+            $anneeScolaireActive->id
+        )
+        ->get();
+
+    /*
+    |--------------------------------------------------------------------------
+    | 9. Calcul des totaux par section
+    |--------------------------------------------------------------------------
+    | Pour chaque paiement, on recherche l'inscription de l'élève
+    | correspondant à la même année scolaire que le paiement.
+    */
+    $totauxSections = $paiementsAnnee
+        ->groupBy(function ($paiement) use ($anneeScolaireActive) {
+
+            /*
+            |--------------------------------------------------------------------------
+            | Recherche de l'inscription correspondante
+            |--------------------------------------------------------------------------
+            | L'élève peut avoir plusieurs inscriptions au fil des années.
+            | On prend donc celle correspondant à l'année du paiement.
+            */
+            $inscription = \App\Models\Inscription::with('classe')
+                ->where('eleve_id', $paiement->eleve_id)
+                ->where(
+                    'annee_scolaire_id',
+                    $anneeScolaireActive->id
+                )
+                ->first();
+
+            /*
+            |--------------------------------------------------------------------------
+            | Déterminer la section
+            |--------------------------------------------------------------------------
+            */
+            return $inscription?->classe?->section ?? 'Non définie';
+        })
+        ->map(function ($paiements) {
+
+            /*
+            |--------------------------------------------------------------------------
+            | Additionner les montants réellement payés
+            |--------------------------------------------------------------------------
+            */
+            return $paiements->sum('montant_paye');
+        });
+
+    /*
+    |--------------------------------------------------------------------------
+    | 10. Envoyer les données à la vue
+    |--------------------------------------------------------------------------
+    */
+    return view(
+        'paiements.dashboard',
+        compact(
+            'anneeScolaireActive',
+            'totalJour',
+            'totalSemaine',
+            'totalMois',
+            'totalAnnee',
+            'totauxSections'
+        )
+    );
+}
+
+/*
+    |--------------------------------------------------------------------------
+    | Autres méthodes du contrôleur PaiementController
+    |--------------------------------------------------------------------------
+    |
+    | Vous pouvez ajouter d'autres méthodes ici pour gérer les paiements,
+    | comme l'édition, la suppression, etc.
+    |
+    */
+
+################### DETAILS PAIEMENT PAR JOUR, SEMAINE, MOIS, ANNEE SCOLAIRE ####################
+/**
+ * Afficher les détails des paiements d'une journée
+ */
+public function detailsJour(Request $request)
+{
+    /*
+    |--------------------------------------------------------------------------
+    | 1. Récupérer l'année scolaire active
+    |--------------------------------------------------------------------------
+    */
+    $anneeScolaireActive = AnneeScolaire::where('actif', true)->first();
+
+
+    /*
+    |--------------------------------------------------------------------------
+    | 2. Déterminer la date à consulter
+    |--------------------------------------------------------------------------
+    | Si aucune date n'est fournie, la date du jour est utilisée.
+    |--------------------------------------------------------------------------
+    */
+    $date = $request->input(
+        'date',
+        now()->format('Y-m-d')
+    );
+
+
+    /*
+    |--------------------------------------------------------------------------
+    | 3. Initialiser les variables
+    |--------------------------------------------------------------------------
+    | Cela permet d'éviter les erreurs lorsqu'aucune année scolaire active
+    | n'existe.
+    |--------------------------------------------------------------------------
+    */
+    $paiements = collect();
+
+    $inscriptions = collect();
+
+    $totalJour = 0;
+
+    $nombrePaiements = 0;
+
+
+    /*
+    |--------------------------------------------------------------------------
+    | 4. Vérifier qu'une année scolaire active existe
+    |--------------------------------------------------------------------------
+    */
+    if ($anneeScolaireActive) {
+
+        /*
+        |--------------------------------------------------------------------------
+        | 5. Récupérer les paiements du jour
+        |--------------------------------------------------------------------------
+        | On récupère uniquement les paiements appartenant à l'année
+        | scolaire active et à la date sélectionnée.
+        |
+        | Les relations nécessaires à l'affichage sont chargées ici :
+        | - élève
+        | - frais
+        | - utilisateur ayant enregistré le paiement
+        |--------------------------------------------------------------------------
+        */
+        $paiements = Paiement::with([
+            'eleve',
+            'frais',
+            'createdBy',
+        ])
+            ->where(
+                'annee_scolaire_id',
+                $anneeScolaireActive->id
+            )
+            ->whereDate(
+                'date_paiement',
+                $date
+            )
+            ->orderBy(
+                'date_paiement',
+                'asc'
+            )
+            ->orderBy(
+                'id',
+                'asc'
+            )
+            ->get();
+
+
+        /*
+        |--------------------------------------------------------------------------
+        | 6. Récupérer les inscriptions des élèves concernés
+        |--------------------------------------------------------------------------
+        | IMPORTANT :
+        |
+        | On utilise l'année scolaire du paiement.
+        |
+        | Ainsi, si un élève était en 5ème l'année passée et en 6ème
+        | cette année, un ancien paiement affichera bien sa classe
+        | correspondant à l'année du paiement.
+        |--------------------------------------------------------------------------
+        */
+        $inscriptions = Inscription::with('classe')
+            ->where(
+                'annee_scolaire_id',
+                $anneeScolaireActive->id
+            )
+            ->whereIn(
+                'eleve_id',
+                $paiements->pluck('eleve_id')->unique()
+            )
+            ->get()
+            ->keyBy('eleve_id');
+
+
+        /*
+        |--------------------------------------------------------------------------
+        | 7. Associer l'inscription à chaque paiement
+        |--------------------------------------------------------------------------
+        | On ajoute dynamiquement l'inscription correspondante au paiement.
+        |--------------------------------------------------------------------------
+        */
+        $paiements->each(function ($paiement) use ($inscriptions) {
+
+            $paiement->inscription = $inscriptions->get(
+                $paiement->eleve_id
+            );
+
+        });
+
+
+        /*
+        |--------------------------------------------------------------------------
+        | 8. Calculer le total encaissé pendant la journée
+        |--------------------------------------------------------------------------
+        | On additionne uniquement le montant réellement payé.
+        |--------------------------------------------------------------------------
+        */
+        $totalJour = $paiements->sum(
+            'montant_paye'
+        );
+
+
+        /*
+        |--------------------------------------------------------------------------
+        | 9. Compter le nombre de paiements
+        |--------------------------------------------------------------------------
+        */
+        $nombrePaiements = $paiements->count();
+    }
+
+
+    /*
+    |--------------------------------------------------------------------------
+    | 10. Envoyer les données à la vue
+    |--------------------------------------------------------------------------
+    */
+    return view(
+        'paiements.details-jour',
+        compact(
+            'anneeScolaireActive',
+            'date',
+            'paiements',
+            'inscriptions',
+            'totalJour',
+            'nombrePaiements'
+        )
+    );
+}
 }

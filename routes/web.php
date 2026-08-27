@@ -431,6 +431,15 @@ Route::prefix('paiements')
     ->name('paiements.')
     ->group(function () {
 
+        Route::get('/dashboard', [
+            PaiementController::class,
+            'dashboard'
+        ])->name('dashboard');
+
+        // Détails des paiements d'une journée
+        Route::get('/details-jour', [PaiementController::class, 'detailsJour'])
+        ->name('details-jour');
+
         // Recherche des élèves et historique
         Route::get('/', [
             PaiementController::class,
@@ -451,6 +460,18 @@ Route::prefix('paiements')
             PaiementController::class,
             'store'
         ])->name('store');
+
+        Route::get('/{paiement}/edit', [
+            PaiementController::class,
+            'edit'
+        ])->name('edit');
+
+        Route::put('/{paiement}', [
+            PaiementController::class,
+            'update'
+        ])->name('update');
+
+
 
     });
 

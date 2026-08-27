@@ -37,7 +37,7 @@ class EleveController extends Controller
             ->orderBy('postnom')
             ->orderBy('prenom')
 
-            ->paginate(2)
+            ->paginate(25)
 
             ->withQueryString();
 

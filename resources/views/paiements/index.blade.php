@@ -220,6 +220,12 @@
             --------------------------------------------------------- --}}
 
             <div class="mt-6 flex flex-col-reverse gap-3 border-t border-slate-100 pt-5 sm:flex-row sm:justify-end">
+                <a
+                    href="{{ route('paiements.dashboard') }}"
+                    class="inline-flex items-center justify-center rounded-xl border border-slate-300 px-5 py-2.5 text-sm font-medium text-slate-600 transition hover:bg-slate-50"
+                >
+                    Dashboard des paiements
+                </a>
 
                 <a
                     href="{{ route('paiements.index') }}"
