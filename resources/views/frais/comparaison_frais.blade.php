@@ -1,4 +1,9 @@
-@extends('layouts.app')
+@extends('layouts.admin')
+
+@section('title', 'Comparaison des frais')
+@section('breadcrumb')
+    Accueil / Comparaison des frais
+@endsection
 
 @section('content')
 

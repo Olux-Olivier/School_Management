@@ -1,4 +1,9 @@
-@extends('layouts.app')
+@extends('layouts.admin')
+
+@section('title', 'Gestion des frais')
+@section('breadcrumb')
+    Accueil / Gestion des frais
+@endsection
 
 @section('content')
 

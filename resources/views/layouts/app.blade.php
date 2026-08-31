@@ -217,7 +217,7 @@
 
             </a>
 
-            <a href="{{ route('frais.dashboard') }}"
+            {{-- <a href="{{ route('frais.dashboard') }}"
 
                 class="flex items-center px-6 py-3 transition {{ request()->routeIs('frais.*') ? 'bg-blue-600 text-white' : 'hover:bg-slate-100' }}">
 
@@ -225,7 +225,7 @@
 
                 <span>Gestion des frais</span>
 
-            </a>
+            </a> --}}
 
             <a href="{{ route('paiements.index') }}"
 

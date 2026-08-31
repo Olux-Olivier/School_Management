@@ -60,6 +60,9 @@
                 <a href="{{ route('users.index') }}" class="flex items-center gap-3 rounded-xl px-4 py-3 transition {{ request()->routeIs('users.*') ? 'bg-blue-600 text-white' : 'hover:bg-slate-100 dark:hover:bg-slate-800' }}">
                     <i class="fas fa-users-cog w-5"></i><span>Utilisateurs</span>
                 </a>
+                <a href="{{ route('frais.dashboard') }}" class="flex items-center gap-3 rounded-xl px-4 py-3 transition {{ request()->routeIs('frais.dashboard') ? 'bg-blue-600 text-white' : 'hover:bg-slate-100 dark:hover:bg-slate-800' }}">
+                    <i class="fas fa-money-bill-wave w-5"></i><span>Gestion des frais</span>
+                </a>
 
             </nav>
 

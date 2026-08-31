@@ -581,11 +581,11 @@ class PaiementController extends Controller
     | Enregistrement d'un nouveau paiement pour un élève donné.
     |
     */
-    public function store(Request $request)
+   public function store(Request $request)
 {
     /*
     |--------------------------------------------------------------------------
-    | Validation
+    | Validation des données reçues du formulaire
     |--------------------------------------------------------------------------
     */
 
@@ -612,7 +612,6 @@ class PaiementController extends Controller
         'mois' => [
             'nullable',
             'string',
-            'in:Septembre,Octobre,Novembre,Décembre,Janvier,Février,Mars,Avril,Mai,Juin',
         ],
 
         'montant_paye' => [
@@ -629,7 +628,6 @@ class PaiementController extends Controller
         'mode_paiement' => [
             'required',
             'string',
-            'in:especes,mobile_money,virement,cheque',
         ],
 
     ], [
@@ -647,13 +645,10 @@ class PaiementController extends Controller
             'L’année scolaire sélectionnée n’existe pas.',
 
         'frais_id.required' =>
-            'Veuillez sélectionner un motif.',
+            'Veuillez sélectionner un frais.',
 
         'frais_id.exists' =>
-            'Le motif sélectionné n’existe pas.',
-
-        'mois.in' =>
-            'Le mois sélectionné est invalide.',
+            'Le frais sélectionné n’existe pas.',
 
         'montant_paye.required' =>
             'Veuillez saisir le montant payé.',
@@ -672,23 +667,18 @@ class PaiementController extends Controller
 
         'mode_paiement.required' =>
             'Veuillez sélectionner le mode de paiement.',
-
-        'mode_paiement.in' =>
-            'Le mode de paiement sélectionné est invalide.',
-
     ]);
 
 
     /*
     |--------------------------------------------------------------------------
-    | Élève
+    | Récupération de l'élève
     |--------------------------------------------------------------------------
     */
 
     $eleve = Eleve::find(
         $validated['eleve_id']
     );
-
 
     if (!$eleve) {
 
@@ -703,14 +693,13 @@ class PaiementController extends Controller
 
     /*
     |--------------------------------------------------------------------------
-    | Année scolaire
+    | Récupération de l'année scolaire
     |--------------------------------------------------------------------------
     */
 
     $anneeScolaire = AnneeScolaire::find(
         $validated['annee_scolaire_id']
     );
-
 
     if (!$anneeScolaire) {
 
@@ -725,7 +714,11 @@ class PaiementController extends Controller
 
     /*
     |--------------------------------------------------------------------------
-    | Inscription
+    | Vérification de l'inscription de l'élève
+    |--------------------------------------------------------------------------
+    |
+    | L'élève doit avoir une inscription dans l'année scolaire
+    | pour laquelle le paiement est effectué.
     |--------------------------------------------------------------------------
     */
 
@@ -754,7 +747,32 @@ class PaiementController extends Controller
 
     /*
     |--------------------------------------------------------------------------
-    | Déterminer la section
+    | Vérification de la classe
+    |--------------------------------------------------------------------------
+    */
+
+    if (!$inscription->classe) {
+
+        return back()
+            ->withInput()
+            ->with(
+                'error',
+                'La classe associée à l’inscription de cet élève est introuvable.'
+            );
+    }
+
+
+    /*
+    |--------------------------------------------------------------------------
+    | Détermination de la section
+    |--------------------------------------------------------------------------
+    |
+    | niveau :
+    |
+    | 0 = Maternelle
+    | 1 = Primaire
+    | 2 = Secondaire
+    | 3 = Humanités
     |--------------------------------------------------------------------------
     */
 
@@ -769,7 +787,6 @@ class PaiementController extends Controller
         3 => 'humanites',
 
         default => null,
-
     };
 
 
@@ -786,14 +803,12 @@ class PaiementController extends Controller
 
     /*
     |--------------------------------------------------------------------------
-    | Vérifier le frais
+    | Récupération du frais
     |--------------------------------------------------------------------------
     |
-    | Le frais doit correspondre :
-    |
-    | - à l'année scolaire sélectionnée ;
-    | - à la section de l'élève.
-    |
+    | Le frais doit appartenir à la même année scolaire
+    | et à la même section que l'élève.
+    |--------------------------------------------------------------------------
     */
 
     $frais = Frais::where(
@@ -817,7 +832,7 @@ class PaiementController extends Controller
             ->withInput()
             ->with(
                 'error',
-                'Le motif sélectionné n’est pas disponible pour la section de cet élève.'
+                'Le frais sélectionné n’est pas disponible pour la section de cet élève.'
             );
     }
 
@@ -827,9 +842,8 @@ class PaiementController extends Controller
     | Motif
     |--------------------------------------------------------------------------
     |
-    | Le motif est récupéré depuis le frais.
-    | L'utilisateur ne peut donc pas inventer un motif.
-    |
+    | Le motif est récupéré directement depuis le frais.
+    |--------------------------------------------------------------------------
     */
 
     $motif = $frais->intitule;
@@ -837,14 +851,14 @@ class PaiementController extends Controller
 
     /*
     |--------------------------------------------------------------------------
-    | Vérifier si le motif est un minerval
+    | Vérification du Minerval
     |--------------------------------------------------------------------------
     |
-    | On respecte exactement :
+    | Les deux écritures suivantes sont considérées comme Minerval :
     |
     | Minerval
     | minerval
-    |
+    |--------------------------------------------------------------------------
     */
 
     $estMinerval =
@@ -856,15 +870,16 @@ class PaiementController extends Controller
     |--------------------------------------------------------------------------
     | Gestion du mois
     |--------------------------------------------------------------------------
+    |
+    | Si le frais est un Minerval :
+    |     le mois est obligatoire.
+    |
+    | Sinon :
+    |     le mois devient automatiquement "Pas disponible".
+    |--------------------------------------------------------------------------
     */
 
     if ($estMinerval) {
-
-        /*
-        |----------------------------------------------------------------------
-        | Le mois est obligatoire
-        |----------------------------------------------------------------------
-        */
 
         if (empty($validated['mois'])) {
 
@@ -880,14 +895,7 @@ class PaiementController extends Controller
 
     } else {
 
-        /*
-        |----------------------------------------------------------------------
-        | Tous les autres frais
-        |----------------------------------------------------------------------
-        */
-
         $mois = 'Pas disponible';
-
     }
 
 
@@ -904,7 +912,11 @@ class PaiementController extends Controller
 
     /*
     |--------------------------------------------------------------------------
-    | Vérifier le montant
+    | Vérification du montant
+    |--------------------------------------------------------------------------
+    |
+    | Pour un nouveau paiement, on ne peut pas payer plus que
+    | le montant du frais.
     |--------------------------------------------------------------------------
     */
 
@@ -921,7 +933,11 @@ class PaiementController extends Controller
 
     /*
     |--------------------------------------------------------------------------
-    | Enregistrement
+    | Transaction
+    |--------------------------------------------------------------------------
+    |
+    | Toutes les opérations suivantes sont effectuées dans une transaction
+    | afin d'éviter les incohérences dans la base de données.
     |--------------------------------------------------------------------------
     */
 
@@ -936,24 +952,21 @@ class PaiementController extends Controller
             $motif,
             $mois,
             $montantDu,
-            $montantPaye
+            $montantPaye,
+            $estMinerval
         ) {
 
             /*
             |--------------------------------------------------------------------------
-            | Rechercher un paiement incomplet
+            | Recherche d'un paiement existant
             |--------------------------------------------------------------------------
             |
-            | On cherche le même :
+            | Pour un Minerval :
+            |     élève + année + frais + mois
             |
-            | Élève
-            | Année
-            | Frais
-            | Motif
-            | Mois
-            |
-            | avec un restant supérieur à zéro.
-            |
+            | Pour les autres frais :
+            |     élève + année + frais
+            |--------------------------------------------------------------------------
             */
 
             $paiementExistant = Paiement::where(
@@ -968,18 +981,15 @@ class PaiementController extends Controller
                     'frais_id',
                     $frais->id
                 )
-                ->where(
-                    'motif',
-                    $motif
-                )
-                ->where(
-                    'mois',
-                    $mois
-                )
-                ->where(
-                    'restant',
-                    '>',
-                    0
+                ->when(
+                    $estMinerval,
+                    function ($query) use ($mois) {
+
+                        $query->where(
+                            'mois',
+                            $mois
+                        );
+                    }
                 )
                 ->lockForUpdate()
                 ->first();
@@ -987,11 +997,53 @@ class PaiementController extends Controller
 
             /*
             |--------------------------------------------------------------------------
-            | Compléter le paiement existant
+            | Un paiement existe déjà
             |--------------------------------------------------------------------------
             */
 
             if ($paiementExistant) {
+
+                /*
+                |--------------------------------------------------------------------------
+                | Vérifier si le paiement est déjà complètement soldé
+                |--------------------------------------------------------------------------
+                */
+
+                if (
+                    (float) $paiementExistant->restant <= 0
+                ) {
+
+                    if ($estMinerval) {
+
+                        throw ValidationException::withMessages([
+
+                            'frais_id' =>
+                                'Le minerval du mois de '
+                                . $mois
+                                . ' a déjà été entièrement payé.',
+
+                        ]);
+                    }
+
+
+                    throw ValidationException::withMessages([
+
+                        'frais_id' =>
+                            'Ce frais a déjà été entièrement payé '
+                            . 'pour cet élève pendant cette année scolaire.',
+
+                    ]);
+                }
+
+
+                /*
+                |--------------------------------------------------------------------------
+                | Le paiement existe mais il reste une dette
+                |--------------------------------------------------------------------------
+                |
+                | On autorise donc le complément.
+                |--------------------------------------------------------------------------
+                */
 
                 $restantActuel =
                     (float) $paiementExistant->restant;
@@ -999,7 +1051,7 @@ class PaiementController extends Controller
 
                 /*
                 |--------------------------------------------------------------------------
-                | Le versement ne doit pas dépasser le restant
+                | Le complément ne peut pas dépasser le restant
                 |--------------------------------------------------------------------------
                 */
 
@@ -1008,7 +1060,14 @@ class PaiementController extends Controller
                     throw ValidationException::withMessages([
 
                         'montant_paye' =>
-                            'Le montant payé dépasse le montant restant de ce paiement.',
+                            'Le montant payé dépasse le montant restant de '
+                            . number_format(
+                                $restantActuel,
+                                2,
+                                ',',
+                                ' '
+                            )
+                            . ' FC.',
 
                     ]);
                 }
@@ -1016,7 +1075,7 @@ class PaiementController extends Controller
 
                 /*
                 |--------------------------------------------------------------------------
-                | Nouveau montant payé
+                | Nouveau montant payé cumulé
                 |--------------------------------------------------------------------------
                 */
 
@@ -1038,7 +1097,7 @@ class PaiementController extends Controller
 
                 /*
                 |--------------------------------------------------------------------------
-                | Mise à jour
+                | Mise à jour du paiement
                 |--------------------------------------------------------------------------
                 */
 
@@ -1062,6 +1121,12 @@ class PaiementController extends Controller
                 ]);
 
 
+                /*
+                |--------------------------------------------------------------------------
+                | Retourner le paiement existant
+                |--------------------------------------------------------------------------
+                */
+
                 return $paiementExistant;
             }
 
@@ -1079,7 +1144,7 @@ class PaiementController extends Controller
 
             /*
             |--------------------------------------------------------------------------
-            | Suffixe de section
+            | Suffixe de la section
             |--------------------------------------------------------------------------
             */
 
@@ -1094,70 +1159,145 @@ class PaiementController extends Controller
                 'maternelle' => 'MAT',
 
                 default => 'AUT',
-
             };
 
 
             /*
             |--------------------------------------------------------------------------
-            | Dernière référence de cette section
-            | dans cette année scolaire
+            | Préfixe du mode de paiement
+            |--------------------------------------------------------------------------
+            |
+            | Pour les espèces :
+            |
+            | ESP
+            |
+            | Les autres modes possèdent également un préfixe.
             |--------------------------------------------------------------------------
             */
 
-            $dernierPaiement = Paiement::where(
+            $prefixeMode = match (
+                strtolower(
+                    trim(
+                        $validated['mode_paiement']
+                    )
+                )
+            ) {
+
+                'especes',
+                'espèces',
+                'espece',
+                'espèce'
+                    => 'ESP',
+
+                'mobile_money',
+                'mobile money'
+                    => 'MM',
+
+                'virement'
+                    => 'VIR',
+
+                'cheque',
+                'chèque'
+                    => 'CHQ',
+
+                default
+                    => 'PAY',
+            };
+
+
+            /*
+            |--------------------------------------------------------------------------
+            | Recherche du dernier numéro de référence
+            |--------------------------------------------------------------------------
+            |
+            | IMPORTANT :
+            |
+            | Le compteur est GLOBAL.
+            |
+            | Il ne dépend PAS de la section.
+            |
+            | Exemple :
+            |
+            | ESP-00001-PRIM
+            | ESP-00002-HUM
+            | ESP-00003-SEC
+            | ESP-00004-MAT
+            |
+            | La recherche se fait uniquement dans l'année scolaire
+            | du paiement.
+            |--------------------------------------------------------------------------
+            */
+
+            $dernierNumero = Paiement::where(
                 'annee_scolaire_id',
                 $anneeScolaire->id
             )
-                ->where(
-                    'reference',
-                    'like',
-                    '%-' . $suffixeSection
-                )
-                ->orderByDesc('id')
                 ->lockForUpdate()
-                ->first();
+                ->get()
+                ->map(function ($paiement) {
+
+                    /*
+                    |--------------------------------------------------------------------------
+                    | Extraire le numéro de la référence
+                    |--------------------------------------------------------------------------
+                    |
+                    | Exemple :
+                    |
+                    | ESP-00027-HUM
+                    |
+                    | devient :
+                    |
+                    | 27
+                    |--------------------------------------------------------------------------
+                    */
+
+                    $parties = explode(
+                        '-',
+                        $paiement->reference
+                    );
+
+
+                    if (
+                        isset($parties[1]) &&
+                        is_numeric($parties[1])
+                    ) {
+
+                        return (int) $parties[1];
+                    }
+
+
+                    return 0;
+
+                })
+                ->max();
 
 
             /*
             |--------------------------------------------------------------------------
-            | Numéro séquentiel
+            | Calcul du prochain numéro
             |--------------------------------------------------------------------------
             */
 
-            if ($dernierPaiement) {
-
-                $partieNumerique = explode(
-                    '-',
-                    $dernierPaiement->reference
-                )[0];
-
-
-                $numero =
-                    ((int) $partieNumerique) + 1;
-
-            } else {
-
-                /*
-                |----------------------------------------------------------------------
-                | Nouvelle année scolaire :
-                | le compteur recommence à 00001.
-                |----------------------------------------------------------------------
-                */
-
-                $numero = 1;
-
-            }
+            $numero =
+                ($dernierNumero ?? 0)
+                + 1;
 
 
             /*
             |--------------------------------------------------------------------------
-            | Référence automatique
+            | Construction de la référence
+            |--------------------------------------------------------------------------
+            |
+            | Exemple :
+            |
+            | ESP-00027-HUM
             |--------------------------------------------------------------------------
             */
 
             $reference =
-                str_pad(
+                $prefixeMode
+                . '-'
+                . str_pad(
                     $numero,
                     5,
                     '0',
@@ -1165,6 +1305,39 @@ class PaiementController extends Controller
                 )
                 . '-'
                 . $suffixeSection;
+
+
+            /*
+            |--------------------------------------------------------------------------
+            | Sécurité supplémentaire contre les doublons
+            |--------------------------------------------------------------------------
+            |
+            | On vérifie directement dans la base avant la création.
+            |--------------------------------------------------------------------------
+            */
+
+            while (
+                Paiement::where(
+                    'reference',
+                    $reference
+                )->exists()
+            ) {
+
+                $numero++;
+
+
+                $reference =
+                    $prefixeMode
+                    . '-'
+                    . str_pad(
+                        $numero,
+                        5,
+                        '0',
+                        STR_PAD_LEFT
+                    )
+                    . '-'
+                    . $suffixeSection;
+            }
 
 
             /*
@@ -1212,13 +1385,12 @@ class PaiementController extends Controller
                     auth()->id(),
 
             ]);
-
         });
 
 
         /*
         |--------------------------------------------------------------------------
-        | Succès
+        | Redirection après succès
         |--------------------------------------------------------------------------
         */
 
@@ -1238,16 +1410,32 @@ class PaiementController extends Controller
 
     } catch (ValidationException $e) {
 
-        throw $e;
+        /*
+        |--------------------------------------------------------------------------
+        | Les erreurs de validation doivent être renvoyées au formulaire
+        |--------------------------------------------------------------------------
+        */
+
+        return back()
+            ->withInput()
+            ->withErrors(
+                $e->errors()
+            );
 
 
     } catch (\Throwable $e) {
 
+        /*
+        |--------------------------------------------------------------------------
+        | Erreur inattendue
+        |--------------------------------------------------------------------------
+        */
+
         return back()
-            ->withInput()
-            ->with(
-                'error',
-                'Une erreur est survenue lors de l’enregistrement du paiement.'
+        ->withInput()
+        ->with(
+            'error',
+            'Une erreur est survenue lors de l’enregistrement du paiement.'
         );
     }
 }

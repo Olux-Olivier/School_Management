@@ -46,31 +46,203 @@ route::get('/', function () {
 
 Route::prefix('administration')->group(function () {
 
-    Route::get('/login', [AdminAuthController::class, 'showLogin'])->name('admin.login');
-    Route::post('/login', [AdminAuthController::class, 'login'])->name('admin.login.post');
+    /*
+    |--------------------------------------------------------------------------
+    | Connexion administration
+    |--------------------------------------------------------------------------
+    */
+
+    Route::get('/login', [AdminAuthController::class, 'showLogin'])
+        ->name('admin.login');
+
+    Route::post('/login', [AdminAuthController::class, 'login'])
+        ->name('admin.login.post');
+
+
+    /*
+    |--------------------------------------------------------------------------
+    | ESPACE ADMINISTRATION
+    |--------------------------------------------------------------------------
+    */
 
     Route::middleware(['auth:admin', 'admin'])->group(function () {
 
-        Route::get('/', [AdminController::class, 'index'])->name('admin.dashboard');
-        Route::post('/logout', [AdminAuthController::class, 'logout'])->name('admin.logout');
+        /*
+        |--------------------------------------------------------------------------
+        | Dashboard administration
+        |--------------------------------------------------------------------------
+        */
+
+        Route::get('/', [AdminController::class, 'index'])
+            ->name('admin.dashboard');
+
+
+        /*
+        |--------------------------------------------------------------------------
+        | Déconnexion
+        |--------------------------------------------------------------------------
+        */
+
+        Route::post('/logout', [AdminAuthController::class, 'logout'])
+            ->name('admin.logout');
+
+
+        /*
+        |--------------------------------------------------------------------------
+        | UTILISATEURS
+        |--------------------------------------------------------------------------
+        */
 
         Route::prefix('utilisateurs')->group(function () {
 
-        Route::get('/', [UserController::class, 'index'])->name('users.index');
+            Route::get('/', [UserController::class, 'index'])
+                ->name('users.index');
 
-        Route::get('/create', [UserController::class, 'create'])->name('users.create');
+            Route::get('/create', [UserController::class, 'create'])
+                ->name('users.create');
 
-        Route::post('/store', [UserController::class, 'store'])->name('users.store');
+            Route::post('/store', [UserController::class, 'store'])
+                ->name('users.store');
 
-        Route::get('/{user}/edit', [UserController::class, 'edit'])->name('users.edit');
+            Route::get('/{user}/edit', [UserController::class, 'edit'])
+                ->name('users.edit');
 
-        Route::put('/{user}', [UserController::class, 'update'])->name('users.update');
+            Route::put('/{user}', [UserController::class, 'update'])
+                ->name('users.update');
 
-        Route::get('/{user}/show', [UserController::class, 'show'])->name('users.show');
+            Route::get('/{user}/show', [UserController::class, 'show'])
+                ->name('users.show');
 
-        Route::patch('/{user}/toggle-status', [UserController::class, 'toggleStatus'])
-            ->name('users.toggle-status');
+            Route::patch(
+                '/{user}/toggle-status',
+                [UserController::class, 'toggleStatus']
+            )->name('users.toggle-status');
+
         });
+
+
+        /*
+        |--------------------------------------------------------------------------
+        | FRAIS
+        |--------------------------------------------------------------------------
+        |
+        | Tout le module Frais est maintenant réservé à l'administration.
+        |--------------------------------------------------------------------------
+        */
+
+        Route::prefix('frais')
+            ->name('frais.')
+            ->controller(FraisController::class)
+            ->group(function () {
+
+                /*
+                |--------------------------------------------------------------------------
+                | DASHBOARD
+                |--------------------------------------------------------------------------
+                */
+
+                Route::get('/dashboard', 'dashboard')
+                    ->name('dashboard');
+
+
+                /*
+                |--------------------------------------------------------------------------
+                | COMPARAISON
+                |--------------------------------------------------------------------------
+                */
+
+                Route::get('/comparaison', 'comparaison')
+                    ->name('comparaison');
+
+
+                /*
+                |--------------------------------------------------------------------------
+                | CLASSES PAR SECTION
+                |--------------------------------------------------------------------------
+                |
+                | Cette route doit rester avant /{frais}/edit
+                |--------------------------------------------------------------------------
+                */
+
+                Route::get('/classes', 'classesParSection')
+                    ->name('classes');
+
+
+                /*
+                |--------------------------------------------------------------------------
+                | INDEX
+                |--------------------------------------------------------------------------
+                */
+
+                Route::get('/', 'index')
+                    ->name('index');
+
+
+                /*
+                |--------------------------------------------------------------------------
+                | CREATE
+                |--------------------------------------------------------------------------
+                */
+
+                Route::get('/create', 'create')
+                    ->name('create');
+
+
+                /*
+                |--------------------------------------------------------------------------
+                | STORE
+                |--------------------------------------------------------------------------
+                */
+
+                Route::post('/', 'store')
+                    ->name('store');
+
+
+                /*
+                |--------------------------------------------------------------------------
+                | EDIT
+                |--------------------------------------------------------------------------
+                */
+
+                Route::get('/{frais}/edit', 'edit')
+                    ->name('edit');
+
+
+                /*
+                |--------------------------------------------------------------------------
+                | UPDATE
+                |--------------------------------------------------------------------------
+                */
+
+                Route::put('/{frais}', 'update')
+                    ->name('update');
+
+            });
+
+
+        /*
+        |--------------------------------------------------------------------------
+        | HISTORIQUE DES FRAIS
+        |--------------------------------------------------------------------------
+        */
+
+        Route::get('/historique-frais', [
+            HistoriqueFraisController::class,
+            'index'
+        ])->name('frais.historique');
+
+
+        /*
+        |--------------------------------------------------------------------------
+        | ÉVOLUTION DES FRAIS
+        |--------------------------------------------------------------------------
+        */
+
+        Route::get('/evolution-frais', [
+            HistoriqueFraisController::class,
+            'evolution'
+        ])->name('frais.evolution');
+
     });
 
 });
