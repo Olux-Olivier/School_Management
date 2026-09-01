@@ -177,6 +177,7 @@
                             {{ $paiement->reference }}
                         </td>
 
+
                         <td class="px-5 py-4">
 
                             @if($paiement->eleve)
@@ -195,11 +196,13 @@
 
                         </td>
 
+
                         <td class="px-5 py-4">
 
                             {{ $paiement->inscription?->classe?->nom ?? '—' }}-{{ $paiement->inscription?->classe?->section ?? '—' }}
 
                         </td>
+
 
                         <td class="px-5 py-4">
 
@@ -207,11 +210,13 @@
 
                         </td>
 
+
                         <td class="px-5 py-4">
 
                             {{ $paiement->mois ?? 'Pas disponible' }}
 
                         </td>
+
 
                         <td class="px-5 py-4 text-right font-semibold">
 
@@ -220,19 +225,111 @@
 
                         </td>
 
+
                         <td class="px-5 py-4">
 
                             {{ $paiement->mode_paiement }}
 
                         </td>
 
-                        <td class="px-5 py-4 text-right">
 
-                            {{-- La route de modification sera branchée à l'étape suivante --}}
-                            <a href="{{ route('paiements.edit', $paiement->id) }}"
-                               class="inline-flex items-center px-3 py-2 bg-slate-100 text-slate-700 rounded-lg hover:bg-slate-200 transition">
-                                Modifier
-                            </a>
+                        {{-- ACTIONS --}}
+                        <td class="px-5 py-4">
+
+                            <div class="flex items-center justify-end gap-2">
+
+                                {{-- Modifier --}}
+                                <a href="{{ route('paiements.edit', [
+                                        'paiement' => $paiement->id,
+                                        'date' => $date
+                                    ]) }}"
+                                title="Modifier le paiement"
+                                aria-label="Modifier le paiement"
+                                class="inline-flex items-center justify-center
+                                        w-9 h-9 rounded-lg
+                                        bg-blue-50 text-blue-600
+                                        hover:bg-blue-100
+                                        hover:text-blue-700
+                                        transition duration-200
+                                        focus:outline-none
+                                        focus:ring-2
+                                        focus:ring-blue-300">
+
+                                    {{-- Icône crayon --}}
+                                    <svg xmlns="http://www.w3.org/2000/svg"
+                                        class="w-5 h-5"
+                                        fill="none"
+                                        viewBox="0 0 24 24"
+                                        stroke="currentColor"
+                                        stroke-width="2">
+
+                                        <path stroke-linecap="round"
+                                            stroke-linejoin="round"
+                                            d="M11 5H6a2 2 0 0 0-2 2v11a2 2 0 0 0 2 2h11a2 2 0 0 0 2-2v-5"/>
+
+                                        <path stroke-linecap="round"
+                                            stroke-linejoin="round"
+                                            d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1-1-4 9.5-9.5z"/>
+
+                                    </svg>
+
+                                </a>
+
+                                {{-- Annuler / supprimer --}}
+                                <form action="{{ route('paiements.destroy', $paiement->id) }}"
+                                      method="POST"
+                                      class="form-annulation-paiement">
+
+                                    @csrf
+                                    @method('DELETE')
+
+                                    <button type="submit"
+                                            title="Annuler le paiement"
+                                            aria-label="Annuler le paiement"
+                                            class="inline-flex items-center justify-center
+                                                   w-9 h-9 rounded-lg
+                                                   bg-red-50 text-red-600
+                                                   hover:bg-red-100
+                                                   hover:text-red-700
+                                                   transition duration-200
+                                                   focus:outline-none
+                                                   focus:ring-2
+                                                   focus:ring-red-300">
+
+                                        <svg xmlns="http://www.w3.org/2000/svg"
+                                             class="w-5 h-5"
+                                             fill="none"
+                                             viewBox="0 0 24 24"
+                                             stroke="currentColor"
+                                             stroke-width="2">
+
+                                            <path stroke-linecap="round"
+                                                  stroke-linejoin="round"
+                                                  d="M6 7h12"/>
+
+                                            <path stroke-linecap="round"
+                                                  stroke-linejoin="round"
+                                                  d="M9 7V4h6v3"/>
+
+                                            <path stroke-linecap="round"
+                                                  stroke-linejoin="round"
+                                                  d="M10 11v6"/>
+
+                                            <path stroke-linecap="round"
+                                                  stroke-linejoin="round"
+                                                  d="M14 11v6"/>
+
+                                            <path stroke-linecap="round"
+                                                  stroke-linejoin="round"
+                                                  d="M8 7l1 13h6l1-13"/>
+
+                                        </svg>
+
+                                    </button>
+
+                                </form>
+
+                            </div>
 
                         </td>
 
@@ -288,7 +385,58 @@
     </div>
 
 </div>
+```
 
 </div>
+
+{{-- Confirmation de l'annulation --}}
+
+<script>
+
+document.addEventListener('DOMContentLoaded', function () {
+
+    document
+        .querySelectorAll('.form-annulation-paiement')
+        .forEach(function (form) {
+
+            form.addEventListener('submit', function (event) {
+
+                event.preventDefault();
+
+                Swal.fire({
+
+                    title: 'Annuler ce paiement ?',
+
+                    text: 'Cette action supprimera définitivement ce paiement.',
+
+                    icon: 'warning',
+
+                    showCancelButton: true,
+
+                    confirmButtonText: 'Oui, annuler',
+
+                    cancelButtonText: 'Retour',
+
+                    reverseButtons: true,
+
+                    focusCancel: true,
+
+                }).then(function (result) {
+
+                    if (result.isConfirmed) {
+
+                        form.submit();
+
+                    }
+
+                });
+
+            });
+
+        });
+
+});
+
+</script>
 
 @endsection

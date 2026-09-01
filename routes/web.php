@@ -501,99 +501,6 @@ Route::prefix('reinscriptions')->name('reinscriptions.')->group(function () {
 
 });
 
-/* Route pour les frais */
-
-Route::prefix('frais')
-    ->name('frais.')
-    ->controller(FraisController::class)
-    ->group(function () {
-
-        /*
-        |--------------------------------------------------------------------------
-        | DASHBOARD
-        |--------------------------------------------------------------------------
-        */
-
-        Route::get('/dashboard', 'dashboard')
-            ->name('dashboard');
-
-
-        /*
-        |--------------------------------------------------------------------------
-        | COMPARAISON
-        |--------------------------------------------------------------------------
-        */
-
-        Route::get('/comparaison', 'comparaison')
-            ->name('comparaison');
-
-
-        /*
-        |--------------------------------------------------------------------------
-        | CLASSES PAR SECTION
-        |--------------------------------------------------------------------------
-        |
-        | Cette route doit être placée avant /{frais}/edit
-        |
-        */
-
-        Route::get('/classes', 'classesParSection')
-            ->name('classes');
-
-
-        /*
-        |--------------------------------------------------------------------------
-        | INDEX
-        |--------------------------------------------------------------------------
-        */
-
-        Route::get('/', 'index')
-            ->name('index');
-
-
-        /*
-        |--------------------------------------------------------------------------
-        | CREATE
-        |--------------------------------------------------------------------------
-        */
-
-        Route::get('/create', 'create')
-            ->name('create');
-
-
-        /*
-        |--------------------------------------------------------------------------
-        | STORE
-        |--------------------------------------------------------------------------
-        */
-
-        Route::post('/', 'store')
-            ->name('store');
-
-
-        /*
-        |--------------------------------------------------------------------------
-        | EDIT
-        |--------------------------------------------------------------------------
-        */
-
-        Route::get('/{frais}/edit', 'edit')
-            ->name('edit');
-
-
-        /*
-        |--------------------------------------------------------------------------
-        | UPDATE
-        |--------------------------------------------------------------------------
-        */
-
-        Route::put('/{frais}', 'update')
-            ->name('update');
-
-    });
-
-Route::get('/historique-frais', [HistoriqueFraisController::class,'index'])->name('frais.historique');
-Route::get('/evolution-frais', [HistoriqueFraisController::class,'evolution'])->name('frais.evolution');
 
 
 /*|--------------------------------------------------------------------------
@@ -643,7 +550,10 @@ Route::prefix('paiements')
             'update'
         ])->name('update');
 
-
+        Route::delete('/{paiement}', [
+            PaiementController::class,
+            'destroy'
+        ])->name('destroy');
 
     });
 

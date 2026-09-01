@@ -1440,6 +1440,366 @@ class PaiementController extends Controller
     }
 }
 
+/* EDIT PAIEMENT */
+
+public function edit(Request $request, Paiement $paiement)
+{
+    /*
+    |--------------------------------------------------------------------------
+    | 1. Charger les relations nécessaires
+    |--------------------------------------------------------------------------
+    */
+
+    $paiement->load([
+        'eleve',
+        'frais',
+        'anneeScolaire',
+    ]);
+
+
+    /*
+    |--------------------------------------------------------------------------
+    | 2. Vérifier que l'élève existe
+    |--------------------------------------------------------------------------
+    */
+
+    if (!$paiement->eleve) {
+
+        return redirect()
+            ->route('paiements.index')
+            ->with(
+                'error',
+                'L’élève associé à ce paiement est introuvable.'
+            );
+    }
+
+
+    /*
+    |--------------------------------------------------------------------------
+    | 3. Vérifier que le frais existe
+    |--------------------------------------------------------------------------
+    */
+
+    if (!$paiement->frais) {
+
+        return redirect()
+            ->route('paiements.index')
+            ->with(
+                'error',
+                'Le frais associé à ce paiement est introuvable.'
+            );
+    }
+
+
+    /*
+    |--------------------------------------------------------------------------
+    | 4. Date de retour
+    |--------------------------------------------------------------------------
+    |
+    | Lorsque l'utilisateur vient de details-jour, la date sélectionnée
+    | est transmise dans l'URL :
+    |
+    | /paiements/{paiement}/edit?date=2026-08-25
+    |
+    | On la conserve pour que le bouton "Annuler" puisse revenir
+    | exactement sur cette journée.
+    |
+    | Si aucune date n'est transmise, on utilise la date du paiement.
+    |--------------------------------------------------------------------------
+    */
+
+    $dateRetour = $request->input(
+        'date',
+        $paiement->date_paiement?->format('Y-m-d')
+    );
+
+
+    /*
+    |--------------------------------------------------------------------------
+    | 5. Déterminer si le paiement concerne un Minerval
+    |--------------------------------------------------------------------------
+    */
+
+    $estMinerval =
+        $paiement->motif === 'Minerval' ||
+        $paiement->motif === 'minerval';
+
+
+    /*
+    |--------------------------------------------------------------------------
+    | 6. Modes de paiement disponibles
+    |--------------------------------------------------------------------------
+    */
+
+    $modesPaiement = [
+        'Espèces',
+        'Mobile Money',
+        'Virement',
+        'Chèque',
+    ];
+
+
+    /*
+    |--------------------------------------------------------------------------
+    | 7. Envoyer les données à la vue
+    |--------------------------------------------------------------------------
+    */
+
+    return view(
+        'paiements.edit',
+        compact(
+            'paiement',
+            'estMinerval',
+            'modesPaiement',
+            'dateRetour'
+        )
+    );
+}
+
+
+/* UPDATE PAIEMENT */
+
+public function update(Request $request, Paiement $paiement)
+{
+    /*
+    |--------------------------------------------------------------------------
+    | Validation
+    |--------------------------------------------------------------------------
+    */
+
+    $validated = $request->validate([
+
+        'mois' => [
+            'nullable',
+            'string',
+            'max:50',
+        ],
+
+        'montant_paye' => [
+            'required',
+            'numeric',
+            'min:1',
+        ],
+
+        'date_paiement' => [
+            'required',
+            'date',
+        ],
+
+        'mode_paiement' => [
+            'required',
+            'string',
+            'max:50',
+        ],
+
+    ], [
+
+        'montant_paye.required' =>
+            'Veuillez saisir le montant payé.',
+
+        'montant_paye.numeric' =>
+            'Le montant payé doit être numérique.',
+
+        'montant_paye.min' =>
+            'Le montant payé doit être supérieur à zéro.',
+
+        'date_paiement.required' =>
+            'La date du paiement est obligatoire.',
+
+        'date_paiement.date' =>
+            'La date du paiement est invalide.',
+
+        'mode_paiement.required' =>
+            'Veuillez sélectionner le mode de paiement.',
+    ]);
+
+
+    /*
+    |--------------------------------------------------------------------------
+    | Récupérer le montant dû
+    |--------------------------------------------------------------------------
+    */
+
+    $montantDu = (float) $paiement->montant_du;
+
+    $nouveauMontantPaye =
+        (float) $validated['montant_paye'];
+
+
+    /*
+    |--------------------------------------------------------------------------
+    | Vérifier que le montant payé ne dépasse pas le montant dû
+    |--------------------------------------------------------------------------
+    */
+
+    if ($nouveauMontantPaye > $montantDu) {
+
+        return back()
+            ->withInput()
+            ->with(
+                'error',
+                'Le montant payé ne peut pas être supérieur au montant dû.'
+            );
+    }
+
+
+    /*
+    |--------------------------------------------------------------------------
+    | Vérifier le mois pour le Minerval
+    |--------------------------------------------------------------------------
+    */
+
+    $estMinerval =
+        $paiement->motif === 'Minerval' ||
+        $paiement->motif === 'minerval';
+
+
+    if ($estMinerval && empty($validated['mois'])) {
+
+        return back()
+            ->withInput()
+            ->withErrors([
+                'mois' =>
+                    'Veuillez sélectionner le mois du minerval.',
+            ]);
+    }
+
+
+    /*
+    |--------------------------------------------------------------------------
+    | Pour les autres frais, le mois n'est pas disponible
+    |--------------------------------------------------------------------------
+    */
+
+    $mois = $estMinerval
+        ? $validated['mois']
+        : 'Pas disponible';
+
+
+    /*
+    |--------------------------------------------------------------------------
+    | Calcul du nouveau restant
+    |--------------------------------------------------------------------------
+    */
+
+    $nouveauRestant =
+        $montantDu - $nouveauMontantPaye;
+
+
+    /*
+    |--------------------------------------------------------------------------
+    | Mise à jour
+    |--------------------------------------------------------------------------
+    */
+
+    try {
+
+        DB::transaction(function () use (
+            $paiement,
+            $nouveauMontantPaye,
+            $nouveauRestant,
+            $mois,
+            $validated
+        ) {
+
+            $paiement->update([
+
+                'mois' =>
+                    $mois,
+
+                'montant_paye' =>
+                    $nouveauMontantPaye,
+
+                'restant' =>
+                    $nouveauRestant,
+
+                'date_paiement' =>
+                    $validated['date_paiement'],
+
+                'mode_paiement' =>
+                    $validated['mode_paiement'],
+
+                'updated_by' =>
+                    auth()->id(),
+            ]);
+        });
+
+
+        /*
+        |--------------------------------------------------------------------------
+        | Retour
+        |--------------------------------------------------------------------------
+        */
+
+        return redirect()
+            ->route('paiements.show', [
+                'eleve' =>
+                    $paiement->eleve_id,
+
+                'annee_scolaire_id' =>
+                    $paiement->annee_scolaire_id,
+            ])
+            ->with(
+                'success',
+                'Le paiement a été modifié avec succès.'
+            );
+
+
+    } catch (\Throwable $e) {
+
+        return back()
+            ->withInput()
+            ->with(
+                'error',
+                'Une erreur est survenue lors de la modification du paiement.'
+            );
+    }
+}
+
+/*ANNULE PAIEMENT*/
+
+public function destroy(Paiement $paiement)
+{
+    $eleveId = $paiement->eleve_id;
+
+    $anneeScolaireId =
+        $paiement->annee_scolaire_id;
+
+
+    try {
+
+        DB::transaction(function () use ($paiement) {
+
+            $paiement->delete();
+
+        });
+
+
+        return redirect()
+            ->route('paiements.show', [
+                'eleve' =>
+                    $eleveId,
+
+                'annee_scolaire_id' =>
+                    $anneeScolaireId,
+            ])
+            ->with(
+                'success',
+                'Le paiement a été annulé avec succès.'
+            );
+
+
+    } catch (\Throwable $e) {
+
+        return back()
+            ->with(
+                'error',
+                'Impossible d’annuler ce paiement.'
+            );
+    }
+}
+
+
 /**
  * Dashboard des paiements
  */
