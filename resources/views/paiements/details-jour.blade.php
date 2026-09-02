@@ -2,11 +2,14 @@
 
 @section('title', 'Détails des paiements')
 
+@section('breadcrumb', 'Paiements / Détails du jour')
+
 @section('content')
 
-<div class="max-w-7xl mx-auto py-8 px-4">
+<div class="mx-auto max-w-7xl px-4 py-6 sm:px-6 sm:py-8 lg:px-8">
 
-```
+@include('paiements.partials.navigation')
+
 {{-- En-tête --}}
 <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-4 mb-8">
 
@@ -24,20 +27,6 @@
                 </span>
             </p>
         @endif
-
-    </div>
-
-    <div class="flex gap-2">
-
-        <a href="{{ route('paiements.dashboard') }}"
-           class="px-4 py-2 bg-slate-200 text-slate-700 rounded-lg hover:bg-slate-300 transition">
-            ← Dashboard
-        </a>
-
-        <a href="{{ route('paiements.index') }}"
-           class="px-4 py-2 bg-slate-700 text-white rounded-lg hover:bg-slate-800 transition">
-            Historique
-        </a>
 
     </div>
 
@@ -63,14 +52,14 @@
                 id="date"
                 name="date"
                 value="{{ $date }}"
-                class="border border-slate-300 rounded-lg px-4 py-2 focus:ring-2 focus:ring-slate-400 focus:outline-none"
+                class="rounded-xl border border-slate-300 bg-white px-4 py-2.5 focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20"
                 required
             >
 
         </div>
 
         <button type="submit"
-                class="px-5 py-2 bg-slate-700 text-white rounded-lg hover:bg-slate-800 transition">
+                class="rounded-xl bg-blue-600 px-5 py-2.5 font-medium text-white transition hover:bg-blue-700">
             Afficher
         </button>
 
@@ -385,8 +374,6 @@
     </div>
 
 </div>
-```
-
 </div>
 
 {{-- Confirmation de l'annulation --}}

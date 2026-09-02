@@ -23,10 +23,17 @@
         html.dark body,html.dark main{background:#0f172a;color:#e2e8f0}
         html.dark header{background:#111827;border-color:#334155}
         html.dark .bg-white{background-color:#111827!important}
-        html.dark .bg-slate-50,html.dark .bg-slate-100,html.dark .bg-gray-100{background-color:#1e293b!important}
+        html.dark .bg-slate-50,html.dark .bg-slate-100,html.dark .bg-slate-200,html.dark .bg-gray-50,html.dark .bg-gray-100,html.dark .bg-gray-200{background-color:#1e293b!important}
         html.dark .text-slate-900,html.dark .text-slate-800,html.dark .text-slate-700,html.dark .text-gray-800,html.dark .text-gray-700{color:#f1f5f9!important}
         html.dark .text-slate-600,html.dark .text-slate-500,html.dark .text-gray-500{color:#94a3b8!important}
-        html.dark .border-slate-100,html.dark .border-slate-200,html.dark .border-slate-300,html.dark .divide-slate-100>*+*{border-color:#334155!important}
+        html.dark .bg-white.border,
+        html.dark main .border-white,
+        html.dark .border-slate-100,html.dark .border-slate-200,html.dark .border-slate-300,html.dark .border-slate-400,
+        html.dark .border-gray-100,html.dark .border-gray-200,html.dark .border-gray-300,html.dark .border-gray-400,
+        html.dark .divide-slate-100> :not([hidden])~ :not([hidden]),html.dark .divide-slate-200> :not([hidden])~ :not([hidden]),
+        html.dark .divide-gray-100> :not([hidden])~ :not([hidden]),html.dark .divide-gray-200> :not([hidden])~ :not([hidden]){border-color:#334155!important}
+        html.dark main .ring-white{--tw-ring-color:#334155!important}
+        html.dark main .ring-offset-white{--tw-ring-offset-color:#111827!important}
         html.dark input,html.dark select,html.dark textarea{background:#0f172a!important;border-color:#475569!important;color:#f8fafc!important}
         html.dark input::placeholder,html.dark textarea::placeholder{color:#64748b}
         html.dark table thead{background:#1e293b!important}
@@ -54,26 +61,26 @@
             </div>
 
             <nav class="flex-1 space-y-2 p-4">
-                <a href="{{ route('admin.dashboard') }}" class="flex items-center gap-3 rounded-xl px-4 py-3 transition {{ request()->routeIs('admin.dashboard') ? 'bg-blue-600 text-white' : 'hover:bg-slate-100 dark:hover:bg-slate-800' }}">
-                    <i class="fas fa-chart-pie w-5"></i><span>Tableau de bord</span>
+                <a href="{{ route('admin.dashboard') }}" aria-label="Tableau de bord" class="flex items-center gap-3 rounded-xl px-4 py-3 transition {{ request()->routeIs('admin.dashboard') ? 'bg-blue-600 text-white' : 'hover:bg-slate-100 dark:hover:bg-slate-800' }}">
+                    <i class="fas fa-gauge-high w-5" aria-hidden="true"></i><span>Tableau de bord</span>
                 </a>
-                <a href="{{ route('users.index') }}" class="flex items-center gap-3 rounded-xl px-4 py-3 transition {{ request()->routeIs('users.*') ? 'bg-blue-600 text-white' : 'hover:bg-slate-100 dark:hover:bg-slate-800' }}">
-                    <i class="fas fa-users-cog w-5"></i><span>Utilisateurs</span>
+                <a href="{{ route('users.index') }}" aria-label="Utilisateurs" class="flex items-center gap-3 rounded-xl px-4 py-3 transition {{ request()->routeIs('users.*') ? 'bg-blue-600 text-white' : 'hover:bg-slate-100 dark:hover:bg-slate-800' }}">
+                    <i class="fas fa-users-gear w-5" aria-hidden="true"></i><span>Utilisateurs</span>
                 </a>
-                <a href="{{ route('frais.dashboard') }}" class="flex items-center gap-3 rounded-xl px-4 py-3 transition {{ request()->routeIs('frais.dashboard') ? 'bg-blue-600 text-white' : 'hover:bg-slate-100 dark:hover:bg-slate-800' }}">
-                    <i class="fas fa-money-bill-wave w-5"></i><span>Gestion des frais</span>
+                <a href="{{ route('frais.dashboard') }}" aria-label="Gestion des frais" class="flex items-center gap-3 rounded-xl px-4 py-3 transition {{ request()->routeIs('frais.*') ? 'bg-blue-600 text-white' : 'hover:bg-slate-100 dark:hover:bg-slate-800' }}">
+                    <i class="fas fa-tags w-5" aria-hidden="true"></i><span>Gestion des frais</span>
                 </a>
 
             </nav>
 
             <div class="border-t border-slate-200 p-4 dark:border-slate-800">
                  <a href="{{ route('login.post') }}" class="flex items-center  gap-3 rounded-xl px-4 py-3 transition {{ request()->routeIs('login.post') ? 'bg-blue-600 text-white' : 'hover:bg-slate-100 dark:hover:bg-slate-800' }}">
-                    <i class="fas fa-right-to-bracket w-5"></i><span>Login Agent</span>
+                    <i class="fas fa-arrow-right-to-bracket w-5" aria-hidden="true"></i><span>Login Agent</span>
                 </a>
                 <form method="POST" action="{{ route('admin.logout') }}">
                     @csrf
                     <button class="flex w-full items-center gap-3 rounded-xl px-4 py-3 text-red-300 transition hover:bg-red-500/10 hover:text-red-200">
-                        <i class="fas fa-sign-out-alt w-5"></i><span>Déconnexion</span>
+                        <i class="fas fa-arrow-right-from-bracket w-5" aria-hidden="true"></i><span>Déconnexion</span>
                     </button>
                 </form>
             </div>

@@ -3,7 +3,7 @@
 @section('title', isset($classe) ? 'Modifier une classe' : 'Ajouter une classe')
 
 @section('breadcrumb')
-    Accueil / Classes / {{ isset($classe) ? 'Modifier' : 'Ajouter' }}
+    {{ isset($classe) ? 'Modifier' : 'Ajouter' }} une classe
 @endsection
 
 @section('content')
@@ -13,6 +13,21 @@
     <!-- ===================================================== -->
     <!-- EN-TÊTE -->
     <!-- ===================================================== -->
+    <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-4 mb-6">
+
+        <div>
+
+        </div>
+
+        <a
+                href="{{ route('classes.index') }}"
+                class="inline-flex w-full items-center justify-center gap-2 rounded-xl border border-slate-300 bg-white px-4 py-2.5 text-sm font-medium text-slate-700 shadow-sm transition hover:border-slate-400 hover:bg-slate-50 sm:w-auto"
+            >
+                <i class="fas fa-arrow-left text-xs" aria-hidden="true"></i>
+                <span>Retour aux classes</span>
+            </a>
+
+    </div>
 
     <div class="bg-white rounded-xl shadow-sm border mb-6">
 
@@ -36,14 +51,7 @@
 
         </div>
 
-    </div>
 
-
-    <!-- ===================================================== -->
-    <!-- FORMULAIRE -->
-    <!-- ===================================================== -->
-
-    <div class="bg-white rounded-xl shadow-sm border">
 
         <form
             action="{{ isset($classe)
@@ -58,7 +66,7 @@
             @endif
 
 
-            <div class="p-6">
+            <div class="p-6 ">
 
                 <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
 
@@ -271,7 +279,7 @@
                     <div class="md:col-span-2">
 
                         <div
-                            class="bg-slate-50 border rounded-xl p-5">
+                            class="bg-slate-50 border border-slate-200 rounded-xl p-5">
 
                             <p class="text-sm text-gray-500 mb-2">
 
@@ -349,7 +357,7 @@
             <!-- BOUTONS -->
             <!-- ===================================================== -->
 
-            <div class="border-t px-6 py-4
+            <div class="border-t border-slate-200 px-6 py-4
                         flex justify-end gap-3">
 
                 <a

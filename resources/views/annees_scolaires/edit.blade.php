@@ -1,5 +1,7 @@
 @extends('layouts.app')
 
+@section('title', 'Modifier une année scolaire')
+
 @section('content')
 
 <div class="max-w-5xl mx-auto py-8">

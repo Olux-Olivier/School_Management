@@ -2,11 +2,14 @@
 
 @section('title', 'Dashboard des paiements')
 
+@section('breadcrumb', 'Paiements / Tableau de bord')
+
 @section('content')
 
-<div class="max-w-7xl mx-auto py-8 px-4">
+<div class="mx-auto max-w-7xl px-4 py-6 sm:px-6 sm:py-8 lg:px-8">
 
-```
+@include('paiements.partials.navigation')
+
 {{-- En-tête --}}
 <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-4 mb-8">
 
@@ -23,16 +26,6 @@
                 </span>
             </p>
         @endif
-    </div>
-
-    <div class="flex flex-wrap gap-2">
-
-        {{-- Historique complet --}}
-        <a href="{{ route('paiements.index') }}"
-           class="inline-flex items-center px-4 py-2 bg-slate-700 text-white rounded-lg hover:bg-slate-800 transition">
-            Historique des paiements
-        </a>
-
     </div>
 
 </div>
@@ -241,7 +234,7 @@
 
             {{-- Route à créer lors de l'étape suivante --}}
             <a href="{{ route('paiements.details-jour', ['date' => now()->format('Y-m-d')]) }}"
-               class="inline-flex items-center px-4 py-2 bg-slate-700 text-white rounded-lg hover:bg-slate-800 transition">
+               class="inline-flex items-center gap-2 rounded-xl bg-blue-600 px-4 py-2.5 text-sm font-medium text-white transition hover:bg-blue-700">
                 Voir les détails
             </a>
 

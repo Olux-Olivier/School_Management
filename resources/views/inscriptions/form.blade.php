@@ -1,3 +1,19 @@
+<div class="flex flex-col md:flex-row md:items-center md:justify-between gap-4 mb-6">
+
+        <div>
+
+        </div>
+
+        <a
+                href="{{ route('inscriptions.index') }}"
+                class="inline-flex w-full items-center justify-center gap-2 rounded-xl border border-slate-300 bg-white px-4 py-2.5 text-sm font-medium text-slate-700 shadow-sm transition hover:border-slate-400 hover:bg-slate-50 sm:w-auto"
+            >
+                <i class="fas fa-arrow-left text-xs" aria-hidden="true"></i>
+                <span>Retour aux élèves</span>
+            </a>
+
+    </div>
+
 <form
     action="{{ isset($inscription)
         ? route('inscriptions.update', $inscription)
@@ -6,7 +22,17 @@
     class="bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden">
 
     @csrf
+    <div class="p-6 border-b border-slate-200">
 
+        <h1 class="text-2xl font-bold text-slate-700">
+            Nouvelle inscription
+        </h1>
+
+        <p class="text-sm text-slate-500 mt-1">
+            Enregistrer l'inscription d'un élève.
+        </p>
+
+    </div>
     @isset($inscription)
         @method('PUT')
     @endisset

@@ -2,9 +2,7 @@
 
 @section('title', 'Classes')
 
-@section('breadcrumb')
-    Accueil / Classes
-@endsection
+
 
 @section('content')
 
@@ -58,7 +56,7 @@
 
 
         {{-- Barre de recherche --}}
-        <div class="p-5 border-b">
+        <div class="p-5 ">
 
             <div class="relative max-w-md">
 
@@ -89,7 +87,7 @@
 
             <table class="w-full">
 
-                <thead class="bg-slate-50 border-b">
+                <thead class="bg-slate-50 ">
 
                     <tr>
 

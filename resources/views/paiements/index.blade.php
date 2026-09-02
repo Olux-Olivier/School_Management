@@ -6,9 +6,13 @@
 
 <div class="max-w-7xl mx-auto px-4 py-6 sm:px-6 sm:py-8 lg:px-8">
 
+    @include('paiements.partials.navigation')
+
     {{-- ================================================================
          FILTRES
     ================================================================= --}}
+
+
 
     <div class="mb-6 rounded-2xl border border-slate-200 bg-white p-5 shadow-sm sm:p-6">
 
@@ -220,12 +224,7 @@
             --------------------------------------------------------- --}}
 
             <div class="mt-6 flex flex-col-reverse gap-3 border-t border-slate-100 pt-5 sm:flex-row sm:justify-end">
-                <a
-                    href="{{ route('paiements.dashboard') }}"
-                    class="inline-flex items-center justify-center rounded-xl border border-slate-300 px-5 py-2.5 text-sm font-medium text-slate-600 transition hover:bg-slate-50"
-                >
-                    Dashboard des paiements
-                </a>
+                
 
                 <a
                     href="{{ route('paiements.index') }}"
@@ -256,7 +255,7 @@
 
         <div class="mb-4">
 
-            <div class="inline-flex items-center gap-2 rounded-xl border border-blue-100 bg-blue-50 px-4 py-2.5 text-sm text-blue-700">
+            <div class="inline-flex items-center gap-2 rounded-xl  border-slate-200 bg-blue-50 px-4 py-2.5 text-sm text-blue-700">
 
                 <span class="font-medium">
                     Année consultée :

@@ -1,8 +1,12 @@
 @extends('layouts.app')
 
+@section('title', 'Ajouter une année scolaire')
+
+@section('breadcrumb', 'Années scolaires / Ajouter')
+
 @section('content')
 
-<div class="max-w-5xl mx-auto py-8">
+<div class="mx-auto max-w-5xl px-4 py-6 sm:px-6 sm:py-8 lg:px-8">
 
     <form action="{{ route('annees.store') }}"
           method="POST"

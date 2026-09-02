@@ -9,7 +9,7 @@
 
     <meta name="csrf-token" content="{{ csrf_token() }}">
 
-    <title>Synergie School</title>
+    <title>@yield('title', 'School Management') | Synergie School</title>
 
     <script>
         try {
@@ -85,7 +85,7 @@
         html.dark header button.rounded-full:hover,html.dark #mobileSidebarButton:hover,html.dark #desktopSidebarButton:hover{background-color:rgba(148,163,184,.18)!important}
         html.dark footer{background-color:var(--dark-sidebar)!important;border-color:rgba(148,163,184,.15)!important;color:var(--dark-text-secondary)!important}
         html.dark .bg-white{background-color:var(--dark-card)!important}
-        html.dark .bg-slate-50,html.dark .bg-slate-100,html.dark .bg-gray-100{background-color:#1e293b!important}
+        html.dark .bg-slate-50,html.dark .bg-slate-100,html.dark .bg-slate-200,html.dark .bg-gray-50,html.dark .bg-gray-100,html.dark .bg-gray-200{background-color:#1e293b!important}
         html.dark .bg-blue-50,html.dark .bg-blue-100{background-color:rgba(59,130,246,.12)!important}
         html.dark .bg-green-50,html.dark .bg-green-100,html.dark .bg-emerald-50,html.dark .bg-emerald-100{background-color:rgba(34,197,94,.12)!important}
         html.dark .bg-indigo-50,html.dark .bg-indigo-100,html.dark .bg-violet-50,html.dark .bg-violet-100,html.dark .bg-purple-50,html.dark .bg-purple-100{background-color:rgba(139,92,246,.12)!important}
@@ -95,7 +95,14 @@
         html.dark .text-slate-950,html.dark .text-slate-900,html.dark .text-slate-800,html.dark .text-slate-700,html.dark .text-gray-900,html.dark .text-gray-800,html.dark .text-gray-700{color:var(--dark-text-primary)!important}
         html.dark .text-slate-600,html.dark .text-slate-500,html.dark .text-gray-600,html.dark .text-gray-500{color:var(--dark-text-secondary)!important}
         html.dark .text-slate-400,html.dark .text-gray-400{color:var(--dark-text-muted)!important}
-        html.dark .bg-white.border,html.dark .border-slate-100,html.dark .border-slate-200,html.dark .border-slate-300,html.dark .divide-slate-100>*+*{border-color:var(--dark-border)!important}
+        html.dark .bg-white.border,
+        html.dark .page-content .border-white,
+        html.dark .border-slate-100,html.dark .border-slate-200,html.dark .border-slate-300,html.dark .border-slate-400,
+        html.dark .border-gray-100,html.dark .border-gray-200,html.dark .border-gray-300,html.dark .border-gray-400,
+        html.dark .divide-slate-100> :not([hidden])~ :not([hidden]),html.dark .divide-slate-200> :not([hidden])~ :not([hidden]),
+        html.dark .divide-gray-100> :not([hidden])~ :not([hidden]),html.dark .divide-gray-200> :not([hidden])~ :not([hidden]){border-color:var(--dark-border)!important}
+        html.dark .page-content .ring-white{--tw-ring-color:var(--dark-border)!important}
+        html.dark .page-content .ring-offset-white{--tw-ring-offset-color:var(--dark-card)!important}
         html.dark input,html.dark select,html.dark textarea{background-color:var(--dark-input)!important;border-color:#334155!important;color:#f8fafc!important}
         html.dark input::placeholder,html.dark textarea::placeholder{color:var(--dark-text-muted)}
         html.dark input:focus,html.dark select:focus,html.dark textarea:focus{border-color:var(--dark-blue)!important;box-shadow:0 0 0 3px rgba(59,130,246,.15)!important;outline:none}
@@ -157,61 +164,61 @@
 
         <nav class="flex-1 min-h-0 mt-6 overflow-y-auto overflow-x-hidden">
 
-            <a href="{{ route('dashboard') }}"
+            <a href="{{ route('dashboard') }}" data-label="Accueil" aria-label="Accueil"
 
                 class="flex items-center px-6 py-3 transition {{ request()->routeIs('dashboard') ? 'bg-blue-600 text-white' : 'hover:bg-slate-100' }}">
 
-                <i class="fas fa-home w-6"></i>
+                <i class="fas fa-house w-6" aria-hidden="true"></i>
 
                 <span>Accueil</span>
 
             </a>
 
-            <a href="{{ route('annees.index') }}"
+            <a href="{{ route('annees.index') }}" data-label="Années scolaires" aria-label="Années scolaires"
 
                 class="flex items-center px-6 py-3 transition {{ request()->routeIs('annees.*') ? 'bg-blue-600 text-white' : 'hover:bg-slate-100' }}">
 
-                <i class="fas fa-calendar-alt w-6"></i>
+                <i class="fas fa-calendar-days w-6" aria-hidden="true"></i>
 
                 <span>Années scolaires</span>
 
             </a>
 
-            <a href="{{ route('classes.index') }}"
+            <a href="{{ route('classes.index') }}" data-label="Classes" aria-label="Classes"
 
                 class="flex items-center px-6 py-3 transition {{ request()->routeIs('classes.*') ? 'bg-blue-600 text-white' : 'hover:bg-slate-100' }}">
 
-                <i class="fas fa-school w-6"></i>
+                <i class="fas fa-chalkboard-user w-6" aria-hidden="true"></i>
 
                 <span>Classes</span>
 
             </a>
 
-            <a href="{{ route('eleves.index') }}"
+            <a href="{{ route('eleves.index') }}" data-label="Élèves" aria-label="Élèves"
 
                 class="flex items-center px-6 py-3 transition {{ request()->routeIs('eleves.*') ? 'bg-blue-600 text-white' : 'hover:bg-slate-100' }}">
 
-                <i class="fas fa-user-graduate w-6"></i>
+                <i class="fas fa-user-graduate w-6" aria-hidden="true"></i>
 
                 <span>Élèves</span>
 
             </a>
 
-            <a href="{{ route('inscriptions.index') }}"
+            <a href="{{ route('inscriptions.index') }}" data-label="Inscriptions" aria-label="Inscriptions"
 
                 class="flex items-center px-6 py-3 transition {{ request()->routeIs('inscriptions.*') ? 'bg-blue-600 text-white' : 'hover:bg-slate-100' }}">
 
-                <i class="fas fa-file-signature w-6"></i>
+                <i class="fas fa-file-circle-check w-6" aria-hidden="true"></i>
 
                 <span>Inscriptions</span>
 
             </a>
 
-            <a href="{{ route('reinscriptions.index') }}"
+            <a href="{{ route('reinscriptions.index') }}" data-label="Réinscriptions" aria-label="Réinscriptions"
 
                 class="flex items-center px-6 py-3 transition {{ request()->routeIs('reinscriptions.*') ? 'bg-blue-600 text-white' : 'hover:bg-slate-100' }}">
 
-                <i class="fas fa-retweet w-6"></i>
+                <i class="fas fa-arrows-rotate w-6" aria-hidden="true"></i>
 
                 <span>Réinscriptions</span>
 
@@ -227,21 +234,21 @@
 
             </a> --}}
 
-            <a href="{{ route('paiements.index') }}"
+            <a href="{{ route('paiements.dashboard') }}" data-label="Paiements" aria-label="Paiements"
 
                 class="flex items-center px-6 py-3 transition {{ request()->routeIs('paiements.*') ? 'bg-blue-600 text-white' : 'hover:bg-slate-100' }}">
 
-                <i class="fas fa-chart-bar w-6"></i>
+                <i class="fas fa-money-check-dollar w-6" aria-hidden="true"></i>
 
                 <span>Paiements</span>
 
             </a>
 
-            <a href="#"
+            <a href="#" data-label="Paramètres" aria-label="Paramètres"
 
                 class="flex items-center px-6 py-3 hover:bg-slate-100 transition">
 
-                <i class="fas fa-cog w-6"></i>
+                <i class="fas fa-gears w-6" aria-hidden="true"></i>
 
                 <span>Paramètres</span>
 

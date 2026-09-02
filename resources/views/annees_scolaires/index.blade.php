@@ -2,9 +2,6 @@
 
 @section('title', 'Années scolaires')
 
-@section('breadcrumb')
-    Accueil / Années scolaires
-@endsection
 
 @section('content')
 
@@ -53,9 +50,9 @@
     <!-- RECHERCHE -->
     <!-- ===================================================== -->
 
-    <div class="bg-white rounded-xl shadow-sm border">
+    <div class="bg-white rounded-xl border- shadow-sm border">
 
-        <div class="p-6 border-b">
+        <div class="p-6 ">
 
             <div class="relative max-w-md">
 
@@ -90,7 +87,7 @@
 
             <table class="w-full">
 
-                <thead class="bg-slate-50 border-b">
+                <thead class="bg-slate-50 ">
 
                     <tr>
 
@@ -133,7 +130,7 @@
                     @forelse($annees as $annee)
 
                         <tr
-                            class="border-b hover:bg-slate-50 transition
+                            class=" hover:bg-slate-50 transition
                                    annee-row">
 
                             <!-- Numéro -->

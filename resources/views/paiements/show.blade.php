@@ -1,10 +1,14 @@
 @extends('layouts.app')
 
 @section('title', 'Historique des paiements')
-
+@section('breadcrumb')
+    Paiements / Historique de l’élève
+@endsection
 @section('content')
 
-<div class="max-w-7xl mx-auto py-8 px-4">
+<div class="mx-auto max-w-7xl px-4 py-6 sm:px-6 sm:py-8 lg:px-8">
+
+    @include('paiements.partials.navigation')
 
     {{-- ================================================================
          EN-TÊTE
@@ -20,9 +24,10 @@
                     href="{{ route('paiements.index', [
                         'annee_scolaire_id' => $anneeScolaireId
                     ]) }}"
-                    class="text-slate-400 hover:text-slate-600"
+                    class="inline-flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-xl border border-slate-300 bg-white text-slate-600 shadow-sm transition hover:bg-slate-50"
+                    aria-label="Retour à la liste des paiements"
                 >
-                    ←
+                    <i class="fas fa-arrow-left text-xs" aria-hidden="true"></i>
                 </a>
 
                 <h1 class="text-2xl font-bold text-slate-700">
@@ -40,12 +45,6 @@
 
         {{-- NOUVEAU PAIEMENT --}}
 
-        <a
-            href="{{ route('paiements.create', ['eleve' => $eleve->id,'annee_scolaire_id' => $anneeScolaireId,]) }}"
-            class="inline-flex items-center justify-center px-5 py-2.5 rounded-lg bg-indigo-600 text-white hover:bg-indigo-700 transition font-medium"
-        >
-            + Nouveau paiement
-        </a>
 
     </div>
 
@@ -234,7 +233,7 @@
                 <select
                     name="annee_scolaire_id"
                     id="annee_scolaire_id"
-                    class="w-full md:w-80 rounded-lg border-slate-300 focus:border-indigo-500 focus:ring-indigo-500"
+                    class="w-full rounded-xl border border-slate-300 bg-white px-3 py-2.5 focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 md:w-80"
                 >
 
                     @foreach($anneesScolaires as $annee)
@@ -258,7 +257,7 @@
 
                 <button
                     type="submit"
-                    class="px-5 py-2 rounded-lg bg-slate-700 text-white hover:bg-slate-800 transition"
+                    class="rounded-xl bg-blue-600 px-5 py-2.5 font-medium text-white transition hover:bg-blue-700"
                 >
                     Consulter
                 </button>

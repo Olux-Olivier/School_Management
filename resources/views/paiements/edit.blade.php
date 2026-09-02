@@ -2,9 +2,13 @@
 
 @section('title', 'Modifier le paiement')
 
+@section('breadcrumb', 'Paiements / Modifier')
+
 @section('content')
 
-<div class="max-w-4xl mx-auto py-8 px-4">
+<div class="mx-auto max-w-4xl px-4 py-6 sm:px-6 sm:py-8 lg:px-8">
+
+    @include('paiements.partials.navigation')
 
     {{-- En-tête --}}
     <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-4 mb-8">
@@ -54,11 +58,10 @@
                 'eleve' => $paiement->eleve_id,
                 'annee_scolaire_id' => $paiement->annee_scolaire_id
             ]) }}"
-           class="inline-flex items-center justify-center gap-2 px-4 py-2.5
-                  bg-slate-100 text-slate-700 rounded-xl
-                  hover:bg-slate-200 transition">
+           class="inline-flex w-full items-center justify-center gap-2 rounded-xl border border-slate-300 bg-white px-4 py-2.5 text-sm font-medium text-slate-700 shadow-sm transition hover:bg-slate-50 md:w-auto">
 
-            ← Retour
+            <i class="fas fa-arrow-left text-xs" aria-hidden="true"></i>
+            Retour à l’historique
 
         </a>
 

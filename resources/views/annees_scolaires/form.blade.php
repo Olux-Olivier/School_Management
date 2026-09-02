@@ -9,12 +9,28 @@
 @section('content')
 
 <div class="max-w-4xl mx-auto">
+    <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-4 mb-6">
 
-    <div class="bg-white rounded-xl shadow-sm border">
+        <div>
+            
+        </div>
 
-        <!-- En-tête -->
+        <a
+                href="{{ route('annees.index') }}"
+                class="inline-flex w-full items-center justify-center gap-2 rounded-xl border border-slate-300 bg-white px-4 py-2.5 text-sm font-medium text-slate-700 shadow-sm transition hover:border-slate-400 hover:bg-slate-50 sm:w-auto"
+            >
+                <i class="fas fa-arrow-left text-xs" aria-hidden="true"></i>
+                <span>Retour aux années scolaires</span>
+            </a>
 
-        <div class="px-6 py-5 border-b">
+    </div>
+    <div class="overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm">
+
+
+
+        <div class="flex flex-col gap-4 border-b border-slate-200 px-5 py-5 sm:flex-row sm:items-center sm:justify-between sm:px-6">
+
+            <div>
 
             <h2 class="text-xl font-bold text-slate-700">
 
@@ -31,6 +47,8 @@
                     : 'Enregistrez une nouvelle année scolaire.' }}
 
             </p>
+
+            </div>
 
         </div>
 
@@ -83,8 +101,8 @@
 
                             placeholder="Sera généré automatiquement"
 
-                            class="w-full bg-gray-100 border rounded-lg
-                            px-4 py-3 text-gray-700
+                            class="w-full rounded-xl border border-slate-300 bg-slate-100
+                            px-4 py-3 text-slate-700
                             cursor-not-allowed
                             focus:outline-none">
 
@@ -134,9 +152,9 @@
                                     : ''
                             ) }}"
 
-                            class="w-full border rounded-lg
+                            class="w-full rounded-xl border border-slate-300 bg-white
                             px-4 py-3
-                            focus:ring-2 focus:ring-blue-500
+                            focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20
                             focus:outline-none
                             @error('date_debut')
                                 border-red-500
@@ -181,9 +199,9 @@
                                     : ''
                             ) }}"
 
-                            class="w-full border rounded-lg
+                            class="w-full rounded-xl border border-slate-300 bg-white
                             px-4 py-3
-                            focus:ring-2 focus:ring-blue-500
+                            focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20
                             focus:outline-none
                             @error('date_fin')
                                 border-red-500
@@ -211,14 +229,12 @@
             <!-- BOUTONS -->
             <!-- ================================================= -->
 
-            <div class="border-t px-6 py-4 flex justify-end gap-3">
+            <div class="flex flex-col-reverse gap-3 border-t border-slate-200 bg-slate-50 px-5 py-4 sm:flex-row sm:justify-end sm:px-6">
 
                 <a
                     href="{{ route('annees.index') }}"
 
-                    class="px-5 py-2.5 rounded-lg
-                    bg-gray-200 text-gray-700
-                    hover:bg-gray-300 transition">
+                    class="inline-flex items-center justify-center rounded-xl border border-slate-300 bg-white px-5 py-2.5 font-medium text-slate-700 transition hover:bg-slate-100">
 
                     Annuler
 
@@ -228,9 +244,7 @@
                 <button
                     type="submit"
 
-                    class="px-5 py-2.5 rounded-lg
-                    bg-blue-600 text-white
-                    hover:bg-blue-700 transition">
+                    class="inline-flex items-center justify-center rounded-xl bg-blue-600 px-5 py-2.5 font-medium text-white shadow-sm transition hover:bg-blue-700 focus:ring-2 focus:ring-blue-500/30">
 
                     <i class="fas fa-save mr-2"></i>
 

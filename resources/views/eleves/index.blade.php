@@ -2,9 +2,6 @@
 
 @section('title', 'Élèves')
 
-@section('breadcrumb')
-    Accueil/tous les élèves de l'etablissement
-@endsection
 
 @section('content')
 
@@ -220,7 +217,7 @@
                 {{-- THEAD --}}
                 {{-- ================================================= --}}
 
-                <thead class="bg-slate-50 border-b">
+                <thead class="bg-slate-50 ">
 
                     <tr>
 
@@ -293,7 +290,7 @@
                 {{-- TBODY --}}
                 {{-- ================================================= --}}
 
-                <tbody class="divide-y">
+                <tbody class="divide-y divide-slate-100">
 
                     @forelse($eleves as $eleve)
 

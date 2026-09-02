@@ -1,5 +1,7 @@
 @extends('layouts.admin')
 
+@section('title', 'Détails de l’utilisateur')
+
 @section('content')
 
 <div class="max-w-6xl mx-auto py-8">

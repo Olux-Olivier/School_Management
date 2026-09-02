@@ -2,37 +2,44 @@
 
 @section('title', 'Nouveau paiement')
 
+@section('breadcrumb')
+    Paiements / Nouveau paiement
+@endsection
 @section('content')
 
-<div class="max-w-5xl mx-auto py-8 px-4">
+<div class="mx-auto max-w-5xl px-4 py-6 sm:px-6 sm:py-8 lg:px-8">
+
+    @include('paiements.partials.navigation')
 
     {{-- ================================================================
          EN-TÊTE
     ================================================================= --}}
 
-    <div class="flex items-center gap-3 mb-6">
+    <div class="mb-6 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+
+        <div class="flex items-center gap-3">
+
+            <div class="flex h-11 w-11 flex-shrink-0 items-center justify-center rounded-xl bg-blue-50 text-blue-600">
+                <i class="fas fa-money-bill-wave"></i>
+            </div>
+
+            <div>
+                <h1 class="text-2xl font-bold text-slate-800">Nouveau paiement</h1>
+                <p class="mt-1 text-sm text-slate-500">Enregistrer un paiement pour l'élève.</p>
+            </div>
+
+        </div>
 
         <a
             href="{{ route('paiements.show', [
                 'eleve' => $eleve->id,
                 'annee_scolaire_id' => $anneeScolaireId,
             ]) }}"
-            class="inline-flex items-center justify-center w-9 h-9 rounded-lg border border-slate-200 text-slate-500 hover:bg-slate-50 hover:text-slate-700 transition"
+            class="inline-flex w-full items-center justify-center gap-2 rounded-xl border border-slate-300 bg-white px-4 py-2.5 text-sm font-medium text-slate-700 shadow-sm transition hover:border-slate-400 hover:bg-slate-50 sm:w-auto"
         >
-            ←
+            <i class="fas fa-arrow-left text-xs" aria-hidden="true"></i>
+            <span>Retour à l’historique</span>
         </a>
-
-        <div>
-
-            <h1 class="text-2xl font-bold text-slate-700">
-                Nouveau paiement
-            </h1>
-
-            <p class="text-sm text-slate-500 mt-1">
-                Enregistrer un paiement pour l'élève.
-            </p>
-
-        </div>
 
     </div>
 
@@ -75,7 +82,7 @@
          INFORMATIONS ÉLÈVE
     ================================================================= --}}
 
-    <div class="bg-white rounded-xl shadow-sm border border-slate-200 p-5 mb-6">
+    <div class="mb-6 rounded-2xl border border-slate-200 bg-white p-5 shadow-sm sm:p-6">
 
         <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5">
 
@@ -187,7 +194,7 @@
         >
 
 
-        <div class="bg-white rounded-xl shadow-sm border border-slate-200 p-6">
+        <div class="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm sm:p-6">
 
             <div class="grid grid-cols-1 md:grid-cols-2 gap-5">
 
@@ -207,7 +214,7 @@
 
                     <select
                         id="annee_scolaire_select"
-                        class="w-full rounded-lg border-slate-300 bg-slate-50 focus:border-indigo-500 focus:ring-indigo-500"
+                        class="w-full rounded-xl border border-slate-300 bg-slate-50 px-3 py-2.5 focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20"
                     >
 
                         @foreach($anneesScolaires as $annee)
@@ -252,7 +259,7 @@
                         name="frais_id"
                         id="frais_id"
                         required
-                        class="w-full rounded-lg border-slate-300 focus:border-indigo-500 focus:ring-indigo-500"
+                        class="w-full rounded-xl border border-slate-300 bg-white px-3 py-2.5 focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20"
                     >
 
                         <option value="">
@@ -313,7 +320,7 @@
                     <select
                         name="mois"
                         id="mois"
-                        class="w-full rounded-lg border-slate-300 focus:border-indigo-500 focus:ring-indigo-500"
+                        class="w-full rounded-xl border border-slate-300 bg-white px-3 py-2.5 focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20"
                     >
 
                         <option value="">
@@ -420,7 +427,7 @@
                             readonly
                             value="{{ old('montant_du') }}"
                             placeholder="0"
-                            class="w-full rounded-lg border-slate-300 bg-slate-50 pr-14 font-semibold text-slate-700"
+                            class="w-full rounded-xl border border-slate-300 bg-slate-50 px-3 py-2.5 pr-14 font-semibold text-slate-700"
                         >
 
                         <span
@@ -462,7 +469,7 @@
                             required
                             value="{{ old('montant_paye') }}"
                             placeholder="Saisir le montant payé"
-                            class="w-full rounded-lg border-slate-300 pr-14 focus:border-indigo-500 focus:ring-indigo-500"
+                            class="w-full rounded-xl border border-slate-300 bg-white px-3 py-2.5 pr-14 focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20"
                         >
 
                         <span
@@ -496,7 +503,7 @@
                             id="restant"
                             readonly
                             value="0"
-                            class="w-full rounded-lg border-slate-300 bg-slate-50 pr-14 font-semibold text-amber-600"
+                            class="w-full rounded-xl border border-slate-300 bg-slate-50 px-3 py-2.5 pr-14 font-semibold text-amber-600"
                         >
 
                         <span
@@ -536,7 +543,7 @@
                             now()->format('Y-m-d')
                         ) }}"
                         required
-                        class="w-full rounded-lg border-slate-300 focus:border-indigo-500 focus:ring-indigo-500"
+                        class="w-full rounded-xl border border-slate-300 bg-white px-3 py-2.5 focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20"
                     >
 
                 </div>
@@ -559,7 +566,7 @@
                         name="mode_paiement"
                         id="mode_paiement"
                         required
-                        class="w-full rounded-lg border-slate-300 focus:border-indigo-500 focus:ring-indigo-500"
+                        class="w-full rounded-xl border border-slate-300 bg-white px-3 py-2.5 focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20"
                     >
 
                         <option value="">
@@ -700,22 +707,23 @@
                  BOUTONS
             ========================================================= --}}
 
-            <div class="flex flex-col-reverse sm:flex-row justify-end gap-3 mt-6">
+            <div class="mt-6 flex flex-col-reverse gap-3 border-t border-slate-100 pt-6 sm:flex-row sm:justify-end">
 
                 <a
                     href="{{ route('paiements.show', [
                         'eleve' => $eleve->id,
                         'annee_scolaire_id' => $anneeScolaireId,
                     ]) }}"
-                    class="inline-flex justify-center items-center px-5 py-2.5 rounded-lg border border-slate-300 text-slate-600 hover:bg-slate-50 transition"
+                    class="inline-flex items-center justify-center rounded-xl border border-slate-300 px-5 py-2.5 font-medium text-slate-700 transition hover:bg-slate-50"
                 >
                     Annuler
                 </a>
 
                 <button
                     type="submit"
-                    class="inline-flex justify-center items-center px-5 py-2.5 rounded-lg bg-indigo-600 text-white hover:bg-indigo-700 transition font-medium"
+                    class="inline-flex items-center justify-center gap-2 rounded-xl bg-blue-600 px-5 py-2.5 font-medium text-white shadow-sm transition hover:bg-blue-700 focus:ring-2 focus:ring-blue-500/30"
                 >
+                    <i class="fas fa-check" aria-hidden="true"></i>
                     Enregistrer le paiement
                 </button>
 
