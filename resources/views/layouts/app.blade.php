@@ -244,6 +244,16 @@
 
             </a>
 
+            <a href="{{ route('solvabilites.index') }}" data-label="Solvabilités" aria-label="Solvabilités"
+
+                class="flex items-center px-6 py-3 transition {{ request()->routeIs('solvabilites.*') ? 'bg-blue-600 text-white' : 'hover:bg-slate-100' }}">
+
+                <i class="fas fa-chart-pie w-6" aria-hidden="true"></i>
+
+                <span>Solvabilités</span>
+
+            </a>
+
             <a href="#" data-label="Paramètres" aria-label="Paramètres"
 
                 class="flex items-center px-6 py-3 hover:bg-slate-100 transition">

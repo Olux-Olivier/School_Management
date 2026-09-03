@@ -12,6 +12,7 @@ use App\Http\Controllers\HistoriqueFraisController;
 use App\Http\Controllers\PaiementController;
 use App\Http\Controllers\AdminController;
 use App\Http\Controllers\AdminAuthController;
+use App\Http\Controllers\SolvabiliteController;
 use App\Models\User;
 use Illuminate\Support\Facades\Hash;
 
@@ -558,6 +559,30 @@ Route::prefix('paiements')
     });
 
 
+/*|--------------------------------------------------------------------------
+| Solvabilité des élèves
+|--------------------------------------------------------------------------*/
+
+Route::prefix('solvabilites')
+    ->name('solvabilites.')
+    ->controller(SolvabiliteController::class)
+    ->group(function () {
+
+        Route::get('/', 'index')
+            ->name('index');
+
+        Route::get('/classes', 'classes')
+            ->name('classes');
+
+        Route::get('/options', 'options')
+            ->name('options');
+
+        Route::get('/frais', 'frais')
+            ->name('frais');
+
+        Route::get('/pdf', 'pdf')
+            ->name('pdf');
+    });
 
 /*|--------------------------------------------------------------------------
 | Route pour créer un administrateur par défaut
