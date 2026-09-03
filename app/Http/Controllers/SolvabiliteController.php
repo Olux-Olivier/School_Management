@@ -7,6 +7,7 @@ use App\Models\Classe;
 use App\Models\Frais;
 use App\Models\Inscription;
 use App\Models\Paiement;
+use Barryvdh\DomPDF\Facade\Pdf;
 use Illuminate\Http\Request;
 
 class SolvabiliteController extends Controller
@@ -358,19 +359,19 @@ class SolvabiliteController extends Controller
     |--------------------------------------------------------------------------
     */
 
-    public function pdf(Request $request)
-    {
-        /*
-        | On réutilise exactement la logique de la consultation.
-        */
+    // public function pdf(Request $request)
+    // {
+    //     /*
+    //     | On réutilise exactement la logique de la consultation.
+    //     */
 
-        $data = $this->calculerSolvabilite($request);
+    //     $data = $this->calculerSolvabilite($request);
 
-        return view(
-            'solvabilites.pdf',
-            $data
-        );
-    }
+    //     return view(
+    //         'solvabilites.pdf',
+    //         $data
+    //     );
+    // }
 
 
     /*
@@ -536,5 +537,21 @@ class SolvabiliteController extends Controller
         );
 
         return $section === 'humanites';
+    }
+
+    public function pdf(Request $request)
+    {
+        $data = $this->calculerSolvabilite($request);
+
+        $pdf = Pdf::loadView(
+            'solvabilites.pdf',
+            $data
+        );
+
+        $pdf->setPaper('A4', 'landscape');
+
+        return $pdf->stream(
+            'solvabilite-' . $data['frais']->intitule . '.pdf'
+        );
     }
 }
