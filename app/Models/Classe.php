@@ -16,6 +16,7 @@ class Classe extends Model
         'niveau',
         'section',
         'option',
+        'variante',
         'actif',
         'created_by',
         'updated_by',
@@ -102,10 +103,25 @@ class Classe extends Model
      */
     protected function nomComplet(): Attribute
     {
-        return Attribute::make(
-            get: fn () => $this->niveau == 3
-                ? trim($this->nom . ' ' . $this->option)
-                : trim($this->nom . ' ' . $this->section)
+       return Attribute::make(
+            get: function () {
+                $nom = $this->nom;
+
+                if ($this->niveau == 3) {
+                    // Humanités : nom + option
+                    $nom .= ' ' . $this->option;
+                } else {
+                    // Autres sections : nom + section
+                    $nom .= ' ' . $this->section;
+                }
+
+                // Ajouter la variante si elle existe
+                if (!empty($this->variante)) {
+                    $nom .= ' ' . $this->variante;
+                }
+
+                return trim($nom);
+            }
         );
     }
 

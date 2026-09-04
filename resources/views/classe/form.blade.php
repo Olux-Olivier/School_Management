@@ -15,17 +15,15 @@
     <!-- ===================================================== -->
     <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-4 mb-6">
 
-        <div>
-
-        </div>
+        <div></div>
 
         <a
-                href="{{ route('classes.index') }}"
-                class="inline-flex w-full items-center justify-center gap-2 rounded-xl border border-slate-300 bg-white px-4 py-2.5 text-sm font-medium text-slate-700 shadow-sm transition hover:border-slate-400 hover:bg-slate-50 sm:w-auto"
-            >
-                <i class="fas fa-arrow-left text-xs" aria-hidden="true"></i>
-                <span>Retour aux classes</span>
-            </a>
+            href="{{ route('classes.index') }}"
+            class="inline-flex w-full items-center justify-center gap-2 rounded-xl border border-slate-300 bg-white px-4 py-2.5 text-sm font-medium text-slate-700 shadow-sm transition hover:border-slate-400 hover:bg-slate-50 sm:w-auto"
+        >
+            <i class="fas fa-arrow-left text-xs" aria-hidden="true"></i>
+            <span>Retour aux classes</span>
+        </a>
 
     </div>
 
@@ -51,13 +49,12 @@
 
         </div>
 
-
-
         <form
             action="{{ isset($classe)
                 ? route('classes.update', $classe)
                 : route('classes.store') }}"
-            method="POST">
+            method="POST"
+        >
 
             @csrf
 
@@ -65,11 +62,9 @@
                 @method('PUT')
             @endif
 
-
-            <div class="p-6 ">
+            <div class="p-6">
 
                 <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-
 
                     <!-- ================================================= -->
                     <!-- SECTION -->
@@ -78,10 +73,8 @@
                     <div>
 
                         <label class="block mb-2 font-medium text-slate-700">
-
                             Section
                             <span class="text-red-500">*</span>
-
                         </label>
 
                         <select
@@ -89,7 +82,8 @@
                             id="section"
                             class="w-full border rounded-lg px-4 py-2.5
                                    focus:ring-2 focus:ring-blue-500
-                                   focus:outline-none">
+                                   focus:outline-none"
+                        >
 
                             <option value="">
                                 Sélectionner une section
@@ -99,40 +93,36 @@
                                 value="Maternelle"
                                 {{ old('section', $classe->section ?? '') == 'Maternelle'
                                     ? 'selected'
-                                    : '' }}>
-
+                                    : '' }}
+                            >
                                 Maternelle
-
                             </option>
 
                             <option
                                 value="Primaire"
                                 {{ old('section', $classe->section ?? '') == 'Primaire'
                                     ? 'selected'
-                                    : '' }}>
-
+                                    : '' }}
+                            >
                                 Primaire
-
                             </option>
 
                             <option
                                 value="Secondaire"
                                 {{ old('section', $classe->section ?? '') == 'Secondaire'
                                     ? 'selected'
-                                    : '' }}>
-
+                                    : '' }}
+                            >
                                 Secondaire
-
                             </option>
 
                             <option
                                 value="Humanités"
                                 {{ old('section', $classe->section ?? '') == 'Humanités'
                                     ? 'selected'
-                                    : '' }}>
-
+                                    : '' }}
+                            >
                                 Humanités
-
                             </option>
 
                         </select>
@@ -165,25 +155,46 @@
                             id="niveau"
                             class="w-full border rounded-lg px-4 py-2.5
                                    focus:ring-2 focus:ring-blue-500
-                                   focus:outline-none">
+                                   focus:outline-none"
+                        >
 
                             <option value="">
                                 Sélectionner
                             </option>
 
-                            <option value="0">
+                            <option
+                                value="0"
+                                {{ old('niveau', $classe->niveau ?? '') == '0'
+                                    ? 'selected'
+                                    : '' }}
+                            >
                                 Maternelle
                             </option>
 
-                            <option value="1">
+                            <option
+                                value="1"
+                                {{ old('niveau', $classe->niveau ?? '') == '1'
+                                    ? 'selected'
+                                    : '' }}
+                            >
                                 Primaire
                             </option>
 
-                            <option value="2">
+                            <option
+                                value="2"
+                                {{ old('niveau', $classe->niveau ?? '') == '2'
+                                    ? 'selected'
+                                    : '' }}
+                            >
                                 Secondaire
                             </option>
 
-                            <option value="3">
+                            <option
+                                value="3"
+                                {{ old('niveau', $classe->niveau ?? '') == '3'
+                                    ? 'selected'
+                                    : '' }}
+                            >
                                 Humanités
                             </option>
 
@@ -217,7 +228,8 @@
                             id="nom"
                             class="w-full border rounded-lg px-4 py-2.5
                                    focus:ring-2 focus:ring-blue-500
-                                   focus:outline-none">
+                                   focus:outline-none"
+                        >
 
                             <option value="">
                                 Sélectionner une classe
@@ -240,7 +252,8 @@
 
                     <div
                         id="optionContainer"
-                        class="hidden">
+                        class="hidden"
+                    >
 
                         <label class="block mb-2 font-medium text-slate-700">
 
@@ -254,14 +267,12 @@
                             type="text"
                             name="option"
                             id="option"
-
                             value="{{ old('option', $classe->option ?? '') }}"
-
-                            placeholder="Exemple : Commercial"
-
+                            placeholder="Exemple : Commerciale"
                             class="w-full border rounded-lg px-4 py-2.5
                                    focus:ring-2 focus:ring-blue-500
-                                   focus:outline-none">
+                                   focus:outline-none"
+                        >
 
                         @error('option')
                             <p class="text-red-500 text-sm mt-1">
@@ -273,26 +284,80 @@
 
 
                     <!-- ================================================= -->
+                    <!-- VARIANTE -->
+                    <!-- ================================================= -->
+
+                    <div>
+
+                        <label class="block mb-2 font-medium text-slate-700">
+
+                            Variante
+
+                            <span class="text-slate-400 font-normal">
+                                (facultatif)
+                            </span>
+
+                        </label>
+
+                        <select
+                            name="variante"
+                            id="variante"
+                            class="w-full border rounded-lg px-4 py-2.5
+                                   focus:ring-2 focus:ring-blue-500
+                                   focus:outline-none"
+                        >
+
+                            <option value="">
+                                Aucune variante
+                            </option>
+
+                            @foreach(['A', 'B', 'C', 'D', 'E', 'F', 'G', 'H'] as $lettre)
+
+                                <option
+                                    value="{{ $lettre }}"
+                                    {{ old('variante', $classe->variante ?? '') === $lettre
+                                        ? 'selected'
+                                        : '' }}
+                                >
+                                    {{ $lettre }}
+                                </option>
+
+                            @endforeach
+
+                        </select>
+
+                        @error('variante')
+                            <p class="text-red-500 text-sm mt-1">
+                                {{ $message }}
+                            </p>
+                        @enderror
+
+                        <p class="text-xs text-slate-500 mt-1">
+                            Permet de diviser une même classe en plusieurs groupes.
+                        </p>
+
+                    </div>
+
+
+                    <!-- ================================================= -->
                     <!-- APERÇU -->
                     <!-- ================================================= -->
 
                     <div class="md:col-span-2">
 
                         <div
-                            class="bg-slate-50 border border-slate-200 rounded-xl p-5">
+                            class="bg-slate-50 border border-slate-200 rounded-xl p-5"
+                        >
 
                             <p class="text-sm text-gray-500 mb-2">
-
                                 Aperçu du nom complet
-
                             </p>
 
                             <p
                                 id="nomCompletPreview"
-                                class="text-xl font-bold text-slate-700">
-
+                                class="text-xl font-bold text-slate-700"
+                            >
                                 --
-
                             </p>
 
                         </div>
@@ -316,26 +381,25 @@
                             name="actif"
                             class="w-full border rounded-lg px-4 py-2.5
                                    focus:ring-2 focus:ring-blue-500
-                                   focus:outline-none">
+                                   focus:outline-none"
+                        >
 
                             <option
                                 value="1"
                                 {{ old('actif', $classe->actif ?? 1) == 1
                                     ? 'selected'
-                                    : '' }}>
-
+                                    : '' }}
+                            >
                                 Actif
-
                             </option>
 
                             <option
                                 value="0"
                                 {{ old('actif', $classe->actif ?? 1) == 0
                                     ? 'selected'
-                                    : '' }}>
-
+                                    : '' }}
+                            >
                                 Inactif
-
                             </option>
 
                         </select>
@@ -364,18 +428,17 @@
                     href="{{ route('classes.index') }}"
                     class="px-5 py-2.5 rounded-lg
                            bg-gray-200 text-gray-700
-                           hover:bg-gray-300 transition">
-
+                           hover:bg-gray-300 transition"
+                >
                     Annuler
-
                 </a>
-
 
                 <button
                     type="submit"
                     class="px-5 py-2.5 rounded-lg
                            bg-blue-600 text-white
-                           hover:bg-blue-700 transition">
+                           hover:bg-blue-700 transition"
+                >
 
                     <i class="fas fa-save mr-2"></i>
 
@@ -413,6 +476,9 @@ document.addEventListener('DOMContentLoaded', function () {
 
     const option =
         document.getElementById('option');
+
+    const variante =
+        document.getElementById('variante');
 
     const preview =
         document.getElementById('nomCompletPreview');
@@ -477,7 +543,7 @@ document.addEventListener('DOMContentLoaded', function () {
 
     /*
     |--------------------------------------------------------------------------
-    | Ancienne valeur pour modification
+    | Anciennes valeurs pour modification
     |--------------------------------------------------------------------------
     */
 
@@ -486,6 +552,9 @@ document.addEventListener('DOMContentLoaded', function () {
 
     const ancienNiveau =
         @json(old('niveau', $classe->niveau ?? ''));
+
+    const ancienneVariante =
+        @json(old('variante', $classe->variante ?? ''));
 
 
     /*
@@ -653,26 +722,56 @@ document.addEventListener('DOMContentLoaded', function () {
         }
 
 
+        let texte = classeNom;
+
+
+        /*
+        |--------------------------------------------------------------------------
+        | Humanités
+        |--------------------------------------------------------------------------
+        */
+
         if (niveau.value === '3') {
 
             if (option.value.trim() !== '') {
 
-                preview.textContent =
-                    classeNom + ' ' + option.value.trim();
+                texte += ' ' + option.value.trim();
 
             } else {
 
-                preview.textContent =
-                    classeNom + ' ...';
+                texte += ' ...';
 
             }
 
-        } else {
+        }
 
-            preview.textContent =
-                classeNom + ' ' + section.value;
+        /*
+        |--------------------------------------------------------------------------
+        | Autres sections
+        |--------------------------------------------------------------------------
+        */
+
+        else {
+
+            texte += ' ' + section.value;
 
         }
+
+
+        /*
+        |--------------------------------------------------------------------------
+        | Variante
+        |--------------------------------------------------------------------------
+        */
+
+        if (variante.value !== '') {
+
+            texte += ' ' + variante.value;
+
+        }
+
+
+        preview.textContent = texte;
 
     }
 
@@ -705,6 +804,19 @@ document.addEventListener('DOMContentLoaded', function () {
 
     /*
     |--------------------------------------------------------------------------
+    | Changement de variante
+    |--------------------------------------------------------------------------
+    */
+
+    variante.addEventListener('change', function () {
+
+        afficherPreview();
+
+    });
+
+
+    /*
+    |--------------------------------------------------------------------------
     | Initialisation
     |--------------------------------------------------------------------------
     */
@@ -723,6 +835,22 @@ document.addEventListener('DOMContentLoaded', function () {
         mettreAJourClasses();
 
     }
+
+
+    /*
+    |--------------------------------------------------------------------------
+    | Restaurer la variante après initialisation
+    |--------------------------------------------------------------------------
+    */
+
+    if (ancienneVariante !== '') {
+
+        variante.value = ancienneVariante;
+
+    }
+
+
+    afficherPreview();
 
 });
 

@@ -7,6 +7,7 @@ use App\Models\AnneeScolaire;
 use App\Models\Inscription;
 use App\Models\Eleve;
 use Illuminate\Http\Request;
+use Illuminate\Validation\Rule;
 
 class ClasseController extends Controller
 {
@@ -23,13 +24,20 @@ class ClasseController extends Controller
         $classes = Classe::query()
             ->when($search, function ($query) use ($search) {
 
-                $query->where('nom', 'like', "%{$search}%")
-                    ->orWhere('section', 'like', "%{$search}%")
-                    ->orWhere('option', 'like', "%{$search}%");
+                $query->where(function ($query) use ($search) {
+
+                    $query->where('nom', 'like', "%{$search}%")
+                        ->orWhere('section', 'like', "%{$search}%")
+                        ->orWhere('option', 'like', "%{$search}%")
+                        ->orWhere('variante', 'like', "%{$search}%");
+
+                });
 
             })
             ->orderBy('niveau')
             ->orderBy('nom')
+            ->orderBy('option')
+            ->orderBy('variante')
             ->get();
 
         return view('classe.index', compact('classes'));
@@ -64,15 +72,32 @@ class ClasseController extends Controller
 
         $request->validate([
 
-            'nom' => 'required|string|max:100',
+            'nom' =>
+                'required|string|max:100',
 
-            'niveau' => 'required|integer|between:0,3',
+            'niveau' =>
+                'required|integer|between:0,3',
 
-            'section' => 'required|string|max:100',
+            'section' =>
+                'required|string|max:100',
 
-            'option' => 'nullable|string|max:100',
+            'option' =>
+                'nullable|string|max:100',
 
-            'actif' => 'required|boolean',
+            'variante' =>
+                ['nullable', 'string', 'size:1', Rule::in([
+                    'A',
+                    'B',
+                    'C',
+                    'D',
+                    'E',
+                    'F',
+                    'G',
+                    'H',
+                ])],
+
+            'actif' =>
+                'required|boolean',
 
         ], [
 
@@ -87,6 +112,12 @@ class ClasseController extends Controller
 
             'section.required' =>
                 'La section est obligatoire.',
+
+            'variante.in' =>
+                'La variante sélectionnée est invalide. Choisissez une lettre de A à H.',
+
+            'variante.size' =>
+                'La variante doit contenir une seule lettre.',
 
         ]);
 
@@ -103,7 +134,8 @@ class ClasseController extends Controller
 
             $request->validate([
 
-                'option' => 'required|string|max:100',
+                'option' =>
+                    'required|string|max:100',
 
             ], [
 
@@ -112,7 +144,71 @@ class ClasseController extends Controller
 
             ]);
 
-            $option = $request->option;
+            $option = trim($request->option);
+        }
+
+
+        /*
+        |--------------------------------------------------------------------------
+        | Variante
+        |--------------------------------------------------------------------------
+        */
+
+        $variante = $request->filled('variante')
+            ? strtoupper(trim($request->variante))
+            : null;
+
+
+        /*
+        |--------------------------------------------------------------------------
+        | Vérifier les doublons
+        |--------------------------------------------------------------------------
+        |
+        | Une même combinaison ne peut pas être enregistrée deux fois :
+        |
+        | 1ère + Humanités + Commerciale + A
+        |
+        | Mais ceci reste possible :
+        |
+        | 1ère + Humanités + Commerciale + A
+        | 1ère + Humanités + Commerciale + B
+        |
+        */
+
+        $doublon = Classe::query()
+            ->where('nom', $request->nom)
+            ->where('niveau', $request->niveau)
+            ->where('section', $request->section)
+            ->where(function ($query) use ($option) {
+
+                if ($option === null) {
+                    $query->whereNull('option');
+                } else {
+                    $query->where('option', $option);
+                }
+
+            })
+            ->where(function ($query) use ($variante) {
+
+                if ($variante === null) {
+                    $query->whereNull('variante');
+                } else {
+                    $query->where('variante', $variante);
+                }
+
+            })
+            ->exists();
+
+
+        if ($doublon) {
+
+            return back()
+                ->withInput()
+                ->withErrors([
+                    'variante' =>
+                        'Cette classe existe déjà avec cette variante.'
+                ]);
+
         }
 
 
@@ -124,17 +220,26 @@ class ClasseController extends Controller
 
         Classe::create([
 
-            'nom' => $request->nom,
+            'nom' =>
+                $request->nom,
 
-            'niveau' => $request->niveau,
+            'niveau' =>
+                $request->niveau,
 
-            'section' => $request->section,
+            'section' =>
+                $request->section,
 
-            'option' => $option,
+            'option' =>
+                $option,
 
-            'actif' => $request->actif,
+            'variante' =>
+                $variante,
 
-            'created_by' => auth()->id(),
+            'actif' =>
+                $request->actif,
+
+            'created_by' =>
+                auth()->id(),
 
         ]);
 
@@ -156,24 +261,37 @@ class ClasseController extends Controller
 
     public function show(Request $request, Classe $classe)
     {
-        $anneesScolaires = AnneeScolaire::orderByDesc('id')->get();
+        $anneesScolaires =
+            AnneeScolaire::orderByDesc('id')->get();
 
-        $anneeScolaire = $request->filled('annee_scolaire_id')
-            ? AnneeScolaire::findOrFail($request->annee_scolaire_id)
-            : AnneeScolaire::where('actif', true)->firstOrFail();
+        $anneeScolaire =
+            $request->filled('annee_scolaire_id')
+                ? AnneeScolaire::findOrFail(
+                    $request->annee_scolaire_id
+                )
+                : AnneeScolaire::where(
+                    'actif',
+                    true
+                )->firstOrFail();
 
         $inscriptions = $classe->inscriptions()
-            ->where('annee_scolaire_id', $anneeScolaire->id)
+            ->where(
+                'annee_scolaire_id',
+                $anneeScolaire->id
+            )
             ->with('eleve')
             ->latest('id')
             ->paginate(25);
 
-        return view('classe.show', compact(
-            'classe',
-            'anneesScolaires',
-            'anneeScolaire',
-            'inscriptions'
-        ));
+        return view(
+            'classe.show',
+            compact(
+                'classe',
+                'anneesScolaires',
+                'anneeScolaire',
+                'inscriptions'
+            )
+        );
     }
 
 
@@ -211,15 +329,52 @@ class ClasseController extends Controller
 
         $request->validate([
 
-            'nom' => 'required|string|max:100',
+            'nom' =>
+                'required|string|max:100',
 
-            'niveau' => 'required|integer|between:0,3',
+            'niveau' =>
+                'required|integer|between:0,3',
 
-            'section' => 'required|string|max:100',
+            'section' =>
+                'required|string|max:100',
 
-            'option' => 'nullable|string|max:100',
+            'option' =>
+                'nullable|string|max:100',
 
-            'actif' => 'required|boolean',
+            'variante' =>
+                ['nullable', 'string', 'size:1', Rule::in([
+                    'A',
+                    'B',
+                    'C',
+                    'D',
+                    'E',
+                    'F',
+                    'G',
+                    'H',
+                ])],
+
+            'actif' =>
+                'required|boolean',
+
+        ], [
+
+            'nom.required' =>
+                'Le nom de la classe est obligatoire.',
+
+            'niveau.required' =>
+                'Le niveau est obligatoire.',
+
+            'niveau.between' =>
+                'Le niveau sélectionné est invalide.',
+
+            'section.required' =>
+                'La section est obligatoire.',
+
+            'variante.in' =>
+                'La variante sélectionnée est invalide. Choisissez une lettre de A à H.',
+
+            'variante.size' =>
+                'La variante doit contenir une seule lettre.',
 
         ]);
 
@@ -246,7 +401,62 @@ class ClasseController extends Controller
 
             ]);
 
-            $option = $request->option;
+            $option = trim($request->option);
+        }
+
+
+        /*
+        |--------------------------------------------------------------------------
+        | Gestion de la variante
+        |--------------------------------------------------------------------------
+        */
+
+        $variante = $request->filled('variante')
+            ? strtoupper(trim($request->variante))
+            : null;
+
+
+        /*
+        |--------------------------------------------------------------------------
+        | Vérifier les doublons
+        |--------------------------------------------------------------------------
+        */
+
+        $doublon = Classe::query()
+            ->where('id', '!=', $classe->id)
+            ->where('nom', $request->nom)
+            ->where('niveau', $request->niveau)
+            ->where('section', $request->section)
+            ->where(function ($query) use ($option) {
+
+                if ($option === null) {
+                    $query->whereNull('option');
+                } else {
+                    $query->where('option', $option);
+                }
+
+            })
+            ->where(function ($query) use ($variante) {
+
+                if ($variante === null) {
+                    $query->whereNull('variante');
+                } else {
+                    $query->where('variante', $variante);
+                }
+
+            })
+            ->exists();
+
+
+        if ($doublon) {
+
+            return back()
+                ->withInput()
+                ->withErrors([
+                    'variante' =>
+                        'Cette classe existe déjà avec cette variante.'
+                ]);
+
         }
 
 
@@ -258,17 +468,26 @@ class ClasseController extends Controller
 
         $classe->update([
 
-            'nom' => $request->nom,
+            'nom' =>
+                $request->nom,
 
-            'niveau' => $request->niveau,
+            'niveau' =>
+                $request->niveau,
 
-            'section' => $request->section,
+            'section' =>
+                $request->section,
 
-            'option' => $option,
+            'option' =>
+                $option,
 
-            'actif' => $request->actif,
+            'variante' =>
+                $variante,
 
-            'updated_by' => auth()->id(),
+            'actif' =>
+                $request->actif,
+
+            'updated_by' =>
+                auth()->id(),
 
         ]);
 
@@ -290,27 +509,31 @@ class ClasseController extends Controller
 
     public function toggleStatus(Classe $classe)
     {
-        $classe->actif = !$classe->actif;
+        $classe->actif =
+            !$classe->actif;
 
-        $classe->updated_by = auth()->id();
+        $classe->updated_by =
+            auth()->id();
 
         $classe->save();
 
 
         return response()->json([
 
-            'success' => true,
+            'success' =>
+                true,
 
-            'message' => $classe->actif
-                ? 'Classe activée avec succès.'
-                : 'Classe désactivée avec succès.',
+            'message' =>
+                $classe->actif
+                    ? 'Classe activée avec succès.'
+                    : 'Classe désactivée avec succès.',
 
-            'actif' => $classe->actif,
+            'actif' =>
+                $classe->actif,
 
-            'statut' => $classe->statut_libelle,
+            'statut' =>
+                $classe->statut_libelle,
 
         ]);
     }
 }
-
-/*classes show revue avec inscription et eleve et annee scolaire et pdf pour inscription*/
