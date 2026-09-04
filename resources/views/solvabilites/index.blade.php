@@ -2,78 +2,69 @@
 
 @section('content')
 
-<div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
+<div class="max-w-7xl mx-auto px-4 py-6">
 
-    {{-- ========================================================== --}}
+    {{-- ====================================================== --}}
     {{-- TITRE --}}
-    {{-- ========================================================== --}}
+    {{-- ====================================================== --}}
 
     <div class="mb-6">
 
         <h1 class="text-2xl font-bold text-slate-800">
-            Consultation de la solvabilité
+            Solvabilité des élèves
         </h1>
 
-        <p class="text-sm text-slate-500 mt-1">
-            Consultez la situation des élèves pour un frais donné.
+        <p class="mt-1 text-sm text-slate-500">
+            Vérifiez la situation des paiements par année scolaire,
+            section, classe et frais.
         </p>
 
     </div>
 
 
-    {{-- ========================================================== --}}
-    {{-- MESSAGE --}}
-    {{-- ========================================================== --}}
-
-    @if(session('error'))
-
-        <div class="mb-5 rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">
-            {{ session('error') }}
-        </div>
-
-    @endif
-
-
-    {{-- ========================================================== --}}
+    {{-- ====================================================== --}}
     {{-- FORMULAIRE --}}
-    {{-- ========================================================== --}}
+    {{-- ====================================================== --}}
 
-    <div class="bg-white border border-slate-200 rounded-2xl shadow-sm p-6 mb-8">
+    <div class="rounded-xl bg-white p-6 shadow-sm ring-1 ring-slate-200">
 
         <form
             method="GET"
             action="{{ route('solvabilites.index') }}"
-            id="solvabiliteForm"
+            id="formSolvabilite"
         >
 
-            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
+            <div class="grid grid-cols-1 gap-5 md:grid-cols-2 lg:grid-cols-3">
 
 
-                {{-- ANNÉE --}}
+                {{-- ================================================== --}}
+                {{-- ANNÉE SCOLAIRE --}}
+                {{-- ================================================== --}}
+
                 <div>
 
                     <label
                         for="annee_scolaire_id"
-                        class="block text-sm font-medium text-slate-700 mb-2"
+                        class="mb-2 block text-sm font-medium text-slate-700"
                     >
                         Année scolaire
                     </label>
 
                     <select
-                        id="annee_scolaire_id"
                         name="annee_scolaire_id"
-                        class="w-full rounded-xl border-slate-300 focus:border-blue-500 focus:ring-blue-500"
+                        id="annee_scolaire_id"
+                        class="w-full rounded-lg border border-slate-300 bg-white px-3 py-2.5 text-sm focus:border-indigo-500 focus:ring-indigo-500"
                     >
 
                         <option value="">
-                            Sélectionner
+                            Sélectionner une année
                         </option>
 
                         @foreach($anneesScolaires as $annee)
 
                             <option
                                 value="{{ $annee->id }}"
-                                {{ (string) $anneeScolaireId === (string) $annee->id ? 'selected' : '' }}
+                                {{ request('annee_scolaire_id') == $annee->id ? 'selected' : '' }}
                             >
                                 {{ $annee->libelle }}
                             </option>
@@ -85,69 +76,36 @@
                 </div>
 
 
+                {{-- ================================================== --}}
                 {{-- SECTION --}}
+                {{-- ================================================== --}}
+
                 <div>
 
                     <label
                         for="section"
-                        class="block text-sm font-medium text-slate-700 mb-2"
+                        class="mb-2 block text-sm font-medium text-slate-700"
                     >
                         Section
                     </label>
 
                     <select
-                        id="section"
                         name="section"
-                        class="w-full rounded-xl border-slate-300 focus:border-blue-500 focus:ring-blue-500"
-                    >
-
-                        <option value="">
-                            Sélectionner
-                        </option>
-
-                        @foreach($sections as $sectionItem)
-
-                            <option
-                                value="{{ $sectionItem }}"
-                                {{ $section === $sectionItem ? 'selected' : '' }}
-                            >
-                                {{ $sectionItem }}
-                            </option>
-
-                        @endforeach
-
-                    </select>
-
-                </div>
-
-
-                {{-- CLASSE --}}
-                <div>
-
-                    <label
-                        for="classe_id"
-                        class="block text-sm font-medium text-slate-700 mb-2"
-                    >
-                        Classe
-                    </label>
-
-                    <select
-                        id="classe_id"
-                        name="classe_id"
-                        class="w-full rounded-xl border-slate-300 focus:border-blue-500 focus:ring-blue-500"
+                        id="section"
+                        class="w-full rounded-lg border border-slate-300 bg-white px-3 py-2.5 text-sm focus:border-indigo-500 focus:ring-indigo-500"
                     >
 
                         <option value="">
                             Sélectionner une section
                         </option>
 
-                        @foreach($classes as $classeItem)
+                        @foreach($sections as $section)
 
                             <option
-                                value="{{ $classeItem->id }}"
-                                {{ (string) $classeId === (string) $classeItem->id ? 'selected' : '' }}
+                                value="{{ $section }}"
+                                {{ request('section') === $section ? 'selected' : '' }}
                             >
-                                {{ $classeItem->nom_complet ?? $classeItem->nom }}
+                                {{ $section }}
                             </option>
 
                         @endforeach
@@ -157,131 +115,138 @@
                 </div>
 
 
-                {{-- OPTION HUMANITÉS --}}
-                <div
-                    id="optionContainer"
-                    class="{{ $section && strtolower(str_replace(['é','è','ê','ë'], 'e', $section)) === 'humanites' ? '' : 'hidden' }}"
-                >
+                {{-- ================================================== --}}
+                {{-- OPTION --}}
+                {{-- ================================================== --}}
+
+                <div id="optionContainer" class="hidden">
 
                     <label
                         for="option"
-                        class="block text-sm font-medium text-slate-700 mb-2"
+                        class="mb-2 block text-sm font-medium text-slate-700"
                     >
                         Option
                     </label>
 
                     <select
-                        id="option"
                         name="option"
-                        class="w-full rounded-xl border-slate-300 focus:border-blue-500 focus:ring-blue-500"
+                        id="option"
+                        class="w-full rounded-lg border border-slate-300 bg-white px-3 py-2.5 text-sm focus:border-indigo-500 focus:ring-indigo-500"
                     >
 
                         <option value="">
-                            Toutes les options
+                            Sélectionner une option
                         </option>
-
-                        @foreach($options as $optionItem)
-
-                            <option
-                                value="{{ $optionItem }}"
-                                {{ $option === $optionItem ? 'selected' : '' }}
-                            >
-                                {{ $optionItem }}
-                            </option>
-
-                        @endforeach
 
                     </select>
 
                 </div>
 
 
-                {{-- FRAIS --}}
+                {{-- ================================================== --}}
+                {{-- CLASSE --}}
+                {{-- ================================================== --}}
+
                 <div>
 
                     <label
-                        for="frais_id"
-                        class="block text-sm font-medium text-slate-700 mb-2"
+                        for="classe_id"
+                        class="mb-2 block text-sm font-medium text-slate-700"
                     >
-                        Frais
+                        Classe
                     </label>
 
                     <select
-                        id="frais_id"
-                        name="frais_id"
-                        class="w-full rounded-xl border-slate-300 focus:border-blue-500 focus:ring-blue-500"
+                        name="classe_id"
+                        id="classe_id"
+                        disabled
+                        class="w-full rounded-lg border border-slate-300 bg-white px-3 py-2.5 text-sm disabled:bg-slate-100 disabled:text-slate-400 focus:border-indigo-500 focus:ring-indigo-500"
                     >
 
                         <option value="">
                             Sélectionner une classe
                         </option>
 
-                        @foreach($frais as $fraisItem)
+                    </select>
 
-                            <option
-                                value="{{ $fraisItem->id }}"
-                                data-intitule="{{ strtolower(trim($fraisItem->intitule)) }}"
-                                {{ (string) $fraisId === (string) $fraisItem->id ? 'selected' : '' }}
-                            >
-                                {{ $fraisItem->intitule }}
-                                —
-                                {{ number_format((float) $fraisItem->montant, 2, ',', ' ') }}
-                            </option>
+                </div>
 
-                        @endforeach
+
+                {{-- ================================================== --}}
+                {{-- FRAIS --}}
+                {{-- ================================================== --}}
+
+                <div>
+
+                    <label
+                        for="frais_id"
+                        class="mb-2 block text-sm font-medium text-slate-700"
+                    >
+                        Frais
+                    </label>
+
+                    <select
+                        name="frais_id"
+                        id="frais_id"
+                        disabled
+                        class="w-full rounded-lg border border-slate-300 bg-white px-3 py-2.5 text-sm disabled:bg-slate-100 disabled:text-slate-400 focus:border-indigo-500 focus:ring-indigo-500"
+                    >
+
+                        <option value="">
+                            Sélectionner un frais
+                        </option>
 
                     </select>
 
                 </div>
 
 
+                {{-- ================================================== --}}
                 {{-- MOIS --}}
+                {{-- ================================================== --}}
+
                 <div
                     id="moisContainer"
-                    class="{{ $fraisSelectionne && strtolower(trim($fraisSelectionne->intitule)) === 'minerval' ? '' : 'hidden' }}"
+                    class="hidden"
                 >
 
                     <label
                         for="mois"
-                        class="block text-sm font-medium text-slate-700 mb-2"
+                        class="mb-2 block text-sm font-medium text-slate-700"
                     >
                         Mois
                     </label>
 
                     <select
-                        id="mois"
                         name="mois"
-                        class="w-full rounded-xl border-slate-300 focus:border-blue-500 focus:ring-blue-500"
+                        id="mois"
+                        class="w-full rounded-lg border border-slate-300 bg-white px-3 py-2.5 text-sm focus:border-indigo-500 focus:ring-indigo-500"
                     >
 
                         <option value="">
                             Sélectionner un mois
                         </option>
 
-                        @php
-                            $moisListe = [
-                                'Janvier',
-                                'Février',
-                                'Mars',
-                                'Avril',
-                                'Mai',
-                                'Juin',
-                                'Juillet',
-                                'Août',
-                                'Septembre',
-                                'Octobre',
-                                'Novembre',
-                                'Décembre',
-                            ];
-                        @endphp
-
-                        @foreach($moisListe as $moisItem)
+                        @foreach([
+                            'Janvier',
+                            'Février',
+                            'Mars',
+                            'Avril',
+                            'Mai',
+                            'Juin',
+                            'Juillet',
+                            'Août',
+                            'Septembre',
+                            'Octobre',
+                            'Novembre',
+                            'Décembre'
+                        ] as $mois)
 
                             <option
-                                value="{{ $moisItem }}"
-                                {{ $mois === $moisItem ? 'selected' : '' }}
+                                value="{{ $mois }}"
+                                {{ request('mois') === $mois ? 'selected' : '' }}
                             >
-                                {{ $moisItem }}
+                                {{ $mois }}
                             </option>
 
                         @endforeach
@@ -293,41 +258,33 @@
             </div>
 
 
-            {{-- ACTIONS --}}
-            <div class="flex justify-end gap-3 mt-6">
+            {{-- ====================================================== --}}
+            {{-- BOUTON --}}
+            {{-- ====================================================== --}}
+
+            <div class="mt-6 flex justify-end gap-3">
 
                 <a
                     href="{{ route('solvabilites.index') }}"
-                    class="inline-flex items-center px-5 py-3 rounded-xl
-                           bg-slate-100 text-slate-700 font-medium
-                           hover:bg-slate-200 transition"
+                    class="inline-flex items-center gap-2 rounded-lg border border-slate-300 bg-white px-4 py-2.5 text-sm font-medium text-slate-700 hover:bg-slate-50"
                 >
+
+                    <i class="fas fa-rotate-left"></i>
+
                     Réinitialiser
+
                 </a>
+
 
                 <button
                     type="submit"
                     name="rechercher"
                     value="1"
-                    class="inline-flex items-center gap-2 px-6 py-3
-                           rounded-xl bg-blue-600 text-white font-medium
-                           hover:bg-blue-700 transition"
+                    id="btnRechercher"
+                    class="inline-flex items-center gap-2 rounded-lg bg-indigo-600 px-5 py-2.5 text-sm font-medium text-white shadow-sm hover:bg-indigo-700"
                 >
 
-                    <svg
-                        xmlns="http://www.w3.org/2000/svg"
-                        class="w-5 h-5"
-                        fill="none"
-                        viewBox="0 0 24 24"
-                        stroke="currentColor"
-                        stroke-width="2"
-                    >
-                        <path
-                            stroke-linecap="round"
-                            stroke-linejoin="round"
-                            d="m21 21-4.35-4.35m0 0A7.5 7.5 0 1 0 6.04 6.04a7.5 7.5 0 0 0 10.61 10.61Z"
-                        />
-                    </svg>
+                    <i class="fas fa-search"></i>
 
                     Rechercher
 
@@ -340,81 +297,37 @@
     </div>
 
 
-    {{-- ========================================================== --}}
+
+    {{-- ====================================================== --}}
     {{-- RÉSULTATS --}}
-    {{-- ========================================================== --}}
+    {{-- ====================================================== --}}
 
-    @if($rechercheEffectuee)
+    @if(request()->has('rechercher'))
 
-        {{-- ====================================================== --}}
-        {{-- INFORMATIONS RECHERCHE --}}
-        {{-- ====================================================== --}}
+        <div class="mt-8">
 
-        <div class="bg-white border border-slate-200 rounded-2xl shadow-sm p-5 mb-6">
-
-            <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
+            <div class="mb-6 flex items-center justify-between">
 
                 <div>
 
-                    <p class="text-sm text-slate-500">
-                        Consultation
-                    </p>
-
-                    <h2 class="text-lg font-semibold text-slate-800 mt-1">
-
-                        {{ $fraisSelectionne->intitule }}
-
-                        @if($mois)
-                            — {{ $mois }}
-                        @endif
-
+                    <h2 class="text-lg font-bold text-slate-800">
+                        Résultats
                     </h2>
 
-                    <p class="text-sm text-slate-500 mt-1">
-
-                        {{ $fraisSelectionne->classe->nom_complet
-                            ?? $fraisSelectionne->classe->nom
-                            ?? '' }}
-
-                        •
-                        {{ $fraisSelectionne->anneeScolaire->libelle
-                            ?? '' }}
-
+                    <p class="text-sm text-slate-500">
+                        Situation de solvabilité des élèves.
                     </p>
 
                 </div>
 
-                {{-- PDF --}}
+
                 <a
                     href="{{ route('solvabilites.pdf', request()->query()) }}"
                     target="_blank"
-                    class="inline-flex items-center justify-center gap-2
-                           px-5 py-3 rounded-xl
-                           bg-red-600 text-white font-medium
-                           hover:bg-red-700 transition"
+                    class="inline-flex items-center gap-2 rounded-lg bg-slate-800 px-4 py-2.5 text-sm font-medium text-white hover:bg-slate-900"
                 >
 
-                    <svg
-                        xmlns="http://www.w3.org/2000/svg"
-                        class="w-5 h-5"
-                        fill="none"
-                        viewBox="0 0 24 24"
-                        stroke="currentColor"
-                        stroke-width="2"
-                    >
-                        <path
-                            stroke-linecap="round"
-                            stroke-linejoin="round"
-                            d="M6 2h9l5 5v15H6V2Z"
-                        />
-
-                        <path
-                            stroke-linecap="round"
-                            stroke-linejoin="round"
-                            d="M14 2v6h6"
-                        />
-
-                    </svg>
+                    <i class="fas fa-file-pdf"></i>
 
                     Télécharger PDF
 
@@ -422,450 +335,454 @@
 
             </div>
 
-        </div>
+
+            {{-- ================================================== --}}
+            {{-- EN ORDRE --}}
+            {{-- ================================================== --}}
+
+            @include(
+                'solvabilites.partials.table',
+                [
+                    'liste' => $enOrdre,
+                    'titre' => 'En ordre',
+                    'couleur' => 'green'
+                ]
+            )
 
 
-        {{-- ====================================================== --}}
-        {{-- COMPTEURS --}}
-        {{-- ====================================================== --}}
+            {{-- ================================================== --}}
+            {{-- PARTIELLEMENT PAYÉ --}}
+            {{-- ================================================== --}}
 
-        <div class="grid grid-cols-1 md:grid-cols-3 gap-5 mb-8">
-
-            <div class="bg-white border border-green-200 rounded-2xl p-5 shadow-sm">
-
-                <p class="text-sm text-slate-500">
-                    En ordre
-                </p>
-
-                <p class="text-3xl font-bold text-green-600 mt-1">
-                    {{ $enOrdre->count() }}
-                </p>
-
-            </div>
+            @include(
+                'solvabilites.partials.table',
+                [
+                    'liste' => $partiellementPaye,
+                    'titre' => 'Partiellement payé',
+                    'couleur' => 'yellow'
+                ]
+            )
 
 
-            <div class="bg-white border border-yellow-200 rounded-2xl p-5 shadow-sm">
+            {{-- ================================================== --}}
+            {{-- NON EN ORDRE --}}
+            {{-- ================================================== --}}
 
-                <p class="text-sm text-slate-500">
-                    Partiellement payé
-                </p>
-
-                <p class="text-3xl font-bold text-yellow-600 mt-1">
-                    {{ $partiellementPaye->count() }}
-                </p>
-
-            </div>
-
-
-            <div class="bg-white border border-red-200 rounded-2xl p-5 shadow-sm">
-
-                <p class="text-sm text-slate-500">
-                    Non en ordre
-                </p>
-
-                <p class="text-3xl font-bold text-red-600 mt-1">
-                    {{ $nonEnOrdre->count() }}
-                </p>
-
-            </div>
+            @include(
+                'solvabilites.partials.table',
+                [
+                    'liste' => $nonEnOrdre,
+                    'titre' => 'Non en ordre',
+                    'couleur' => 'red'
+                ]
+            )
 
         </div>
-
-
-        {{-- ====================================================== --}}
-        {{-- TABLE EN ORDRE --}}
-        {{-- ====================================================== --}}
-
-        @include('solvabilites.partials.table', [
-            'liste' => $enOrdre,
-            'titre' => 'En ordre',
-            'couleur' => 'green'
-        ])
-
-
-        {{-- ====================================================== --}}
-        {{-- TABLE PARTIEL --}}
-        {{-- ====================================================== --}}
-
-        @include('solvabilites.partials.table', [
-            'liste' => $partiellementPaye,
-            'titre' => 'Partiellement payé',
-            'couleur' => 'yellow'
-        ])
-
-
-        {{-- ====================================================== --}}
-        {{-- TABLE NON EN ORDRE --}}
-        {{-- ====================================================== --}}
-
-        @include('solvabilites.partials.table', [
-            'liste' => $nonEnOrdre,
-            'titre' => 'Non en ordre',
-            'couleur' => 'red'
-        ])
 
     @endif
 
 </div>
 
 
-{{-- ============================================================= --}}
-{{-- JAVASCRIPT RECHERCHE DYNAMIQUE --}}
-{{-- ============================================================= --}}
+
+{{-- ========================================================== --}}
+{{-- JAVASCRIPT --}}
+{{-- ========================================================== --}}
 
 <script>
 
 document.addEventListener('DOMContentLoaded', function () {
 
-    const annee = document.getElementById('annee_scolaire_id');
-    const section = document.getElementById('section');
-    const classe = document.getElementById('classe_id');
-    const option = document.getElementById('option');
+
+    const anneeSelect = document.getElementById('annee_scolaire_id');
+
+    const sectionSelect = document.getElementById('section');
+
     const optionContainer = document.getElementById('optionContainer');
-    const frais = document.getElementById('frais_id');
-    const mois = document.getElementById('mois');
+
+    const optionSelect = document.getElementById('option');
+
+    const classeSelect = document.getElementById('classe_id');
+
+    const fraisSelect = document.getElementById('frais_id');
+
     const moisContainer = document.getElementById('moisContainer');
 
-
-    /*
-    |--------------------------------------------------------------------------
-    | UTILITAIRE : CHARGEMENT
-    |--------------------------------------------------------------------------
-    */
-
-    function afficherChargement(select, texte = 'Chargement...') {
-
-        select.innerHTML = '';
-
-        const option = document.createElement('option');
-
-        option.value = '';
-        option.textContent = texte;
-
-        select.appendChild(option);
-
-        select.disabled = true;
-    }
+    const moisSelect = document.getElementById('mois');
 
 
-    function activer(select) {
-        select.disabled = false;
-    }
+    const classeSelectionnee = "{{ request('classe_id') }}";
 
+    const optionSelectionnee = "{{ request('option') }}";
 
-    function vider(select, texte) {
-
-        select.innerHTML = '';
-
-        const option = document.createElement('option');
-
-        option.value = '';
-        option.textContent = texte;
-
-        select.appendChild(option);
-
-    }
+    const fraisSelectionne = "{{ request('frais_id') }}";
 
 
     /*
     |--------------------------------------------------------------------------
-    | ANNÉE
+    | Fonctions utilitaires
     |--------------------------------------------------------------------------
     */
 
-    annee.addEventListener('change', function () {
+    function resetClasses() {
 
-        /*
-        | L'année change les frais.
-        | On remet donc toute la chaîne à zéro.
-        */
+        classeSelect.innerHTML = `
+            <option value="">
+                Sélectionner une classe
+            </option>
+        `;
 
-        section.value = '';
+        classeSelect.disabled = true;
+    }
 
-        vider(
-            classe,
-            'Sélectionner une section'
-        );
 
-        vider(
-            frais,
-            'Sélectionner une classe'
-        );
+    function resetFrais() {
 
-        optionContainer.classList.add('hidden');
+        fraisSelect.innerHTML = `
+            <option value="">
+                Sélectionner un frais
+            </option>
+        `;
+
+        fraisSelect.disabled = true;
 
         moisContainer.classList.add('hidden');
 
-        option.value = '';
-
-        mois.value = '';
-
-        classe.disabled = true;
-        frais.disabled = true;
-
-    });
+        moisSelect.value = '';
+    }
 
 
     /*
     |--------------------------------------------------------------------------
-    | SECTION
+    | Charger les options
     |--------------------------------------------------------------------------
     */
 
-    section.addEventListener('change', async function () {
+    async function chargerOptions() {
 
-        const valeur = section.value;
+        optionSelect.innerHTML = `
+            <option value="">
+                Chargement...
+            </option>
+        `;
 
-        vider(
-            classe,
-            'Sélectionner une classe'
-        );
+        optionSelect.disabled = true;
 
-        vider(
-            frais,
-            'Sélectionner une classe'
-        );
-
-        frais.disabled = true;
-
-        option.value = '';
-
-        optionContainer.classList.add('hidden');
-
-        moisContainer.classList.add('hidden');
-
-        mois.value = '';
-
-        if (!valeur) {
-            classe.disabled = true;
-            return;
-        }
-
-        afficherChargement(
-            classe,
-            'Chargement des classes...'
-        );
-
-        /*
-        | OPTIONS HUMANITÉS
-        */
-
-        const texteNormalise = valeur
-            .toLowerCase()
-            .normalize('NFD')
-            .replace(/[\u0300-\u036f]/g, '');
-
-        if (texteNormalise === 'humanites') {
-
-            try {
-
-                const response = await fetch(
-                    "{{ route('solvabilites.options') }}"
-                    + "?section="
-                    + encodeURIComponent(valeur)
-                );
-
-                const options = await response.json();
-
-                option.innerHTML =
-                    '<option value="">Toutes les options</option>';
-
-                options.forEach(function (item) {
-
-                    const opt =
-                        document.createElement('option');
-
-                    opt.value = item;
-                    opt.textContent = item;
-
-                    option.appendChild(opt);
-
-                });
-
-                optionContainer.classList.remove('hidden');
-
-            } catch (error) {
-
-                console.error(error);
-
-            }
-        }
-
-
-        /*
-        | CLASSES
-        */
 
         try {
 
-            const response = await fetch(
-                "{{ route('solvabilites.classes') }}"
-                + "?section="
-                + encodeURIComponent(valeur)
-            );
+            const url =
+                "{{ route('solvabilites.options') }}" +
+                "?section=" +
+                encodeURIComponent(sectionSelect.value);
+
+
+            const response = await fetch(url);
+
+            const options = await response.json();
+
+
+            optionSelect.innerHTML = `
+                <option value="">
+                    Sélectionner une option
+                </option>
+            `;
+
+
+            options.forEach(function (option) {
+
+                const selected =
+                    option === optionSelectionnee
+                        ? 'selected'
+                        : '';
+
+
+                optionSelect.innerHTML += `
+                    <option value="${option}" ${selected}>
+                        ${option}
+                    </option>
+                `;
+            });
+
+
+            optionSelect.disabled = false;
+
+
+        } catch (error) {
+
+            console.error(error);
+
+            optionSelect.innerHTML = `
+                <option value="">
+                    Erreur de chargement
+                </option>
+            `;
+
+        }
+
+    }
+
+
+    /*
+    |--------------------------------------------------------------------------
+    | Charger les classes
+    |--------------------------------------------------------------------------
+    */
+
+    async function chargerClasses() {
+
+        resetClasses();
+
+        resetFrais();
+
+
+        if (!sectionSelect.value) {
+            return;
+        }
+
+
+        /*
+        | Humanités sans option
+        */
+
+        if (
+            sectionSelect.value === 'Humanités' &&
+            !optionSelect.value
+        ) {
+
+            return;
+        }
+
+
+        classeSelect.innerHTML = `
+            <option value="">
+                Chargement...
+            </option>
+        `;
+
+
+        try {
+
+            let url =
+                "{{ route('solvabilites.classes') }}" +
+                "?section=" +
+                encodeURIComponent(sectionSelect.value);
+
+
+            /*
+            | Ajouter l'option uniquement pour Humanités
+            */
+
+            if (
+                sectionSelect.value === 'Humanités' &&
+                optionSelect.value
+            ) {
+
+                url +=
+                    "&option=" +
+                    encodeURIComponent(optionSelect.value);
+            }
+
+
+            const response = await fetch(url);
 
             const classes = await response.json();
 
-            classe.innerHTML =
-                '<option value="">Sélectionner une classe</option>';
 
-            classes.forEach(function (item) {
+            classeSelect.innerHTML = `
+                <option value="">
+                    Sélectionner une classe
+                </option>
+            `;
 
-                const opt =
-                    document.createElement('option');
 
-                opt.value = item.id;
+            classes.forEach(function (classe) {
+
+                let libelle = classe.nom;
+
 
                 /*
-                | Pour Humanités, afficher l'option.
+                | Pour Humanités, on peut afficher l'option
                 */
 
                 if (
-                    item.option &&
-                    texteNormalise === 'humanites'
+                    classe.section === 'Humanités' &&
+                    classe.option
                 ) {
 
-                    opt.textContent =
-                        item.nom
-                        + ' — '
-                        + item.option;
-
-                } else {
-
-                    opt.textContent = item.nom;
-
+                    libelle +=
+                        ' — ' +
+                        classe.option;
                 }
 
-                classe.appendChild(opt);
 
+                const selected =
+                    String(classe.id) === String(classeSelectionnee)
+                        ? 'selected'
+                        : '';
+
+
+                classeSelect.innerHTML += `
+                    <option value="${classe.id}" ${selected}>
+                        ${libelle}
+                    </option>
+                `;
             });
 
-            activer(classe);
+
+            classeSelect.disabled = false;
+
+
+            /*
+            | Si une classe était déjà sélectionnée
+            */
+
+            if (classeSelectionnee) {
+
+                await chargerFrais();
+            }
+
 
         } catch (error) {
 
             console.error(error);
 
-            vider(
-                classe,
-                'Erreur de chargement'
-            );
+            classeSelect.innerHTML = `
+                <option value="">
+                    Erreur de chargement
+                </option>
+            `;
 
-            activer(classe);
         }
 
-    });
+    }
 
 
     /*
     |--------------------------------------------------------------------------
-    | CLASSE
+    | Charger les frais
     |--------------------------------------------------------------------------
     */
 
-    classe.addEventListener('change', async function () {
+    async function chargerFrais() {
 
-        const classeId = classe.value;
+        resetFrais();
 
-        vider(
-            frais,
-            'Sélectionner un frais'
-        );
 
-        moisContainer.classList.add('hidden');
-        mois.value = '';
-
-        if (!classeId) {
-
-            frais.disabled = true;
+        if (
+            !anneeSelect.value ||
+            !classeSelect.value
+        ) {
 
             return;
         }
 
-        afficherChargement(
-            frais,
-            'Chargement des frais...'
-        );
+
+        fraisSelect.innerHTML = `
+            <option value="">
+                Chargement...
+            </option>
+        `;
+
 
         try {
 
-            const response = await fetch(
-                "{{ route('solvabilites.frais') }}"
-                + "?annee_scolaire_id="
-                + encodeURIComponent(annee.value)
-                + "&classe_id="
-                + encodeURIComponent(classeId)
-            );
+            const url =
+                "{{ route('solvabilites.frais') }}" +
+                "?annee_scolaire_id=" +
+                encodeURIComponent(anneeSelect.value) +
+                "&classe_id=" +
+                encodeURIComponent(classeSelect.value);
 
-            const listeFrais =
-                await response.json();
 
-            frais.innerHTML =
-                '<option value="">Sélectionner un frais</option>';
+            const response = await fetch(url);
 
-            listeFrais.forEach(function (item) {
+            const frais = await response.json();
 
-                const opt =
-                    document.createElement('option');
 
-                opt.value = item.id;
+            fraisSelect.innerHTML = `
+                <option value="">
+                    Sélectionner un frais
+                </option>
+            `;
 
-                opt.dataset.intitule =
-                    item.intitule
-                        .toLowerCase()
-                        .trim();
 
-                opt.textContent =
-                    item.intitule
-                    + ' — '
-                    + Number(item.montant)
-                        .toLocaleString('fr-FR', {
+            frais.forEach(function (fraisItem) {
+
+                const selected =
+                    String(fraisItem.id) === String(fraisSelectionne)
+                        ? 'selected'
+                        : '';
+
+
+                fraisSelect.innerHTML += `
+                    <option
+                        value="${fraisItem.id}"
+                        data-intitule="${fraisItem.intitule}"
+                        ${selected}
+                    >
+                        ${fraisItem.intitule}
+                        — ${Number(fraisItem.montant).toLocaleString('fr-FR', {
                             minimumFractionDigits: 2
-                        });
-
-                frais.appendChild(opt);
-
+                        })}
+                    </option>
+                `;
             });
 
-            activer(frais);
+
+            fraisSelect.disabled = false;
+
+
+            /*
+            | Restaurer le mois si nécessaire
+            */
+
+            if (fraisSelectionne) {
+
+                afficherMois();
+
+            }
+
 
         } catch (error) {
 
             console.error(error);
 
-            vider(
-                frais,
-                'Erreur de chargement'
-            );
+            fraisSelect.innerHTML = `
+                <option value="">
+                    Erreur de chargement
+                </option>
+            `;
 
-            activer(frais);
         }
 
-    });
+    }
 
 
     /*
     |--------------------------------------------------------------------------
-    | FRAIS
+    | Afficher / masquer le mois
     |--------------------------------------------------------------------------
     */
 
-    frais.addEventListener('change', function () {
+    function afficherMois() {
 
-        const selected =
-            frais.options[frais.selectedIndex];
+        const option =
+            fraisSelect.options[
+                fraisSelect.selectedIndex
+            ];
 
-        mois.value = '';
 
-        if (!selected || !selected.value) {
-
-            moisContainer.classList.add('hidden');
-
+        if (!option) {
             return;
         }
 
+
         const intitule =
-            selected.dataset.intitule || '';
+            (option.dataset.intitule || '')
+                .trim()
+                .toLowerCase();
+
 
         if (intitule === 'minerval') {
 
@@ -875,6 +792,29 @@ document.addEventListener('DOMContentLoaded', function () {
 
             moisContainer.classList.add('hidden');
 
+            moisSelect.value = '';
+        }
+
+    }
+
+
+    /*
+    |--------------------------------------------------------------------------
+    | Changement année
+    |--------------------------------------------------------------------------
+    */
+
+    anneeSelect.addEventListener('change', function () {
+
+        /*
+        | L'année ne change pas la liste des classes.
+        | Elle change uniquement les frais disponibles.
+        */
+
+        resetFrais();
+
+        if (classeSelect.value) {
+            chargerFrais();
         }
 
     });
@@ -882,16 +822,176 @@ document.addEventListener('DOMContentLoaded', function () {
 
     /*
     |--------------------------------------------------------------------------
-    | AU CHARGEMENT
+    | Changement section
     |--------------------------------------------------------------------------
     */
 
-    if (!annee.value) {
+    sectionSelect.addEventListener('change', async function () {
 
-        classe.disabled = true;
-        frais.disabled = true;
+        optionSelect.innerHTML = `
+            <option value="">
+                Sélectionner une option
+            </option>
+        `;
+
+        optionSelect.disabled = true;
+
+        resetClasses();
+
+        resetFrais();
+
+
+        if (!sectionSelect.value) {
+
+            optionContainer.classList.add('hidden');
+
+            return;
+        }
+
+
+        /*
+        |--------------------------------------------------------------------------
+        | Humanités
+        |--------------------------------------------------------------------------
+        */
+
+        if (sectionSelect.value === 'Humanités') {
+
+            optionContainer.classList.remove('hidden');
+
+            await chargerOptions();
+
+            /*
+            | On attend le choix de l'option.
+            */
+
+            return;
+        }
+
+
+        /*
+        |--------------------------------------------------------------------------
+        | Autres sections
+        |--------------------------------------------------------------------------
+        */
+
+        optionContainer.classList.add('hidden');
+
+        await chargerClasses();
+
+    });
+
+
+    /*
+    |--------------------------------------------------------------------------
+    | Changement option
+    |--------------------------------------------------------------------------
+    */
+
+    optionSelect.addEventListener('change', async function () {
+
+        resetClasses();
+
+        resetFrais();
+
+
+        if (!optionSelect.value) {
+
+            return;
+        }
+
+
+        await chargerClasses();
+
+    });
+
+
+    /*
+    |--------------------------------------------------------------------------
+    | Changement classe
+    |--------------------------------------------------------------------------
+    */
+
+    classeSelect.addEventListener('change', async function () {
+
+        resetFrais();
+
+
+        if (!classeSelect.value) {
+
+            return;
+        }
+
+
+        await chargerFrais();
+
+    });
+
+
+    /*
+    |--------------------------------------------------------------------------
+    | Changement frais
+    |--------------------------------------------------------------------------
+    */
+
+    fraisSelect.addEventListener('change', function () {
+
+        afficherMois();
+
+    });
+
+
+    /*
+    |--------------------------------------------------------------------------
+    | Restaurer les sélections après recherche
+    |--------------------------------------------------------------------------
+    */
+
+    async function initialiser() {
+
+        if (!sectionSelect.value) {
+            return;
+        }
+
+
+        /*
+        | Humanités
+        */
+
+        if (sectionSelect.value === 'Humanités') {
+
+            optionContainer.classList.remove('hidden');
+
+            await chargerOptions();
+
+
+            /*
+            | L'option doit exister avant de charger les classes.
+            */
+
+            if (optionSelect.value) {
+
+                await chargerClasses();
+            }
+
+        }
+
+
+        /*
+        | Autres sections
+        */
+
+        else {
+
+            optionContainer.classList.add('hidden');
+
+            await chargerClasses();
+        }
 
     }
+
+
+    initialiser();
 
 });
 
