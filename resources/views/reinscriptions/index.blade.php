@@ -491,20 +491,13 @@
 
         </form>
 
-    </div>
+
 
 
 
     {{-- ========================================================= --}}
     {{-- LISTE --}}
     {{-- ========================================================= --}}
-
-    <div
-        class="bg-white
-               rounded-xl
-               border border-slate-200
-               shadow-sm
-               overflow-hidden">
 
 
         {{-- ===================================================== --}}
@@ -514,7 +507,7 @@
         <div
             class="px-6
                    py-5
-                   border-b border-slate-200
+                   border-b border-t mt-5 border-slate-200
                    flex
                    flex-col
                    sm:flex-row

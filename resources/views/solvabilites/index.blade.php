@@ -26,7 +26,7 @@
     {{-- FORMULAIRE --}}
     {{-- ====================================================== --}}
 
-    <div class="rounded-xl bg-white p-6 shadow-sm ring-1 ring-slate-200">
+    <div class="rounded-xl bg-white border border-slate-200 p-6 shadow-sm ">
 
         <form
             method="GET"
@@ -281,7 +281,7 @@
                     name="rechercher"
                     value="1"
                     id="btnRechercher"
-                    class="inline-flex items-center gap-2 rounded-lg bg-indigo-600 px-5 py-2.5 text-sm font-medium text-white shadow-sm hover:bg-indigo-700"
+                    class="inline-flex items-center gap-2 rounded-lg bg-blue-600 px-5 py-2.5 text-sm font-medium text-white shadow-sm hover:bg-indigo-700"
                 >
 
                     <i class="fas fa-search"></i>

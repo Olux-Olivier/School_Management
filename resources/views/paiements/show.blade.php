@@ -19,17 +19,6 @@
         <div>
 
             <div class="flex items-center gap-3">
-
-                <a
-                    href="{{ route('paiements.index', [
-                        'annee_scolaire_id' => $anneeScolaireId
-                    ]) }}"
-                    class="inline-flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-xl border border-slate-300 bg-white text-slate-600 shadow-sm transition hover:bg-slate-50"
-                    aria-label="Retour à la liste des paiements"
-                >
-                    <i class="fas fa-arrow-left text-xs" aria-hidden="true"></i>
-                </a>
-
                 <h1 class="text-2xl font-bold text-slate-700">
                     Historique des paiements
                 </h1>
@@ -44,173 +33,147 @@
 
 
         {{-- NOUVEAU PAIEMENT --}}
-        <a href="{{ route('paiements.create', ['eleve' => $eleve->id,'annee_scolaire_id' => request('annee_scolaire_id')]) }}" class="inline-flex items-center gap-2 rounded-lg bg-indigo-600 px-4 py-2 text-sm font-medium text-white shadow-sm hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2">
+        <a href="{{ route('paiements.create', ['eleve' => $eleve->id,'annee_scolaire_id' => request('annee_scolaire_id')]) }}" class="inline-flex items-center  px-5 py-2.5  gap-2 rounded-lg bg-blue-600 px-4 py-2 text-sm font-medium text-white shadow-sm hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2">
             <i class="fas fa-plus" aria-hidden="true"></i>
             Nouveau paiement
         </a>
 
     </div>
 
-
     {{-- ================================================================
-         INFORMATIONS ÉLÈVE
-    ================================================================= --}}
+     INFORMATIONS ÉLÈVE + RÉSUMÉ FINANCIER
+================================================================= --}}
 
-    <div class="bg-white rounded-xl shadow-sm border border-slate-200 p-6 mb-6">
+<div class="bg-white rounded-xl border border-slate-200 shadow-sm mb-6 overflow-hidden">
 
-        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-5">
+    <div class="overflow-x-auto">
 
-            <div>
+        <table class="w-full text-sm">
 
-                <p class="text-xs text-slate-400 uppercase">
-                    Matricule
-                </p>
+            <thead class="bg-slate-50 border-b border-slate-200">
+                <tr>
+                    <th class="text-left px-5 py-3 font-semibold text-slate-600">
+                        Matricule
+                    </th>
 
-                <p class="font-semibold text-slate-700 mt-1">
-                    {{ $eleve->matricule }}
-                </p>
+                    <th class="text-left px-5 py-3 font-semibold text-slate-600">
+                        Élève
+                    </th>
 
-            </div>
+                    <th class="text-left px-5 py-3 font-semibold text-slate-600">
+                        Classe
+                    </th>
 
+                    <th class="text-left px-5 py-3 font-semibold text-slate-600">
+                        Année scolaire
+                    </th>
 
-            <div>
+                    <th class="text-right px-5 py-3 font-semibold text-slate-600">
+                        Total dû
+                    </th>
 
-                <p class="text-xs text-slate-400 uppercase">
-                    Élève
-                </p>
+                    <th class="text-right px-5 py-3 font-semibold text-slate-600">
+                        Total payé
+                    </th>
 
-                <p class="font-semibold text-slate-700 mt-1">
+                    <th class="text-right px-5 py-3 font-semibold text-slate-600">
+                        Restant
+                    </th>
+                </tr>
+            </thead>
 
-                    {{ $eleve->nom }}
-                    {{ $eleve->postnom }}
-                    {{ $eleve->prenom }}
+            <tbody>
 
-                </p>
+                <tr class="hover:bg-slate-50 transition">
 
-            </div>
+                    {{-- MATRICULE --}}
+                    <td class="px-5 py-4 font-medium text-slate-700">
+                        {{ $eleve->matricule }}
+                    </td>
 
+                    {{-- ÉLÈVE --}}
+                    <td class="px-5 py-4 font-semibold text-slate-700">
+                        {{ $eleve->nom }}
+                        {{ $eleve->postnom }}
+                        {{ $eleve->prenom }}
+                    </td>
 
-            <div>
+                    {{-- CLASSE --}}
+                    <td class="px-5 py-4 text-slate-700">
 
-                <p class="text-xs text-slate-400 uppercase">
-                    Classe
-                </p>
+                        @if($inscription)
 
-                <p class="font-semibold text-slate-700 mt-1">
+                            {{ $inscription->classe->nom }}
 
-                    @if($inscription)
+                            @if($inscription->classe->option)
+                                — {{ $inscription->classe->option }}
+                            @endif
 
-                        {{ $inscription->classe->nom }}
+                        @else
 
-                        @if($inscription->classe->option)
-                            — {{ $inscription->classe->option }}
+                            <span class="text-slate-400">
+                                Aucune inscription
+                            </span>
+
                         @endif
 
-                    @else
+                    </td>
 
-                        <span class="text-slate-400">
-                            Aucune inscription
-                        </span>
+                    {{-- ANNÉE SCOLAIRE --}}
+                    <td class="px-5 py-4 font-medium text-indigo-600">
 
-                    @endif
+                        {{ $anneeScolaire->libelle
+                            ?? $anneeScolaire->nom
+                            ?? $anneeScolaire->date_debut . ' - ' . $anneeScolaire->date_fin
+                        }}
 
-                </p>
+                    </td>
 
-            </div>
+                    {{-- TOTAL DÛ --}}
+                    <td class="px-5 py-4 text-right font-semibold text-slate-700 whitespace-nowrap">
 
+                        {{ number_format($totalMontantDu, 0, ',', ' ') }}
+                        <span class="text-slate-400 font-normal">FC</span>
 
-            <div>
+                    </td>
 
-                <p class="text-xs text-slate-400 uppercase">
-                    Année scolaire
-                </p>
+                    {{-- TOTAL PAYÉ --}}
+                    <td class="px-5 py-4 text-right font-semibold text-emerald-600 whitespace-nowrap">
 
-                <p class="font-semibold text-indigo-600 mt-1">
+                        {{ number_format($totalPaye, 0, ',', ' ') }}
+                        <span class="text-slate-400 font-normal">FC</span>
 
-                    {{ $anneeScolaire->libelle
-                        ?? $anneeScolaire->nom
-                        ?? $anneeScolaire->date_debut . ' - ' . $anneeScolaire->date_fin
-                    }}
+                    </td>
 
-                </p>
+                    {{-- RESTANT --}}
+                    <td class="px-5 py-4 text-right font-semibold whitespace-nowrap">
 
-            </div>
+                        @if($totalRestant > 0)
 
-        </div>
+                            <span class="text-amber-600">
+                                {{ number_format($totalRestant, 0, ',', ' ') }} FC
+                            </span>
 
-    </div>
+                        @else
 
+                            <span class="text-emerald-600">
+                                0 FC
+                            </span>
 
-    {{-- ================================================================
-         RÉSUMÉ FINANCIER
-    ================================================================= --}}
+                        @endif
 
-    <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
+                    </td>
 
+                </tr>
 
-        {{-- TOTAL DÛ --}}
+            </tbody>
 
-        <div class="bg-white rounded-xl border border-slate-200 p-5">
-
-            <p class="text-sm text-slate-500">
-                Total dû
-            </p>
-
-            <p class="text-2xl font-bold text-slate-700 mt-2">
-
-                {{ number_format($totalMontantDu, 0, ',', ' ') }}
-
-                <span class="text-sm font-normal text-slate-400">
-                    FC
-                </span>
-
-            </p>
-
-        </div>
-
-
-        {{-- TOTAL PAYÉ --}}
-
-        <div class="bg-white rounded-xl border border-emerald-200 p-5">
-
-            <p class="text-sm text-slate-500">
-                Total payé
-            </p>
-
-            <p class="text-2xl font-bold text-emerald-600 mt-2">
-
-                {{ number_format($totalPaye, 0, ',', ' ') }}
-
-                <span class="text-sm font-normal text-slate-400">
-                    FC
-                </span>
-
-            </p>
-
-        </div>
-
-
-        {{-- RESTANT --}}
-
-        <div class="bg-white rounded-xl border border-amber-200 p-5">
-
-            <p class="text-sm text-slate-500">
-                Total restant
-            </p>
-
-            <p class="text-2xl font-bold text-amber-600 mt-2">
-
-                {{ number_format($totalRestant, 0, ',', ' ') }}
-
-                <span class="text-sm font-normal text-slate-400">
-                    FC
-                </span>
-
-            </p>
-
-        </div>
+        </table>
 
     </div>
+
+</div>
+    
 
 
     {{-- ================================================================
@@ -218,6 +181,13 @@
     ================================================================= --}}
 
     <div class="bg-white rounded-xl shadow-sm border border-slate-200 p-5 mb-6">
+
+        <div class="bottom-4 mb-4 border-b border-slate-200 pb-3">
+            <h2 class="font-semibold text-slate-700">
+                Historique des paiements
+            </h2>
+        </div>
+
 
         <form
             method="GET"
@@ -268,23 +238,6 @@
             </div>
 
         </form>
-
-    </div>
-
-
-    {{-- ================================================================
-         HISTORIQUE
-    ================================================================= --}}
-
-    <div class="bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden">
-
-        <div class="px-5 py-4 border-b border-slate-200">
-
-            <h2 class="font-semibold text-slate-700">
-                Historique des paiements
-            </h2>
-
-        </div>
 
 
         @if($paiements->count())

@@ -234,7 +234,7 @@
 
             </a> --}}
 
-            <a href="{{ route('paiements.dashboard') }}" data-label="Paiements" aria-label="Paiements"
+            <a href="{{ route('paiements.index') }}" data-label="Paiements" aria-label="Paiements"
 
                 class="flex items-center px-6 py-3 transition {{ request()->routeIs('paiements.*') ? 'bg-blue-600 text-white' : 'hover:bg-slate-100' }}">
 
@@ -354,7 +354,7 @@
 
                             <div class="w-10 h-10 sm:w-12 sm:h-12 rounded-full bg-blue-600 text-white flex items-center justify-center font-bold">
 
-                                {{ strtoupper(substr(auth()->user()->nom,0,1)) }}
+                                {{ strtoupper(substr(auth()->user()->nom,0,1)) }}{{ strtoupper(substr(auth()->user()->prenom,0,1)) }}
 
                             </div>
 

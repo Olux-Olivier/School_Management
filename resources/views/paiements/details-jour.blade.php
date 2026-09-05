@@ -34,9 +34,9 @@
 
 
 {{-- Sélection de la date --}}
-<div class="bg-white border border-slate-200 rounded-xl shadow-sm p-5 mb-6">
-
-    <form method="GET"
+<div class="bg-white border border-slate-200 rounded-xl shadow-sm p-5 mb-6 grid grid-cols-1 md:grid-cols-3 gap-5 mb-6">
+    <div>
+        <form method="GET"
           action="{{ route('paiements.details-jour') }}"
           class="flex flex-col sm:flex-row sm:items-end gap-4">
 
@@ -64,13 +64,7 @@
         </button>
 
     </form>
-
-</div>
-
-
-{{-- Résumé --}}
-<div class="grid grid-cols-1 md:grid-cols-2 gap-5 mb-6">
-
+    </div>
     <div class="bg-white border border-slate-200 rounded-xl p-5">
 
         <p class="text-sm text-slate-500">
@@ -95,6 +89,14 @@
         </p>
 
     </div>
+
+</div>
+
+
+{{-- Résumé --}}
+<div class="grid grid-cols-1 md:grid-cols-2 gap-5 mb-6">
+
+
 
 </div>
 
