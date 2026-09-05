@@ -291,6 +291,18 @@ Route::prefix('classes')
         Route::get('/', [ClasseController::class, 'index'])
             ->name('classes.index');
 
+        Route::get('/maternelle', [ClasseController::class, 'maternelle'])
+            ->name('classes.maternelle');
+
+        Route::get('/primaire', [ClasseController::class, 'primaire'])
+            ->name('classes.primaire');
+
+        Route::get('/secondaire', [ClasseController::class, 'secondaire'])
+            ->name('classes.secondaire');
+
+        Route::get('/humanites', [ClasseController::class, 'humanites'])
+            ->name('classes.humanites');
+
         // Formulaire d'ajout
         Route::get('/create', [ClasseController::class, 'create'])
             ->name('classes.create');
@@ -314,6 +326,7 @@ Route::prefix('classes')
         // Activation / désactivation
         Route::patch('/{classe}/toggle-status', [ClasseController::class, 'toggleStatus'])
             ->name('classes.toggle-status');
+
 
     });
 

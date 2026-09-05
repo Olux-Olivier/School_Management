@@ -3,462 +3,492 @@
 @section('title', isset($classe) ? 'Modifier une classe' : 'Ajouter une classe')
 
 @section('breadcrumb')
-    {{ isset($classe) ? 'Modifier' : 'Ajouter' }} une classe
+{{ isset($classe) ? 'Modifier' : 'Ajouter' }} une classe
 @endsection
 
 @section('content')
 
 <div class="max-w-5xl mx-auto py-8">
 
-    <!-- ===================================================== -->
-    <!-- EN-TÊTE -->
-    <!-- ===================================================== -->
-    <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-4 mb-6">
+```
+<!-- ===================================================== -->
+<!-- EN-TÊTE -->
+<!-- ===================================================== -->
 
-        <div></div>
+<div class="flex flex-col md:flex-row md:items-center md:justify-between gap-4 mb-6">
 
-        <a
-            href="{{ route('classes.index') }}"
-            class="inline-flex w-full items-center justify-center gap-2 rounded-xl border border-slate-300 bg-white px-4 py-2.5 text-sm font-medium text-slate-700 shadow-sm transition hover:border-slate-400 hover:bg-slate-50 sm:w-auto"
-        >
-            <i class="fas fa-arrow-left text-xs" aria-hidden="true"></i>
-            <span>Retour aux classes</span>
-        </a>
+    <div></div>
+
+    <a
+        href="{{ route('classes.index') }}"
+        class="inline-flex w-full items-center justify-center gap-2 rounded-xl border border-slate-300 bg-white px-4 py-2.5 text-sm font-medium text-slate-700 shadow-sm transition hover:border-slate-400 hover:bg-slate-50 sm:w-auto"
+    >
+        <i class="fas fa-arrow-left text-xs" aria-hidden="true"></i>
+        <span>Retour aux classes</span>
+    </a>
+
+</div>
+
+
+<div class="bg-white rounded-xl shadow-sm border mb-6">
+
+    <div class="px-6 py-5">
+
+        <h2 class="text-2xl font-bold text-slate-700">
+
+            {{ isset($classe)
+                ? 'Modifier la classe'
+                : 'Ajouter une classe' }}
+
+        </h2>
+
+        <p class="text-sm text-slate-500 mt-1">
+
+            {{ isset($classe)
+                ? 'Modifiez les informations de cette classe.'
+                : 'Enregistrez une nouvelle classe dans l’établissement.' }}
+
+        </p>
 
     </div>
 
-    <div class="bg-white rounded-xl shadow-sm border mb-6">
 
-        <div class="px-6 py-5">
+    <form
+        action="{{ isset($classe)
+            ? route('classes.update', $classe)
+            : route('classes.store') }}"
+        method="POST"
+    >
 
-            <h2 class="text-2xl font-bold text-slate-700">
+        @csrf
 
-                {{ isset($classe)
-                    ? 'Modifier la classe'
-                    : 'Ajouter une classe' }}
-
-            </h2>
-
-            <p class="text-sm text-slate-500 mt-1">
-
-                {{ isset($classe)
-                    ? 'Modifiez les informations de cette classe.'
-                    : 'Enregistrez une nouvelle classe dans l’établissement.' }}
-
-            </p>
-
-        </div>
-
-        <form
-            action="{{ isset($classe)
-                ? route('classes.update', $classe)
-                : route('classes.store') }}"
-            method="POST"
-        >
-
-            @csrf
-
-            @if(isset($classe))
-                @method('PUT')
-            @endif
-
-            <div class="p-6">
-
-                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-
-                    <!-- ================================================= -->
-                    <!-- SECTION -->
-                    <!-- ================================================= -->
-
-                    <div>
-
-                        <label class="block mb-2 font-medium text-slate-700">
-                            Section
-                            <span class="text-red-500">*</span>
-                        </label>
-
-                        <select
-                            name="section"
-                            id="section"
-                            class="w-full border rounded-lg px-4 py-2.5
-                                   focus:ring-2 focus:ring-blue-500
-                                   focus:outline-none"
-                        >
-
-                            <option value="">
-                                Sélectionner une section
-                            </option>
-
-                            <option
-                                value="Maternelle"
-                                {{ old('section', $classe->section ?? '') == 'Maternelle'
-                                    ? 'selected'
-                                    : '' }}
-                            >
-                                Maternelle
-                            </option>
-
-                            <option
-                                value="Primaire"
-                                {{ old('section', $classe->section ?? '') == 'Primaire'
-                                    ? 'selected'
-                                    : '' }}
-                            >
-                                Primaire
-                            </option>
-
-                            <option
-                                value="Secondaire"
-                                {{ old('section', $classe->section ?? '') == 'Secondaire'
-                                    ? 'selected'
-                                    : '' }}
-                            >
-                                Secondaire
-                            </option>
-
-                            <option
-                                value="Humanités"
-                                {{ old('section', $classe->section ?? '') == 'Humanités'
-                                    ? 'selected'
-                                    : '' }}
-                            >
-                                Humanités
-                            </option>
-
-                        </select>
-
-                        @error('section')
-                            <p class="text-red-500 text-sm mt-1">
-                                {{ $message }}
-                            </p>
-                        @enderror
-
-                    </div>
+        @if(isset($classe))
+            @method('PUT')
+        @endif
 
 
-                    <!-- ================================================= -->
-                    <!-- NIVEAU -->
-                    <!-- ================================================= -->
+        <div class="p-6">
 
-                    <div>
-
-                        <label class="block mb-2 font-medium text-slate-700">
-
-                            Niveau
-
-                            <span class="text-red-500">*</span>
-
-                        </label>
-
-                        <select
-                            name="niveau"
-                            id="niveau"
-                            class="w-full border rounded-lg px-4 py-2.5
-                                   focus:ring-2 focus:ring-blue-500
-                                   focus:outline-none"
-                        >
-
-                            <option value="">
-                                Sélectionner
-                            </option>
-
-                            <option
-                                value="0"
-                                {{ old('niveau', $classe->niveau ?? '') == '0'
-                                    ? 'selected'
-                                    : '' }}
-                            >
-                                Maternelle
-                            </option>
-
-                            <option
-                                value="1"
-                                {{ old('niveau', $classe->niveau ?? '') == '1'
-                                    ? 'selected'
-                                    : '' }}
-                            >
-                                Primaire
-                            </option>
-
-                            <option
-                                value="2"
-                                {{ old('niveau', $classe->niveau ?? '') == '2'
-                                    ? 'selected'
-                                    : '' }}
-                            >
-                                Secondaire
-                            </option>
-
-                            <option
-                                value="3"
-                                {{ old('niveau', $classe->niveau ?? '') == '3'
-                                    ? 'selected'
-                                    : '' }}
-                            >
-                                Humanités
-                            </option>
-
-                        </select>
-
-                        @error('niveau')
-                            <p class="text-red-500 text-sm mt-1">
-                                {{ $message }}
-                            </p>
-                        @enderror
-
-                    </div>
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
 
 
-                    <!-- ================================================= -->
-                    <!-- NOM / CLASSE -->
-                    <!-- ================================================= -->
+                <!-- ================================================= -->
+                <!-- SECTION -->
+                <!-- ================================================= -->
 
-                    <div>
+                <div>
 
-                        <label class="block mb-2 font-medium text-slate-700">
+                    <label class="block mb-2 font-medium text-slate-700">
 
-                            Classe
+                        Section
 
-                            <span class="text-red-500">*</span>
+                        <span class="text-red-500">*</span>
 
-                        </label>
-
-                        <select
-                            name="nom"
-                            id="nom"
-                            class="w-full border rounded-lg px-4 py-2.5
-                                   focus:ring-2 focus:ring-blue-500
-                                   focus:outline-none"
-                        >
-
-                            <option value="">
-                                Sélectionner une classe
-                            </option>
-
-                        </select>
-
-                        @error('nom')
-                            <p class="text-red-500 text-sm mt-1">
-                                {{ $message }}
-                            </p>
-                        @enderror
-
-                    </div>
+                    </label>
 
 
-                    <!-- ================================================= -->
-                    <!-- OPTION -->
-                    <!-- ================================================= -->
-
-                    <div
-                        id="optionContainer"
-                        class="hidden"
+                    <select
+                        name="section"
+                        id="section"
+                        class="w-full border rounded-lg px-4 py-2.5
+                               focus:ring-2 focus:ring-blue-500
+                               focus:outline-none"
                     >
 
-                        <label class="block mb-2 font-medium text-slate-700">
+                        <option value="">
+                            Sélectionner une section
+                        </option>
 
-                            Option
-
-                            <span class="text-red-500">*</span>
-
-                        </label>
-
-                        <input
-                            type="text"
-                            name="option"
-                            id="option"
-                            value="{{ old('option', $classe->option ?? '') }}"
-                            placeholder="Exemple : Commerciale"
-                            class="w-full border rounded-lg px-4 py-2.5
-                                   focus:ring-2 focus:ring-blue-500
-                                   focus:outline-none"
+                        <option
+                            value="Maternelle"
+                            {{ old('section', $section ?? $classe->section ?? '') == 'Maternelle'
+                                ? 'selected'
+                                : '' }}
                         >
+                            Maternelle
+                        </option>
 
-                        @error('option')
-                            <p class="text-red-500 text-sm mt-1">
-                                {{ $message }}
-                            </p>
-                        @enderror
-
-                    </div>
-
-
-                    <!-- ================================================= -->
-                    <!-- VARIANTE -->
-                    <!-- ================================================= -->
-
-                    <div>
-
-                        <label class="block mb-2 font-medium text-slate-700">
-
-                            Variante
-
-                            <span class="text-slate-400 font-normal">
-                                (facultatif)
-                            </span>
-
-                        </label>
-
-                        <select
-                            name="variante"
-                            id="variante"
-                            class="w-full border rounded-lg px-4 py-2.5
-                                   focus:ring-2 focus:ring-blue-500
-                                   focus:outline-none"
+                        <option
+                            value="Primaire"
+                            {{ old('section', $section ?? $classe->section ?? '') == 'Primaire'
+                                ? 'selected'
+                                : '' }}
                         >
+                            Primaire
+                        </option>
 
-                            <option value="">
-                                Aucune variante
+                        <option
+                            value="Secondaire"
+                            {{ old('section', $section ?? $classe->section ?? '') == 'Secondaire'
+                                ? 'selected'
+                                : '' }}
+                        >
+                            Secondaire
+                        </option>
+
+                        <option
+                            value="Humanités"
+                            {{ old('section', $section ?? $classe->section ?? '') == 'Humanités'
+                                ? 'selected'
+                                : '' }}
+                        >
+                            Humanités
+                        </option>
+
+                    </select>
+
+
+                    @error('section')
+                        <p class="text-red-500 text-sm mt-1">
+                            {{ $message }}
+                        </p>
+                    @enderror
+
+                </div>
+
+
+                <!-- ================================================= -->
+                <!-- NIVEAU -->
+                <!-- ================================================= -->
+
+                <div>
+
+                    <label class="block mb-2 font-medium text-slate-700">
+
+                        Niveau
+
+                        <span class="text-red-500">*</span>
+
+                    </label>
+
+
+                    <select
+                        name="niveau"
+                        id="niveau"
+                        class="w-full border rounded-lg px-4 py-2.5
+                               focus:ring-2 focus:ring-blue-500
+                               focus:outline-none"
+                    >
+
+                        <option value="">
+                            Sélectionner
+                        </option>
+
+                        <option
+                            value="0"
+                            {{ old('niveau', $classe->niveau ?? '') == '0'
+                                ? 'selected'
+                                : '' }}
+                        >
+                            Maternelle
+                        </option>
+
+                        <option
+                            value="1"
+                            {{ old('niveau', $classe->niveau ?? '') == '1'
+                                ? 'selected'
+                                : '' }}
+                        >
+                            Primaire
+                        </option>
+
+                        <option
+                            value="2"
+                            {{ old('niveau', $classe->niveau ?? '') == '2'
+                                ? 'selected'
+                                : '' }}
+                        >
+                            Secondaire
+                        </option>
+
+                        <option
+                            value="3"
+                            {{ old('niveau', $classe->niveau ?? '') == '3'
+                                ? 'selected'
+                                : '' }}
+                        >
+                            Humanités
+                        </option>
+
+                    </select>
+
+
+                    @error('niveau')
+                        <p class="text-red-500 text-sm mt-1">
+                            {{ $message }}
+                        </p>
+                    @enderror
+
+                </div>
+
+
+                <!-- ================================================= -->
+                <!-- NOM / CLASSE -->
+                <!-- ================================================= -->
+
+                <div>
+
+                    <label class="block mb-2 font-medium text-slate-700">
+
+                        Classe
+
+                        <span class="text-red-500">*</span>
+
+                    </label>
+
+
+                    <select
+                        name="nom"
+                        id="nom"
+                        class="w-full border rounded-lg px-4 py-2.5
+                               focus:ring-2 focus:ring-blue-500
+                               focus:outline-none"
+                    >
+
+                        <option value="">
+                            Sélectionner une classe
+                        </option>
+
+                    </select>
+
+
+                    @error('nom')
+                        <p class="text-red-500 text-sm mt-1">
+                            {{ $message }}
+                        </p>
+                    @enderror
+
+                </div>
+
+
+                <!-- ================================================= -->
+                <!-- OPTION : HUMANITÉS UNIQUEMENT -->
+                <!-- ================================================= -->
+
+                <div
+                    id="optionContainer"
+                    class="hidden"
+                >
+
+                    <label class="block mb-2 font-medium text-slate-700">
+
+                        Option
+
+                        <span class="text-red-500">*</span>
+
+                    </label>
+
+
+                    <input
+                        type="text"
+                        name="option"
+                        id="option"
+                        value="{{ old('option', $classe->option ?? '') }}"
+                        placeholder="Exemple : Commerciale"
+                        class="w-full border rounded-lg px-4 py-2.5
+                               focus:ring-2 focus:ring-blue-500
+                               focus:outline-none"
+                    >
+
+
+                    @error('option')
+                        <p class="text-red-500 text-sm mt-1">
+                            {{ $message }}
+                        </p>
+                    @enderror
+
+                </div>
+
+
+                <!-- ================================================= -->
+                <!-- VARIANTE : TOUTES LES SECTIONS -->
+                <!-- ================================================= -->
+
+                <div>
+
+                    <label class="block mb-2 font-medium text-slate-700">
+
+                        Variante
+
+                        <span class="text-slate-400 font-normal">
+                            (facultatif)
+                        </span>
+
+                    </label>
+
+
+                    <select
+                        name="variante"
+                        id="variante"
+                        class="w-full border rounded-lg px-4 py-2.5
+                               focus:ring-2 focus:ring-blue-500
+                               focus:outline-none"
+                    >
+
+                        <option value="">
+                            Aucune variante
+                        </option>
+
+                        @foreach(['A', 'B', 'C', 'D', 'E', 'F', 'G', 'H'] as $lettre)
+
+                            <option
+                                value="{{ $lettre }}"
+                                {{ old('variante', $classe->variante ?? '') === $lettre
+                                    ? 'selected'
+                                    : '' }}
+                            >
+                                Variante {{ $lettre }}
                             </option>
 
-                            @foreach(['A', 'B', 'C', 'D', 'E', 'F', 'G', 'H'] as $lettre)
+                        @endforeach
 
-                                <option
-                                    value="{{ $lettre }}"
-                                    {{ old('variante', $classe->variante ?? '') === $lettre
-                                        ? 'selected'
-                                        : '' }}
-                                >
-                                    {{ $lettre }}
-                                </option>
+                    </select>
 
-                            @endforeach
 
-                        </select>
+                    @error('variante')
+                        <p class="text-red-500 text-sm mt-1">
+                            {{ $message }}
+                        </p>
+                    @enderror
 
-                        @error('variante')
-                            <p class="text-red-500 text-sm mt-1">
-                                {{ $message }}
-                            </p>
-                        @enderror
 
-                        <p class="text-xs text-slate-500 mt-1">
-                            Permet de diviser une même classe en plusieurs groupes.
+                    <p class="text-xs text-slate-500 mt-1">
+
+                        Permet de diviser une même classe en plusieurs groupes.
+
+                    </p>
+
+                </div>
+
+
+                <!-- ================================================= -->
+                <!-- APERÇU -->
+                <!-- ================================================= -->
+
+                <div class="md:col-span-2">
+
+                    <div
+                        class="bg-slate-50 border border-slate-200 rounded-xl p-5"
+                    >
+
+                        <p class="text-sm text-gray-500 mb-2">
+                            Aperçu du nom complet
                         </p>
 
-                    </div>
 
-
-                    <!-- ================================================= -->
-                    <!-- APERÇU -->
-                    <!-- ================================================= -->
-
-                    <div class="md:col-span-2">
-
-                        <div
-                            class="bg-slate-50 border border-slate-200 rounded-xl p-5"
+                        <p
+                            id="nomCompletPreview"
+                            class="text-xl font-bold text-slate-700"
                         >
-
-                            <p class="text-sm text-gray-500 mb-2">
-                                Aperçu du nom complet
-                            </p>
-
-                            <p
-                                id="nomCompletPreview"
-                                class="text-xl font-bold text-slate-700"
-                            >
-                                --
-                            </p>
-
-                        </div>
-
-                    </div>
-
-
-                    <!-- ================================================= -->
-                    <!-- STATUT -->
-                    <!-- ================================================= -->
-
-                    <div>
-
-                        <label class="block mb-2 font-medium text-slate-700">
-
-                            Statut
-
-                        </label>
-
-                        <select
-                            name="actif"
-                            class="w-full border rounded-lg px-4 py-2.5
-                                   focus:ring-2 focus:ring-blue-500
-                                   focus:outline-none"
-                        >
-
-                            <option
-                                value="1"
-                                {{ old('actif', $classe->actif ?? 1) == 1
-                                    ? 'selected'
-                                    : '' }}
-                            >
-                                Actif
-                            </option>
-
-                            <option
-                                value="0"
-                                {{ old('actif', $classe->actif ?? 1) == 0
-                                    ? 'selected'
-                                    : '' }}
-                            >
-                                Inactif
-                            </option>
-
-                        </select>
-
-                        @error('actif')
-                            <p class="text-red-500 text-sm mt-1">
-                                {{ $message }}
-                            </p>
-                        @enderror
+                            --
+                        </p>
 
                     </div>
 
                 </div>
 
+
+                <!-- ================================================= -->
+                <!-- STATUT -->
+                <!-- ================================================= -->
+
+                <div>
+
+                    <label class="block mb-2 font-medium text-slate-700">
+
+                        Statut
+
+                    </label>
+
+
+                    <select
+                        name="actif"
+                        class="w-full border rounded-lg px-4 py-2.5
+                               focus:ring-2 focus:ring-blue-500
+                               focus:outline-none"
+                    >
+
+                        <option
+                            value="1"
+                            {{ old('actif', $classe->actif ?? 1) == 1
+                                ? 'selected'
+                                : '' }}
+                        >
+                            Actif
+                        </option>
+
+                        <option
+                            value="0"
+                            {{ old('actif', $classe->actif ?? 1) == 0
+                                ? 'selected'
+                                : '' }}
+                        >
+                            Inactif
+                        </option>
+
+                    </select>
+
+
+                    @error('actif')
+                        <p class="text-red-500 text-sm mt-1">
+                            {{ $message }}
+                        </p>
+                    @enderror
+
+                </div>
+
             </div>
 
+        </div>
 
-            <!-- ===================================================== -->
-            <!-- BOUTONS -->
-            <!-- ===================================================== -->
 
-            <div class="border-t border-slate-200 px-6 py-4
-                        flex justify-end gap-3">
+        <!-- ===================================================== -->
+        <!-- BOUTONS -->
+        <!-- ===================================================== -->
 
-                <a
-                    href="{{ route('classes.index') }}"
-                    class="px-5 py-2.5 rounded-lg
-                           bg-gray-200 text-gray-700
-                           hover:bg-gray-300 transition"
-                >
-                    Annuler
-                </a>
+        <div
+            class="border-t border-slate-200 px-6 py-4
+                   flex justify-end gap-3"
+        >
 
-                <button
-                    type="submit"
-                    class="px-5 py-2.5 rounded-lg
-                           bg-blue-600 text-white
-                           hover:bg-blue-700 transition"
-                >
+            <a
+                href="{{ route('classes.index') }}"
+                class="px-5 py-2.5 rounded-lg
+                       bg-gray-200 text-gray-700
+                       hover:bg-gray-300 transition"
+            >
+                Annuler
+            </a>
 
-                    <i class="fas fa-save mr-2"></i>
 
-                    {{ isset($classe)
-                        ? 'Enregistrer les modifications'
-                        : 'Enregistrer' }}
+            <button
+                type="submit"
+                class="px-5 py-2.5 rounded-lg
+                       bg-blue-600 text-white
+                       hover:bg-blue-700 transition"
+            >
 
-                </button>
+                <i class="fas fa-save mr-2"></i>
 
-            </div>
+                {{ isset($classe)
+                    ? 'Enregistrer les modifications'
+                    : 'Enregistrer' }}
 
-        </form>
+            </button>
 
-    </div>
+        </div>
+
+    </form>
+
+</div>
+```
 
 </div>
 
-
 <!-- ========================================================= -->
+
 <!-- JAVASCRIPT -->
+
 <!-- ========================================================= -->
 
 <script>
@@ -543,7 +573,7 @@ document.addEventListener('DOMContentLoaded', function () {
 
     /*
     |--------------------------------------------------------------------------
-    | Anciennes valeurs pour modification
+    | Anciennes valeurs
     |--------------------------------------------------------------------------
     */
 
@@ -567,6 +597,7 @@ document.addEventListener('DOMContentLoaded', function () {
 
         const valeur = this.value;
 
+
         if (niveaux[valeur] !== undefined) {
 
             niveau.value = niveaux[valeur];
@@ -581,6 +612,8 @@ document.addEventListener('DOMContentLoaded', function () {
                 '<option value="">Sélectionner une classe</option>';
 
             cacherOption();
+
+            afficherPreview();
 
         }
 
@@ -611,6 +644,7 @@ document.addEventListener('DOMContentLoaded', function () {
 
         const valeur = niveau.value;
 
+
         nom.innerHTML =
             '<option value="">Sélectionner une classe</option>';
 
@@ -618,6 +652,8 @@ document.addEventListener('DOMContentLoaded', function () {
         if (!classes[valeur]) {
 
             cacherOption();
+
+            afficherPreview();
 
             return;
 
@@ -648,7 +684,7 @@ document.addEventListener('DOMContentLoaded', function () {
 
         /*
         |--------------------------------------------------------------------------
-        | Humanités
+        | Option uniquement pour Humanités
         |--------------------------------------------------------------------------
         */
 
@@ -713,6 +749,7 @@ document.addEventListener('DOMContentLoaded', function () {
 
         const classeNom = nom.value;
 
+
         if (!classeNom) {
 
             preview.textContent = '--';
@@ -745,6 +782,7 @@ document.addEventListener('DOMContentLoaded', function () {
 
         }
 
+
         /*
         |--------------------------------------------------------------------------
         | Autres sections
@@ -761,6 +799,9 @@ document.addEventListener('DOMContentLoaded', function () {
         /*
         |--------------------------------------------------------------------------
         | Variante
+        |--------------------------------------------------------------------------
+        | IMPORTANT :
+        | La variante est appliquée à TOUTES les sections.
         |--------------------------------------------------------------------------
         */
 
@@ -827,7 +868,9 @@ document.addEventListener('DOMContentLoaded', function () {
 
         mettreAJourClasses();
 
-    } else if (section.value !== '') {
+    }
+
+    else if (section.value !== '') {
 
         niveau.value =
             niveaux[section.value] ?? '';
@@ -839,7 +882,7 @@ document.addEventListener('DOMContentLoaded', function () {
 
     /*
     |--------------------------------------------------------------------------
-    | Restaurer la variante après initialisation
+    | Restaurer la variante
     |--------------------------------------------------------------------------
     */
 
