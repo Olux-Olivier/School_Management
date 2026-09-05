@@ -397,7 +397,7 @@
 
 
 {{-- ========================================================= --}}
-{{-- LISTE DES ÉLÈVES --}}
+{{-- LISTE DES ÉLÈVES D'UNE CLASSE --}}
 {{-- ========================================================= --}}
 
 <div
@@ -692,23 +692,21 @@
 
 
                                 <a
-                                    href="{{ route(
-                                        'eleves.show',
-                                        $inscription->eleve
-                                    ) }}"
-
-                                    title="Consulter l'élève"
-
+                                    href="{{ route('eleves.parcours', [
+                                        'eleve' => $inscription->eleve->id,
+                                        'from' => url()->full(),
+                                    ]) }}"
+                                    title="Voir le parcours scolaire"
                                     class="w-9 h-9
-                                           flex items-center
-                                           justify-center
-                                           rounded-lg
-                                           bg-blue-50
-                                           text-blue-600
-                                           hover:bg-blue-100
-                                           transition">
+                                        flex items-center
+                                        justify-center
+                                        rounded-lg
+                                        bg-blue-50
+                                        text-blue-600
+                                        hover:bg-blue-100
+                                        transition">
 
-                                    <i class="fas fa-eye"></i>
+                                    <i class="fas fa-route"></i>
 
                                 </a>
 

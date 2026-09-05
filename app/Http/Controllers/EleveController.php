@@ -3,6 +3,10 @@
 namespace App\Http\Controllers;
 
 use App\Models\Eleve;
+use App\Models\Classe;
+use App\Models\AnneeScolaire;
+use App\Models\Paiement;
+use App\Models\Inscription;
 use Illuminate\Http\Request;
 
 class EleveController extends Controller
@@ -363,5 +367,29 @@ class EleveController extends Controller
 
         ]);
     }
+
+    /*
+    |--------------------------------------------------------------------------
+    | Parcours d'un élève
+    |--------------------------------------------------------------------------
+    */
+    public function parcours(Request $request, Eleve $eleve)
+{
+    $inscriptions = $eleve->inscriptions()
+        ->with([
+            'classe',
+            'anneeScolaire',
+        ])
+        ->get()
+        ->sortBy(function ($inscription) {
+            return $inscription->anneeScolaire->date_debut;
+        })
+        ->values();
+
+    return view('eleves.parcours', compact(
+        'eleve',
+        'inscriptions'
+    ));
+}
 
 }

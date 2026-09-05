@@ -330,6 +330,10 @@ Route::prefix('eleves')
         Route::get('/', [EleveController::class, 'index'])
             ->name('eleves.index');
 
+         Route::get('/{eleve}/parcours', [EleveController::class, 'parcours'])
+            ->name('eleves.parcours');
+
+
         // Formulaire d'ajout
         Route::get('/create', [EleveController::class, 'create'])
             ->name('eleves.create');
