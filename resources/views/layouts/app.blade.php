@@ -472,7 +472,7 @@ const themeIcon=document.getElementById('themeIcon');
 
 function updateThemeButton(){
     const isDark=document.documentElement.classList.contains('dark');
-    themeIcon.className=isDark ? 'fas fa-sun' : 'fas fa-moon';
+    themeIcon.className=isDark ? 'fas fa-circle-half-stroke' : 'fas fa-moon';
     themeToggle.setAttribute('aria-label',isDark ? 'Activer le mode clair' : 'Activer le mode sombre');
     themeToggle.title=isDark ? 'Mode clair' : 'Mode sombre';
 }
