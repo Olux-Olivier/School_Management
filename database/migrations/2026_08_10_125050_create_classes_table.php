@@ -30,6 +30,7 @@ return new class extends Migration
             // Utilisé uniquement pour les Humanités
             // Exemple : Commercial, Pédagogique...
             $table->string('option')->nullable();
+            $table->string('variante',1)->nullable();
 
             // Classe active ou inactive
             $table->boolean('actif')->default(true);

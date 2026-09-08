@@ -19,8 +19,6 @@ class Paiement extends Model
         'montant_paye',
         'restant',
         'date_paiement',
-        'mode_paiement',
-        'reference',
         'created_by',
         'updated_by',
     ];
@@ -66,6 +64,11 @@ class Paiement extends Model
             Frais::class,
             'frais_id'
         );
+    }
+
+    public function historiques()
+    {
+        return $this->hasMany(HistoriquePaiement::class);
     }
 
     // Utilisateur ayant enregistré le paiement

@@ -395,6 +395,291 @@ class InscriptionController extends Controller
 
     /*
     |--------------------------------------------------------------------------
+    | Formulaire de modification
+    |--------------------------------------------------------------------------
+    */
+    /*
+|--------------------------------------------------------------------------
+| Formulaire de modification
+|--------------------------------------------------------------------------
+*/
+
+    public function edit(Inscription $inscription)
+    {
+    $inscription->load([
+    'eleve',
+    'classe',
+    'anneeScolaire',
+    ]);
+
+    /*
+    |--------------------------------------------------------------------------
+    | Année scolaire de l'inscription
+    |--------------------------------------------------------------------------
+    |
+    | Pour une modification, on affiche l'année à laquelle
+    | cette inscription appartient. On ne la modifie pas.
+    |
+    */
+
+    $anneeScolaire = $inscription->anneeScolaire;
+
+
+    /*
+    |--------------------------------------------------------------------------
+    | Classes actives
+    |--------------------------------------------------------------------------
+    */
+
+    $classes = Classe::where('actif', true)
+        ->orderBy('niveau')
+        ->orderBy('nom')
+        ->get();
+
+
+    return view(
+        'inscriptions.edit',
+        compact(
+            'inscription',
+            'anneeScolaire',
+            'classes'
+        )
+    );
+
+
+    }
+
+
+    /*
+    |--------------------------------------------------------------------------
+    | Mise à jour de l'inscription
+    |--------------------------------------------------------------------------
+    */
+
+    public function update(Request $request, Inscription $inscription)
+    {
+
+    /*
+    |--------------------------------------------------------------------------
+    | Validation des données
+    |--------------------------------------------------------------------------
+    */
+
+
+    $request->validate([
+
+        'eleve_id' => [
+            'required',
+            'exists:eleves,id',
+        ],
+
+        'section' => [
+            'required',
+            'in:maternelle,primaire,secondaire,humanites',
+        ],
+
+        'classe_id' => [
+            'required',
+            'exists:classes,id',
+        ],
+
+        'date_inscription' => [
+            'required',
+            'date',
+        ],
+
+        'montant' => [
+            'required',
+            'numeric',
+            'min:0',
+        ],
+
+    ]);
+
+
+    /*
+    |--------------------------------------------------------------------------
+    | Vérifier l'élève
+    |--------------------------------------------------------------------------
+    |
+    | L'élève doit exister et être actif.
+    |
+    */
+
+    $eleve = Eleve::where('id', $request->eleve_id)
+        ->where('actif', true)
+        ->first();
+
+
+    if (!$eleve) {
+
+        return back()
+            ->withInput()
+            ->withErrors([
+                'eleve_id' =>
+                    'Cet élève est introuvable ou inactif.',
+            ]);
+    }
+
+
+    /*
+    |--------------------------------------------------------------------------
+    | Vérifier la classe
+    |--------------------------------------------------------------------------
+    |
+    | Seules les classes actives peuvent être utilisées.
+    |
+    */
+
+    $classe = Classe::where('id', $request->classe_id)
+        ->where('actif', true)
+        ->first();
+
+
+    if (!$classe) {
+
+        return back()
+            ->withInput()
+            ->withErrors([
+                'classe_id' =>
+                    'Cette classe est inexistante ou inactive.',
+            ]);
+    }
+
+
+    /*
+    |--------------------------------------------------------------------------
+    | Vérifier la cohérence section / classe
+    |--------------------------------------------------------------------------
+    */
+
+    $sectionClasse = strtolower(
+        trim($classe->section)
+    );
+
+    $sectionFormulaire = strtolower(
+        trim($request->section)
+    );
+
+
+    /*
+    | Normalisation des accents
+    */
+
+    $sectionClasse = str_replace(
+        ['é', 'è', 'ê', 'ë'],
+        'e',
+        $sectionClasse
+    );
+
+    $sectionFormulaire = str_replace(
+        ['é', 'è', 'ê', 'ë'],
+        'e',
+        $sectionFormulaire
+    );
+
+
+    if ($sectionClasse !== $sectionFormulaire) {
+
+        return back()
+            ->withInput()
+            ->withErrors([
+                'classe_id' =>
+                    'La classe sélectionnée ne correspond pas à la section choisie.',
+            ]);
+    }
+
+
+    /*
+    |--------------------------------------------------------------------------
+    | Vérifier si l'élève est déjà inscrit dans la même année scolaire
+    |--------------------------------------------------------------------------
+    |
+    | On exclut l'inscription que nous sommes actuellement en train
+    | de modifier.
+    |
+    */
+
+    $dejaInscrit = Inscription::where(
+        'eleve_id',
+        $eleve->id
+    )
+        ->where(
+            'annee_scolaire_id',
+            $inscription->annee_scolaire_id
+        )
+        ->where(
+            'id',
+            '<>',
+            $inscription->id
+        )
+        ->exists();
+
+
+    if ($dejaInscrit) {
+
+        return back()
+            ->withInput()
+            ->withErrors([
+                'eleve_id' =>
+                    'Cet élève est déjà inscrit pour cette année scolaire.',
+            ]);
+    }
+
+
+    /*
+    |--------------------------------------------------------------------------
+    | Mise à jour de l'inscription
+    |--------------------------------------------------------------------------
+    |
+    | L'année scolaire n'est volontairement pas modifiée.
+    |
+    */
+
+    $inscription->update([
+
+        'eleve_id' =>
+            $eleve->id,
+
+        'classe_id' =>
+            $classe->id,
+
+        'date_inscription' =>
+            $request->date_inscription,
+
+        'montant' =>
+            $request->montant,
+
+        'updated_by' =>
+            auth()->id(),
+
+    ]);
+
+
+    /*
+    |--------------------------------------------------------------------------
+    | Redirection vers la consultation
+    |--------------------------------------------------------------------------
+    */
+
+    return redirect()
+        ->route(
+            'inscriptions.show',
+            $inscription
+        )
+        ->with(
+            'success',
+            'Inscription modifiée avec succès.'
+        );
+
+
+    }
+
+
+
+
+    /*
+    |--------------------------------------------------------------------------
     | Recherche d'élèves pour l'inscription
     |--------------------------------------------------------------------------
     */
@@ -450,18 +735,59 @@ class InscriptionController extends Controller
 }
 
     public function classes(Request $request)
-{
+    {
     $request->validate([
         'section' => [
-            'required',
-            'in:maternelle,primaire,secondaire,humanites',
+        'required',
+        'in:maternelle,primaire,secondaire,humanites',
         ],
     ]);
 
     $section = strtolower(trim($request->section));
 
+    /*
+    |--------------------------------------------------------------------------
+    | Normalisation de la section reçue
+    |--------------------------------------------------------------------------
+    */
+
+    $section = str_replace(
+        ['é', 'è', 'ê', 'ë'],
+        'e',
+        $section
+    );
+
+
+    /*
+    |--------------------------------------------------------------------------
+    | Récupérer les classes actives
+    |--------------------------------------------------------------------------
+    |
+    | On normalise également la valeur stockée en base.
+    | Exemple :
+    |
+    | Humanités → humanites
+    |
+    */
+
     $classes = Classe::where('actif', true)
-        ->whereRaw('LOWER(section) = ?', [$section])
+        ->whereRaw("
+            LOWER(
+                REPLACE(
+                    REPLACE(
+                        REPLACE(
+                            REPLACE(
+                                REPLACE(section, 'é', 'e'),
+                                'è', 'e'
+                            ),
+                            'ê', 'e'
+                        ),
+                        'ë', 'e'
+                    ),
+                    'É', 'e'
+                )
+            ) = ?
+        ", [$section])
         ->orderBy('niveau')
         ->orderBy('nom')
         ->get([
@@ -480,7 +806,9 @@ class InscriptionController extends Controller
             ];
         })
     );
-}
+
+    }
+
 
     /*
     |--------------------------------------------------------------------------

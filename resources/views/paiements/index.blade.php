@@ -8,23 +8,33 @@
 
     @include('paiements.partials.navigation')
 
+
     {{-- ================================================================
          FILTRES
     ================================================================= --}}
 
-
-
     <div class="mb-6 rounded-2xl border border-slate-200 bg-white p-5 shadow-sm sm:p-6">
 
         <div class="mb-5 flex items-center gap-3 border-b border-slate-100 pb-4">
+
             <div class="flex h-9 w-9 items-center justify-center rounded-lg bg-blue-50 text-blue-600">
                 <i class="fas fa-filter"></i>
             </div>
+
             <div>
-                <h2 class="font-semibold text-slate-800">Filtres de recherche</h2>
-                <p class="text-xs text-slate-500">Affinez la liste des élèves inscrits.</p>
+
+                <h2 class="font-semibold text-slate-800">
+                    Filtres de recherche
+                </h2>
+
+                <p class="text-xs text-slate-500">
+                    Affinez la liste des élèves inscrits.
+                </p>
+
             </div>
+
         </div>
+
 
         <form
             method="GET"
@@ -33,6 +43,7 @@
         >
 
             <div class="grid grid-cols-1 gap-5 sm:grid-cols-2 xl:grid-cols-4">
+
 
                 {{-- ----------------------------------------------------
                      ANNÉE SCOLAIRE
@@ -59,7 +70,11 @@
                                 value="{{ $annee->id }}"
                                 {{ (string) $anneeScolaireId === (string) $annee->id ? 'selected' : '' }}
                             >
-                                {{ $annee->libelle ?? $annee->nom ?? $annee->date_debut . ' - ' . $annee->date_fin }}
+
+                                {{ $annee->libelle
+                                    ?? $annee->nom
+                                    ?? $annee->date_debut . ' - ' . $annee->date_fin
+                                }}
 
                                 @if($annee->actif)
                                     — Active
@@ -160,10 +175,15 @@
                                 data-niveau="{{ $classe->niveau }}"
                                 {{ (string) request('classe_id') === (string) $classe->id ? 'selected' : '' }}
                             >
+
                                 {{ $classe->nom }}
 
                                 @if($classe->option)
                                     — {{ $classe->option }}
+                                @endif
+
+                                @if($classe->variante)
+                                    — {{ $classe->variante }}
                                 @endif
 
                             </option>
@@ -224,7 +244,6 @@
             --------------------------------------------------------- --}}
 
             <div class="mt-6 flex flex-col-reverse gap-3 border-t border-slate-100 pt-5 sm:flex-row sm:justify-end">
-                
 
                 <a
                     href="{{ route('paiements.index') }}"
@@ -247,6 +266,7 @@
     </div>
 
 
+
     {{-- ================================================================
          INFORMATIONS ANNÉE
     ================================================================= --}}
@@ -255,14 +275,17 @@
 
         <div class="mb-4">
 
-            <div class="inline-flex items-center gap-2 rounded-xl  border-slate-200 bg-blue-50 px-4 py-2.5 text-sm text-blue-700">
+            <div class="inline-flex items-center gap-2 rounded-xl border-slate-200 bg-blue-50 px-4 py-2.5 text-sm text-blue-700">
 
                 <span class="font-medium">
                     Année consultée :
                 </span>
 
                 <span>
-                    {{ $anneeScolaire->libelle ?? $anneeScolaire->nom ?? $anneeScolaire->date_debut . ' - ' . $anneeScolaire->date_fin }}
+                    {{ $anneeScolaire->libelle
+                        ?? $anneeScolaire->nom
+                        ?? $anneeScolaire->date_debut . ' - ' . $anneeScolaire->date_fin
+                    }}
                 </span>
 
             </div>
@@ -272,31 +295,36 @@
     @endif
 
 
+
     {{-- ================================================================
          TABLEAU DES ÉLÈVES
     ================================================================= --}}
 
     <div class="overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm">
 
+
         <div class="flex flex-col gap-2 border-b border-slate-200 px-5 py-4 sm:flex-row sm:items-center sm:justify-between sm:px-6">
 
             <div>
 
-            <h2 class="font-semibold text-slate-800">
-                Élèves inscrits
-            </h2>
+                <h2 class="font-semibold text-slate-800">
+                    Élèves inscrits
+                </h2>
 
-            <p class="text-xs text-slate-500 mt-1">
-                Les résultats correspondent à l'année scolaire sélectionnée.
-            </p>
+                <p class="text-xs text-slate-500 mt-1">
+                    Les résultats correspondent à l'année scolaire sélectionnée.
+                </p>
 
             </div>
 
             <span class="inline-flex w-fit items-center rounded-full bg-blue-50 px-3 py-1 text-xs font-semibold text-blue-700">
+
                 {{ $inscriptions->total() }} élève(s)
+
             </span>
 
         </div>
+
 
 
         @if($inscriptions->count())
@@ -338,11 +366,14 @@
                     </thead>
 
 
+
                     <tbody class="divide-y divide-slate-100">
+
 
                         @foreach($inscriptions as $inscription)
 
                             <tr class="transition hover:bg-blue-50/40">
+
 
                                 {{-- MATRICULE --}}
 
@@ -351,6 +382,7 @@
                                     {{ $inscription->eleve->matricule }}
 
                                 </td>
+
 
 
                                 {{-- ÉLÈVE --}}
@@ -368,6 +400,7 @@
                                 </td>
 
 
+
                                 {{-- CLASSE --}}
 
                                 <td class="px-5 py-4 text-slate-600">
@@ -382,7 +415,16 @@
 
                                     @endif
 
+                                    @if($inscription->classe->variante)
+
+                                        <span class="text-slate-400">
+                                            — {{ $inscription->classe->variante }}
+                                        </span>
+
+                                    @endif
+
                                 </td>
+
 
 
                                 {{-- SECTION --}}
@@ -392,14 +434,18 @@
                                     @php
 
                                         $section = match($inscription->classe->niveau) {
+
                                             0 => 'Maternelle',
                                             1 => 'Primaire',
                                             2 => 'Secondaire',
                                             3 => 'Humanités',
+
                                             default => '—',
+
                                         };
 
                                     @endphp
+
 
                                     <span class="inline-flex px-2.5 py-1 rounded-full text-xs font-medium bg-slate-100 text-slate-600">
 
@@ -408,6 +454,7 @@
                                     </span>
 
                                 </td>
+
 
 
                                 {{-- DATE --}}
@@ -419,15 +466,23 @@
                                 </td>
 
 
+
                                 {{-- ACTION --}}
 
                                 <td class="px-5 py-4 text-right">
 
                                     <a
-                                        href="{{ route('paiements.show', ['eleve' => $inscription->eleve_id,'annee_scolaire_id' => $anneeScolaireId,]) }}"
+                                        href="{{ route('paiements.show', [
+                                            'eleve' => $inscription->eleve_id,
+                                            'annee_scolaire_id' => $anneeScolaireId,
+                                        ]) }}"
                                         class="inline-flex items-center rounded-lg bg-blue-600 px-3 py-2 text-xs font-semibold text-white transition hover:bg-blue-700"
                                     >
+
+                                        <i class="fas fa-money-bill-wave mr-2"></i>
+
                                         Consulter les paiements
+
                                     </a>
 
                                 </td>
@@ -436,11 +491,13 @@
 
                         @endforeach
 
+
                     </tbody>
 
                 </table>
 
             </div>
+
 
 
             {{-- ========================================================
@@ -452,6 +509,7 @@
                 {{ $inscriptions->links() }}
 
             </div>
+
 
         @else
 
@@ -478,6 +536,7 @@
 </div>
 
 
+
 {{-- ====================================================================
      JAVASCRIPT
 ===================================================================== --}}
@@ -485,6 +544,7 @@
 <script>
 
 document.addEventListener('DOMContentLoaded', function () {
+
 
     const form = document.getElementById('paiementSearchForm');
 
@@ -499,20 +559,38 @@ document.addEventListener('DOMContentLoaded', function () {
     const clearSearch = document.getElementById('clearSearch');
 
 
+
+    /*
+    |--------------------------------------------------------------------------
+    | Vérification des éléments
+    |--------------------------------------------------------------------------
+    */
+
+    if (!form) {
+        return;
+    }
+
+
+
     /*
     |--------------------------------------------------------------------------
     | Année scolaire
     |--------------------------------------------------------------------------
     |
-    | Lorsqu'on change d'année, on recharge la page.
+    | Lorsqu'on change d'année, on recharge automatiquement la liste.
     |
     */
 
-    anneeSelect.addEventListener('change', function () {
+    if (anneeSelect) {
 
-        form.submit();
+        anneeSelect.addEventListener('change', function () {
 
-    });
+            form.submit();
+
+        });
+
+    }
+
 
 
     /*
@@ -523,16 +601,30 @@ document.addEventListener('DOMContentLoaded', function () {
 
     function filtrerClasses() {
 
+
+        if (!sectionSelect || !classeSelect) {
+            return;
+        }
+
+
         const section = sectionSelect.value;
 
 
         Array.from(classeSelect.options).forEach(function (option, index) {
+
+
+            /*
+            |--------------------------------------------------------------------------
+            | Première option : Toutes les classes
+            |--------------------------------------------------------------------------
+            */
 
             if (index === 0) {
 
                 option.hidden = false;
 
                 return;
+
             }
 
 
@@ -542,21 +634,30 @@ document.addEventListener('DOMContentLoaded', function () {
             let afficher = true;
 
 
+            /*
+            |--------------------------------------------------------------------------
+            | Correspondance section / niveau
+            |--------------------------------------------------------------------------
+            */
+
             if (section === 'maternelle') {
 
                 afficher = niveau === '0';
 
             }
+
             else if (section === 'primaire') {
 
                 afficher = niveau === '1';
 
             }
+
             else if (section === 'secondaire') {
 
                 afficher = niveau === '2';
 
             }
+
             else if (section === 'humanites') {
 
                 afficher = niveau === '3';
@@ -569,9 +670,12 @@ document.addEventListener('DOMContentLoaded', function () {
         });
 
 
+
         /*
+        |--------------------------------------------------------------------------
         | Si la classe sélectionnée ne correspond plus à la section,
-        | on la réinitialise.
+        | on réinitialise la sélection.
+        |--------------------------------------------------------------------------
         */
 
         const optionSelectionnee =
@@ -590,16 +694,35 @@ document.addEventListener('DOMContentLoaded', function () {
     }
 
 
+
+    /*
+    |--------------------------------------------------------------------------
+    | Initialisation
+    |--------------------------------------------------------------------------
+    */
+
     filtrerClasses();
 
 
-    sectionSelect.addEventListener('change', function () {
 
-        classeSelect.value = '';
+    /*
+    |--------------------------------------------------------------------------
+    | Changement de section
+    |--------------------------------------------------------------------------
+    */
 
-        filtrerClasses();
+    if (sectionSelect) {
 
-    });
+        sectionSelect.addEventListener('change', function () {
+
+            classeSelect.value = '';
+
+            filtrerClasses();
+
+        });
+
+    }
+
 
 
     /*
@@ -607,26 +730,31 @@ document.addEventListener('DOMContentLoaded', function () {
     | Recherche
     |--------------------------------------------------------------------------
     |
-    | Même principe que les autres pages :
-    | la recherche est déclenchée après 2 secondes.
+    | Recherche automatique après 2 secondes.
     |
     */
 
     let searchTimer = null;
 
 
-    searchInput.addEventListener('input', function () {
+    if (searchInput) {
 
-        clearTimeout(searchTimer);
+        searchInput.addEventListener('input', function () {
 
 
-        searchTimer = setTimeout(function () {
+            clearTimeout(searchTimer);
 
-            form.submit();
 
-        }, 2000);
+            searchTimer = setTimeout(function () {
 
-    });
+                form.submit();
+
+            }, 2000);
+
+        });
+
+    }
+
 
 
     /*
@@ -650,5 +778,6 @@ document.addEventListener('DOMContentLoaded', function () {
 });
 
 </script>
+
 
 @endsection

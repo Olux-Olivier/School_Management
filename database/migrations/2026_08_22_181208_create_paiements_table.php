@@ -52,6 +52,8 @@ return new class extends Migration
                 ->cascadeOnUpdate()
                 ->restrictOnDelete();
 
+             $table->string('motif');
+
 
             /*
             |--------------------------------------------------------------------------
@@ -95,38 +97,6 @@ return new class extends Migration
             */
 
             $table->date('date_paiement');
-
-
-            /*
-            |--------------------------------------------------------------------------
-            | Mode de paiement
-            |--------------------------------------------------------------------------
-            |
-            | Exemple :
-            | espèces, mobile money, virement, chèque...
-            |
-            */
-
-            $table->string('mode_paiement', 30);
-
-
-            /*
-            |--------------------------------------------------------------------------
-            | Référence automatique du paiement
-            |--------------------------------------------------------------------------
-            |
-            | Exemple :
-            |
-            | ESP-2026-00001-HUM
-            | ESP-2026-00002-HUM
-            | ESP-2026-00001-SEC
-            |
-            | Le compteur sera géré par année scolaire + section.
-            |
-            */
-
-            $table->string('reference', 50)
-                ->unique();
 
 
             /*

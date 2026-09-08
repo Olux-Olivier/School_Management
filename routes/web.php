@@ -573,6 +573,13 @@ Route::prefix('paiements')
             'destroy'
         ])->name('destroy');
 
+        Route::get('/recu/{historique}', [
+            PaiementController::class,
+            'recu'
+        ])->name('recu');
+
+
+
     });
 
 

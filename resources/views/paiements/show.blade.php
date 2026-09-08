@@ -1,14 +1,17 @@
 @extends('layouts.app')
 
 @section('title', 'Historique des paiements')
+
 @section('breadcrumb')
     Paiements / Historique de l’élève
 @endsection
+
 @section('content')
 
 <div class="mx-auto max-w-7xl px-4 py-6 sm:px-6 sm:py-8 lg:px-8">
 
     @include('paiements.partials.navigation')
+
 
     {{-- ================================================================
          EN-TÊTE
@@ -19,6 +22,7 @@
         <div>
 
             <div class="flex items-center gap-3">
+
                 <h1 class="text-2xl font-bold text-slate-700">
                     Historique des paiements
                 </h1>
@@ -33,147 +37,185 @@
 
 
         {{-- NOUVEAU PAIEMENT --}}
-        <a href="{{ route('paiements.create', ['eleve' => $eleve->id,'annee_scolaire_id' => request('annee_scolaire_id')]) }}" class="inline-flex items-center  px-5 py-2.5  gap-2 rounded-lg bg-blue-600 px-4 py-2 text-sm font-medium text-white shadow-sm hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2">
+
+        <a
+            href="{{ route('paiements.create', [
+                'eleve' => $eleve->id,
+                'annee_scolaire_id' => request('annee_scolaire_id')
+            ]) }}"
+            class="inline-flex items-center gap-2 rounded-lg bg-blue-600 px-5 py-2.5 text-sm font-medium text-white shadow-sm hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2"
+        >
             <i class="fas fa-plus" aria-hidden="true"></i>
             Nouveau paiement
         </a>
 
     </div>
 
+
     {{-- ================================================================
-     INFORMATIONS ÉLÈVE + RÉSUMÉ FINANCIER
-================================================================= --}}
+         INFORMATIONS ÉLÈVE + RÉSUMÉ FINANCIER
+    ================================================================= --}}
 
-<div class="bg-white rounded-xl border border-slate-200 shadow-sm mb-6 overflow-hidden">
+    <div class="bg-white rounded-xl border border-slate-200 shadow-sm mb-6 overflow-hidden">
 
-    <div class="overflow-x-auto">
+        <div class="overflow-x-auto">
 
-        <table class="w-full text-sm">
+            <table class="w-full text-sm">
 
-            <thead class="bg-slate-50 border-b border-slate-200">
-                <tr>
-                    <th class="text-left px-5 py-3 font-semibold text-slate-600">
-                        Matricule
-                    </th>
+                <thead class="bg-slate-50 border-b border-slate-200">
 
-                    <th class="text-left px-5 py-3 font-semibold text-slate-600">
-                        Élève
-                    </th>
+                    <tr>
 
-                    <th class="text-left px-5 py-3 font-semibold text-slate-600">
-                        Classe
-                    </th>
+                        <th class="text-left px-5 py-3 font-semibold text-slate-600">
+                            Matricule
+                        </th>
 
-                    <th class="text-left px-5 py-3 font-semibold text-slate-600">
-                        Année scolaire
-                    </th>
+                        <th class="text-left px-5 py-3 font-semibold text-slate-600">
+                            Élève
+                        </th>
 
-                    <th class="text-right px-5 py-3 font-semibold text-slate-600">
-                        Total dû
-                    </th>
+                        <th class="text-left px-5 py-3 font-semibold text-slate-600">
+                            Classe
+                        </th>
 
-                    <th class="text-right px-5 py-3 font-semibold text-slate-600">
-                        Total payé
-                    </th>
+                        <th class="text-left px-5 py-3 font-semibold text-slate-600">
+                            Année scolaire
+                        </th>
 
-                    <th class="text-right px-5 py-3 font-semibold text-slate-600">
-                        Restant
-                    </th>
-                </tr>
-            </thead>
+                        <th class="text-right px-5 py-3 font-semibold text-slate-600">
+                            Total dû
+                        </th>
 
-            <tbody>
+                        <th class="text-right px-5 py-3 font-semibold text-slate-600">
+                            Total payé
+                        </th>
 
-                <tr class="hover:bg-slate-50 transition">
+                        <th class="text-right px-5 py-3 font-semibold text-slate-600">
+                            Restant
+                        </th>
 
-                    {{-- MATRICULE --}}
-                    <td class="px-5 py-4 font-medium text-slate-700">
-                        {{ $eleve->matricule }}
-                    </td>
+                    </tr>
 
-                    {{-- ÉLÈVE --}}
-                    <td class="px-5 py-4 font-semibold text-slate-700">
-                        {{ $eleve->nom }}
-                        {{ $eleve->postnom }}
-                        {{ $eleve->prenom }}
-                    </td>
+                </thead>
 
-                    {{-- CLASSE --}}
-                    <td class="px-5 py-4 text-slate-700">
 
-                        @if($inscription)
+                <tbody>
 
-                            {{ $inscription->classe->nom }}
+                    <tr class="hover:bg-slate-50 transition">
 
-                            @if($inscription->classe->option)
-                                — {{ $inscription->classe->option }}
+                        {{-- MATRICULE --}}
+
+                        <td class="px-5 py-4 font-medium text-slate-700">
+                            {{ $eleve->matricule }}
+                        </td>
+
+
+                        {{-- ÉLÈVE --}}
+
+                        <td class="px-5 py-4 font-semibold text-slate-700">
+
+                            {{ $eleve->nom }}
+                            {{ $eleve->postnom }}
+                            {{ $eleve->prenom }}
+
+                        </td>
+
+
+                        {{-- CLASSE --}}
+
+                        <td class="px-5 py-4 text-slate-700">
+
+                            @if($inscription)
+
+                                {{ $inscription->classe->nom }}
+
+                                @if($inscription->classe->option)
+                                    — {{ $inscription->classe->option }}
+                                @endif
+
+                                @if($inscription->classe->variante)
+                                    — {{ $inscription->classe->variante }}
+                                @endif
+
+                            @else
+
+                                <span class="text-slate-400">
+                                    Aucune inscription
+                                </span>
+
                             @endif
 
-                        @else
+                        </td>
 
-                            <span class="text-slate-400">
-                                Aucune inscription
+
+                        {{-- ANNÉE SCOLAIRE --}}
+
+                        <td class="px-5 py-4 font-medium text-indigo-600">
+
+                            {{ $anneeScolaire->libelle
+                                ?? $anneeScolaire->nom
+                                ?? $anneeScolaire->date_debut . ' - ' . $anneeScolaire->date_fin
+                            }}
+
+                        </td>
+
+
+                        {{-- TOTAL DÛ --}}
+
+                        <td class="px-5 py-4 text-right font-semibold text-slate-700 whitespace-nowrap">
+
+                            {{ number_format($totalMontantDu, 0, ',', ' ') }}
+
+                            <span class="text-slate-400 font-normal">
+                                FC
                             </span>
 
-                        @endif
+                        </td>
 
-                    </td>
 
-                    {{-- ANNÉE SCOLAIRE --}}
-                    <td class="px-5 py-4 font-medium text-indigo-600">
+                        {{-- TOTAL PAYÉ --}}
 
-                        {{ $anneeScolaire->libelle
-                            ?? $anneeScolaire->nom
-                            ?? $anneeScolaire->date_debut . ' - ' . $anneeScolaire->date_fin
-                        }}
+                        <td class="px-5 py-4 text-right font-semibold text-emerald-600 whitespace-nowrap">
 
-                    </td>
+                            {{ number_format($totalPaye, 0, ',', ' ') }}
 
-                    {{-- TOTAL DÛ --}}
-                    <td class="px-5 py-4 text-right font-semibold text-slate-700 whitespace-nowrap">
-
-                        {{ number_format($totalMontantDu, 0, ',', ' ') }}
-                        <span class="text-slate-400 font-normal">FC</span>
-
-                    </td>
-
-                    {{-- TOTAL PAYÉ --}}
-                    <td class="px-5 py-4 text-right font-semibold text-emerald-600 whitespace-nowrap">
-
-                        {{ number_format($totalPaye, 0, ',', ' ') }}
-                        <span class="text-slate-400 font-normal">FC</span>
-
-                    </td>
-
-                    {{-- RESTANT --}}
-                    <td class="px-5 py-4 text-right font-semibold whitespace-nowrap">
-
-                        @if($totalRestant > 0)
-
-                            <span class="text-amber-600">
-                                {{ number_format($totalRestant, 0, ',', ' ') }} FC
+                            <span class="text-slate-400 font-normal">
+                                FC
                             </span>
 
-                        @else
+                        </td>
 
-                            <span class="text-emerald-600">
-                                0 FC
-                            </span>
 
-                        @endif
+                        {{-- RESTANT --}}
 
-                    </td>
+                        <td class="px-5 py-4 text-right font-semibold whitespace-nowrap">
 
-                </tr>
+                            @if($totalRestant > 0)
 
-            </tbody>
+                                <span class="text-amber-600">
+                                    {{ number_format($totalRestant, 0, ',', ' ') }} FC
+                                </span>
 
-        </table>
+                            @else
+
+                                <span class="text-emerald-600">
+                                    0 FC
+                                </span>
+
+                            @endif
+
+                        </td>
+
+                    </tr>
+
+                </tbody>
+
+            </table>
+
+        </div>
 
     </div>
 
-</div>
-    
 
 
     {{-- ================================================================
@@ -183,11 +225,15 @@
     <div class="bg-white rounded-xl shadow-sm border border-slate-200 p-5 mb-6">
 
         <div class="bottom-4 mb-4 border-b border-slate-200 pb-3">
+
             <h2 class="font-semibold text-slate-700">
                 Historique des paiements
             </h2>
+
         </div>
 
+
+        {{-- CHOIX ANNÉE --}}
 
         <form
             method="GET"
@@ -200,6 +246,7 @@
             >
                 Consulter une autre année scolaire
             </label>
+
 
             <div class="flex flex-col md:flex-row gap-3">
 
@@ -240,9 +287,14 @@
         </form>
 
 
+
+        {{-- ============================================================
+             LISTE DES PAIEMENTS
+        ============================================================= --}}
+
         @if($paiements->count())
 
-            <div class="overflow-x-auto">
+            <div class="overflow-x-auto mt-6">
 
                 <table class="w-full text-sm">
 
@@ -289,105 +341,247 @@
 
                     <tbody class="divide-y divide-slate-100">
 
+
                         @foreach($paiements as $paiement)
 
-                            <tr class="hover:bg-slate-50 transition">
+                            @php
 
-                                {{-- RÉFÉRENCE --}}
+                                /*
+                                |--------------------------------------------------------------------------
+                                | Les historiques représentent les versements réels.
+                                |--------------------------------------------------------------------------
+                                */
 
-                                <td class="px-5 py-4">
+                                $historiques = $paiement->historiques
+                                    ->sortBy([
+                                        ['date_paiement', 'asc'],
+                                        ['id', 'asc'],
+                                    ])
+                                    ->values();
 
-                                    <span class="font-medium text-indigo-600">
-                                        {{ $paiement->reference }}
-                                    </span>
+                                $cumul = 0;
 
-                                </td>
-
-
-                                {{-- FRAIS --}}
-
-                                <td class="px-5 py-4 text-slate-700">
-
-                                    {{ $paiement->frais->intitule }}
-
-                                </td>
+                            @endphp
 
 
-                                {{-- MOIS --}}
+                            {{-- ========================================================
+                                 SI LE PAIEMENT POSSÈDE DES HISTORIQUES
+                            ========================================================= --}}
 
-                                <td class="px-5 py-4 text-slate-600">
+                            @if($historiques->count())
 
-                                    {{ $paiement->mois }}
+                                @foreach($historiques as $historique)
 
-                                </td>
+                                    @php
 
+                                        $cumul += (float) $historique->montant;
 
-                                {{-- DATE --}}
+                                        $restantHistorique = max(
+                                            0,
+                                            (float) $paiement->montant_du - $cumul
+                                        );
 
-                                <td class="px-5 py-4 text-slate-500">
-
-                                    {{ $paiement->date_paiement?->format('d/m/Y') }}
-
-                                </td>
-
-
-                                {{-- DÛ --}}
-
-                                <td class="px-5 py-4 text-right">
-
-                                    {{ number_format($paiement->montant_du, 0, ',', ' ') }}
-                                    FC
-
-                                </td>
+                                    @endphp
 
 
-                                {{-- PAYÉ --}}
-
-                                <td class="px-5 py-4 text-right font-medium text-emerald-600">
-
-                                    {{ number_format($paiement->montant_paye, 0, ',', ' ') }}
-                                    FC
-
-                                </td>
+                                    <tr class="hover:bg-slate-50 transition">
 
 
-                                {{-- RESTANT --}}
+                                        {{-- RÉFÉRENCE --}}
 
-                                <td class="px-5 py-4 text-right font-medium">
+                                        <td class="px-5 py-4">
 
-                                    @if($paiement->restant > 0)
+                                            <span class="font-medium text-indigo-600">
+                                                {{ $historique->reference }}
+                                            </span>
 
-                                        <span class="text-amber-600">
+                                        </td>
 
-                                            {{ number_format($paiement->restant, 0, ',', ' ') }}
+
+                                        {{-- FRAIS --}}
+
+                                        <td class="px-5 py-4 text-slate-700">
+
+                                            {{ $paiement->frais->intitule }}
+
+                                        </td>
+
+
+                                        {{-- MOIS --}}
+
+                                        <td class="px-5 py-4 text-slate-600">
+
+                                            {{ $paiement->mois ?: '—' }}
+
+                                        </td>
+
+
+                                        {{-- DATE --}}
+
+                                        <td class="px-5 py-4 text-slate-500">
+
+                                            {{ $historique->date_paiement?->format('d/m/Y') }}
+
+                                        </td>
+
+
+                                        {{-- DÛ --}}
+
+                                        <td class="px-5 py-4 text-right">
+
+                                            {{ number_format($paiement->montant_du, 0, ',', ' ') }}
                                             FC
 
+                                        </td>
+
+
+                                        {{-- VERSEMENT --}}
+
+                                        <td class="px-5 py-4 text-right font-medium text-emerald-600">
+
+                                            {{ number_format($historique->montant, 0, ',', ' ') }}
+                                            FC
+
+                                        </td>
+
+
+                                        {{-- RESTANT APRÈS CE VERSEMENT --}}
+
+                                        <td class="px-5 py-4 text-right font-medium">
+
+                                            @if($restantHistorique > 0)
+
+                                                <span class="text-amber-600">
+
+                                                    {{ number_format($restantHistorique, 0, ',', ' ') }}
+                                                    FC
+
+                                                </span>
+
+                                            @else
+
+                                                <span class="text-emerald-600">
+                                                    0 FC
+                                                </span>
+
+                                            @endif
+
+                                        </td>
+
+
+                                        {{-- MODE --}}
+
+                                        <td class="px-5 py-4">
+
+                                            <span class="inline-flex px-2.5 py-1 rounded-full text-xs font-medium bg-slate-100 text-slate-600">
+
+                                                {{ ucfirst($historique->mode_paiement) }}
+
+                                            </span>
+
+                                            <a
+                                                href="{{ route('paiements.recu', $historique->id) }}"
+                                                target="_blank" class="ml-3 text-sm font-medium text-blue-600 hover:underline"
+                                            >
+                                                Reçu PDF
+                                            </a>
+
+                                        </td>
+
+                                    </tr>
+
+                                @endforeach
+
+
+                            @else
+
+                                {{-- ====================================================
+                                     CAS EXCEPTIONNEL :
+                                     PAIEMENT SANS HISTORIQUE
+                                ===================================================== --}}
+
+                                <tr class="hover:bg-slate-50 transition">
+
+
+                                    <td class="px-5 py-4">
+
+                                        <span class="text-slate-400">
+                                            —
                                         </span>
 
-                                    @else
+                                    </td>
 
-                                        <span class="text-emerald-600">
-                                            0 FC
+
+                                    <td class="px-5 py-4 text-slate-700">
+
+                                        {{ $paiement->frais->intitule }}
+
+                                    </td>
+
+
+                                    <td class="px-5 py-4 text-slate-600">
+
+                                        {{ $paiement->mois ?: '—' }}
+
+                                    </td>
+
+
+                                    <td class="px-5 py-4 text-slate-500">
+
+                                        {{ $paiement->date_paiement?->format('d/m/Y') }}
+
+                                    </td>
+
+
+                                    <td class="px-5 py-4 text-right">
+
+                                        {{ number_format($paiement->montant_du, 0, ',', ' ') }}
+                                        FC
+
+                                    </td>
+
+
+                                    <td class="px-5 py-4 text-right font-medium text-emerald-600">
+
+                                        {{ number_format($paiement->montant_paye, 0, ',', ' ') }}
+                                        FC
+
+                                    </td>
+
+
+                                    <td class="px-5 py-4 text-right font-medium">
+
+                                        @if($paiement->restant > 0)
+
+                                            <span class="text-amber-600">
+
+                                                {{ number_format($paiement->restant, 0, ',', ' ') }}
+                                                FC
+
+                                            </span>
+
+                                        @else
+
+                                            <span class="text-emerald-600">
+                                                0 FC
+                                            </span>
+
+                                        @endif
+
+                                    </td>
+
+
+                                    <td class="px-5 py-4">
+
+                                        <span class="text-slate-400">
+                                            —
                                         </span>
 
-                                    @endif
+                                    </td>
 
-                                </td>
+                                </tr>
 
-
-                                {{-- MODE --}}
-
-                                <td class="px-5 py-4">
-
-                                    <span class="inline-flex px-2.5 py-1 rounded-full text-xs font-medium bg-slate-100 text-slate-600">
-
-                                        {{ ucfirst($paiement->mode_paiement) }}
-
-                                    </span>
-
-                                </td>
-
-                            </tr>
+                            @endif
 
                         @endforeach
 
@@ -398,7 +592,9 @@
             </div>
 
 
-            {{-- PAGINATION --}}
+            {{-- ============================================================
+                 PAGINATION
+            ============================================================= --}}
 
             <div class="px-5 py-4 border-t border-slate-200">
 
@@ -406,7 +602,12 @@
 
             </div>
 
+
         @else
+
+            {{-- ============================================================
+                 AUCUN PAIEMENT
+            ============================================================= --}}
 
             <div class="px-5 py-12 text-center">
 

@@ -6,102 +6,202 @@
 
 @section('content')
 
+@php
+/*
+|--------------------------------------------------------------------------
+| Historique sélectionné
+|--------------------------------------------------------------------------
+|
+| Le Paiement est maintenant cumulatif.
+| On sélectionne donc le versement historique à modifier.
+|
+*/
+
+
+$historiqueSelectionne = $historiques
+    ->firstWhere('id', request('historique_id'));
+
+/*
+| Sécurité : si aucun historique_id n'est fourni,
+| on utilise le premier historique disponible.
+*/
+
+if (!$historiqueSelectionne) {
+    $historiqueSelectionne = $historiques->first();
+}
+
+
+/*
+|--------------------------------------------------------------------------
+| Valeurs du versement actuel
+|--------------------------------------------------------------------------
+*/
+
+$ancienMontant = (float) ($historiqueSelectionne?->montant ?? 0);
+
+$dateHistorique = $historiqueSelectionne?->date_paiement;
+
+$modeHistorique = $historiqueSelectionne?->mode_paiement;
+
+$referenceHistorique = $historiqueSelectionne?->reference;
+
+
+/*
+|--------------------------------------------------------------------------
+| Montant cumulé avant ce versement
+|--------------------------------------------------------------------------
+|
+| On retire le montant du versement actuel du cumul.
+| Cela permet de calculer correctement le nouveau restant.
+|
+*/
+
+$montantCumuleAvant = max(
+    0,
+    (float) $paiement->montant_paye - $ancienMontant
+);
+
+
+/*
+|--------------------------------------------------------------------------
+| Restant avant modification
+|--------------------------------------------------------------------------
+*/
+
+$restantAvantModification = max(
+    0,
+    (float) $paiement->montant_du - $montantCumuleAvant
+);
+
+
+@endphp
+
 <div class="mx-auto max-w-4xl px-4 py-6 sm:px-6 sm:py-8 lg:px-8">
 
-    @include('paiements.partials.navigation')
 
-    {{-- En-tête --}}
-    <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-4 mb-8">
+@include('paiements.partials.navigation')
 
-        <div>
 
-            <div class="flex items-center gap-3">
+{{-- En-tête --}}
+<div class="flex flex-col md:flex-row md:items-center md:justify-between gap-4 mb-8">
 
-                <div class="w-11 h-11 rounded-xl bg-blue-50 text-blue-600 flex items-center justify-center">
+    <div>
 
-                    <svg xmlns="http://www.w3.org/2000/svg"
-                         class="w-6 h-6"
-                         fill="none"
-                         viewBox="0 0 24 24"
-                         stroke="currentColor"
-                         stroke-width="2">
+        <div class="flex items-center gap-3">
 
-                        <path stroke-linecap="round"
-                              stroke-linejoin="round"
-                              d="M11 5h6m-6 4h6m-9 4h9m-9 4h6M5 5h.01M5 9h.01M5 13h.01M5 17h.01"/>
+            <div class="w-11 h-11 rounded-xl bg-blue-50 text-blue-600 flex items-center justify-center">
 
-                    </svg>
+                <svg xmlns="http://www.w3.org/2000/svg"
+                     class="w-6 h-6"
+                     fill="none"
+                     viewBox="0 0 24 24"
+                     stroke="currentColor"
+                     stroke-width="2">
 
-                </div>
+                    <path stroke-linecap="round"
+                          stroke-linejoin="round"
+                          d="M11 5h6m-6 4h6m-9 4h9m-9 4h6M5 5h.01M5 9h.01M5 13h.01M5 17h.01"/>
 
-                <div>
+                </svg>
 
-                    <h1 class="text-2xl font-bold text-slate-700">
-                        Modifier le paiement
-                    </h1>
+            </div>
 
-                    <p class="text-sm text-slate-500 mt-1">
-                        Référence :
-                        <span class="font-semibold text-slate-700">
-                            {{ $paiement->reference }}
-                        </span>
-                    </p>
+            <div>
 
-                </div>
+                <h1 class="text-2xl font-bold text-slate-700">
+                    Modifier le versement
+                </h1>
+
+                <p class="text-sm text-slate-500 mt-1">
+
+                    Référence :
+
+                    <span class="font-semibold text-slate-700">
+                        {{ $referenceHistorique ?? '—' }}
+                    </span>
+
+                </p>
 
             </div>
 
         </div>
 
-
-        <a href="{{ route('paiements.show', [
-                'eleve' => $paiement->eleve_id,
-                'annee_scolaire_id' => $paiement->annee_scolaire_id
-            ]) }}"
-           class="inline-flex w-full items-center justify-center gap-2 rounded-xl border border-slate-300 bg-white px-4 py-2.5 text-sm font-medium text-slate-700 shadow-sm transition hover:bg-slate-50 md:w-auto">
-
-            <i class="fas fa-arrow-left text-xs" aria-hidden="true"></i>
-            Retour à l’historique
-
-        </a>
-
     </div>
 
 
-    {{-- Message d'erreur général --}}
-    @if(session('error'))
+    <a href="{{ route('paiements.show', [
+            'eleve' => $paiement->eleve_id,
+            'annee_scolaire_id' => $paiement->annee_scolaire_id
+        ]) }}"
+       class="inline-flex w-full items-center justify-center gap-2 rounded-xl border border-slate-300 bg-white px-4 py-2.5 text-sm font-medium text-slate-700 shadow-sm transition hover:bg-slate-50 md:w-auto">
 
-        <div class="mb-6 rounded-xl border border-red-200 bg-red-50 px-5 py-4 text-red-700">
+        <i class="fas fa-arrow-left text-xs" aria-hidden="true"></i>
 
-            {{ session('error') }}
+        Retour à l’historique
 
-        </div>
+    </a>
 
-    @endif
+</div>
 
 
-    {{-- Erreurs de validation --}}
-    @if($errors->any())
+{{-- Message d'erreur général --}}
+@if(session('error'))
 
-        <div class="mb-6 rounded-xl border border-red-200 bg-red-50 px-5 py-4">
+    <div class="mb-6 rounded-xl border border-red-200 bg-red-50 px-5 py-4 text-red-700">
 
-            <p class="font-semibold text-red-700 mb-2">
-                Veuillez corriger les erreurs suivantes :
-            </p>
+        {{ session('error') }}
 
-            <ul class="list-disc list-inside text-sm text-red-600 space-y-1">
+    </div>
 
-                @foreach($errors->all() as $error)
+@endif
 
-                    <li>{{ $error }}</li>
 
-                @endforeach
+{{-- Message de succès --}}
+@if(session('success'))
 
-            </ul>
+    <div class="mb-6 rounded-xl border border-emerald-200 bg-emerald-50 px-5 py-4 text-emerald-700">
 
-        </div>
+        {{ session('success') }}
 
-    @endif
+    </div>
+
+@endif
+
+
+{{-- Erreurs de validation --}}
+@if($errors->any())
+
+    <div class="mb-6 rounded-xl border border-red-200 bg-red-50 px-5 py-4">
+
+        <p class="font-semibold text-red-700 mb-2">
+            Veuillez corriger les erreurs suivantes :
+        </p>
+
+        <ul class="list-disc list-inside text-sm text-red-600 space-y-1">
+
+            @foreach($errors->all() as $error)
+
+                <li>{{ $error }}</li>
+
+            @endforeach
+
+        </ul>
+
+    </div>
+
+@endif
+
+
+{{-- Vérification de l'historique --}}
+@if(!$historiqueSelectionne)
+
+    <div class="rounded-xl border border-red-200 bg-red-50 px-5 py-4 text-red-700">
+
+        Le versement à modifier est introuvable.
+
+    </div>
+
+@else
 
 
     {{-- Informations du paiement --}}
@@ -114,7 +214,7 @@
             </h2>
 
             <p class="text-sm text-slate-500 mt-1">
-                Ces informations ne peuvent pas être modifiées.
+                Ces informations concernent le paiement cumulatif.
             </p>
 
         </div>
@@ -123,6 +223,7 @@
         <div class="p-6">
 
             <div class="grid grid-cols-1 md:grid-cols-2 gap-5">
+
 
                 {{-- Élève --}}
                 <div>
@@ -146,12 +247,12 @@
                 <div>
 
                     <label class="block text-sm font-medium text-slate-500 mb-2">
-                        Référence
+                        Référence du versement
                     </label>
 
                     <div class="px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl font-semibold text-slate-700">
 
-                        {{ $paiement->reference }}
+                        {{ $referenceHistorique }}
 
                     </div>
 
@@ -183,7 +284,41 @@
 
                     <div class="px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl font-semibold text-slate-700">
 
-                        {{ number_format($paiement->montant_du, 2, ',', ' ') }}
+                        {{ number_format($paiement->montant_du, 0, ',', ' ') }}
+                        FC
+
+                    </div>
+
+                </div>
+
+
+                {{-- Total déjà payé --}}
+                <div>
+
+                    <label class="block text-sm font-medium text-slate-500 mb-2">
+                        Total payé actuellement
+                    </label>
+
+                    <div class="px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl font-semibold text-slate-700">
+
+                        {{ number_format($paiement->montant_paye, 0, ',', ' ') }}
+                        FC
+
+                    </div>
+
+                </div>
+
+
+                {{-- Restant actuel --}}
+                <div>
+
+                    <label class="block text-sm font-medium text-slate-500 mb-2">
+                        Restant actuel
+                    </label>
+
+                    <div class="px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl font-semibold text-slate-700">
+
+                        {{ number_format($paiement->restant, 0, ',', ' ') }}
                         FC
 
                     </div>
@@ -197,7 +332,7 @@
     </div>
 
 
-    {{-- Formulaire --}}
+    {{-- Versement à modifier --}}
     <form action="{{ route('paiements.update', $paiement->id) }}"
           method="POST"
           class="bg-white border border-slate-200 rounded-2xl shadow-sm overflow-hidden">
@@ -206,20 +341,46 @@
         @method('PUT')
 
 
+        {{-- Identification de l'historique --}}
+        <input type="hidden"
+               name="historique_id"
+               value="{{ $historiqueSelectionne->id }}">
+
+
         <div class="px-6 py-5 border-b border-slate-200">
 
             <h2 class="text-lg font-semibold text-slate-700">
-                Modifier les informations
+                Modifier le versement
             </h2>
 
             <p class="text-sm text-slate-500 mt-1">
-                Modifiez uniquement les éléments nécessaires.
+                Modifiez uniquement les informations de ce versement.
             </p>
 
         </div>
 
 
         <div class="p-6 space-y-6">
+
+
+            {{-- Référence --}}
+            <div>
+
+                <label class="block text-sm font-medium text-slate-600 mb-2">
+                    Référence
+                </label>
+
+                <div class="px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl font-semibold text-slate-700">
+
+                    {{ $referenceHistorique }}
+
+                </div>
+
+                <p class="text-xs text-slate-500 mt-2">
+                    La référence est conservée et ne peut pas être modifiée.
+                </p>
+
+            </div>
 
 
             {{-- Mois --}}
@@ -259,7 +420,10 @@
                         ] as $mois)
 
                             <option value="{{ $mois }}"
-                                @selected(old('mois', $paiement->mois) === $mois)>
+                                @selected(old(
+                                    'mois',
+                                    $paiement->mois
+                                ) === $mois)>
 
                                 {{ $mois }}
 
@@ -288,13 +452,13 @@
             @endif
 
 
-            {{-- Montant payé --}}
+            {{-- Montant du versement --}}
             <div>
 
                 <label for="montant_paye"
                        class="block text-sm font-medium text-slate-600 mb-2">
 
-                    Montant payé
+                    Montant de ce versement
 
                 </label>
 
@@ -303,9 +467,11 @@
                     <input type="number"
                            id="montant_paye"
                            name="montant_paye"
-                           value="{{ old('montant_paye', $paiement->montant_paye) }}"
+                           value="{{ old(
+                               'montant_paye',
+                               $ancienMontant
+                           ) }}"
                            min="1"
-                           max="{{ $paiement->montant_du }}"
                            step="0.01"
                            required
                            class="w-full border border-slate-300 rounded-xl px-4 py-3 pr-14
@@ -318,10 +484,13 @@
                 </div>
 
                 <p class="text-xs text-slate-500 mt-2">
-                    Montant maximum :
+
+                    Ancien montant :
+
                     <strong>
-                        {{ number_format($paiement->montant_du, 2, ',', ' ') }} FC
+                        {{ number_format($ancienMontant, 0, ',', ' ') }} FC
                     </strong>
+
                 </p>
 
                 @error('montant_paye')
@@ -341,7 +510,7 @@
                 <label for="date_paiement"
                        class="block text-sm font-medium text-slate-600 mb-2">
 
-                    Date du paiement
+                    Date du versement
 
                 </label>
 
@@ -350,7 +519,9 @@
                        name="date_paiement"
                        value="{{ old(
                            'date_paiement',
-                           optional($paiement->date_paiement)->format('Y-m-d')
+                           $dateHistorique
+                               ? \Carbon\Carbon::parse($dateHistorique)->format('Y-m-d')
+                               : ''
                        ) }}"
                        required
                        class="w-full border border-slate-300 rounded-xl px-4 py-3
@@ -386,7 +557,10 @@
                     @foreach($modesPaiement as $mode)
 
                         <option value="{{ $mode }}"
-                            @selected(old('mode_paiement', $paiement->mode_paiement) === $mode)>
+                            @selected(old(
+                                'mode_paiement',
+                                $modeHistorique
+                            ) === $mode)>
 
                             {{ $mode }}
 
@@ -407,23 +581,47 @@
             </div>
 
 
-            {{-- Aperçu restant --}}
+            {{-- Situation avant modification --}}
             <div class="rounded-xl bg-slate-50 border border-slate-200 p-5">
 
-                <div class="flex items-center justify-between gap-4">
+                <p class="text-sm font-semibold text-slate-700 mb-4">
+                    Situation avant modification
+                </p>
+
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
 
                     <div>
 
-                        <p class="text-sm text-slate-500">
-                            Nouveau restant
+                        <p class="text-xs text-slate-500">
+                            Montant dû
                         </p>
 
-                        <p id="restant-preview"
-                           class="text-2xl font-bold text-slate-700 mt-1">
+                        <p class="text-lg font-bold text-slate-700 mt-1">
 
                             {{ number_format(
-                                $paiement->restant,
-                                2,
+                                $paiement->montant_du,
+                                0,
+                                ',',
+                                ' '
+                            ) }}
+                            FC
+
+                        </p>
+
+                    </div>
+
+
+                    <div>
+
+                        <p class="text-xs text-slate-500">
+                            Total payé
+                        </p>
+
+                        <p class="text-lg font-bold text-slate-700 mt-1">
+
+                            {{ number_format(
+                                $paiement->montant_paye,
+                                0,
                                 ',',
                                 ' '
                             ) }}
@@ -434,6 +632,45 @@
                     </div>
 
                 </div>
+
+            </div>
+
+
+            {{-- Aperçu nouveau restant --}}
+            <div class="rounded-xl bg-blue-50 border border-blue-100 p-5">
+
+                <div class="flex items-center justify-between gap-4">
+
+                    <div>
+
+                        <p class="text-sm text-blue-700 font-medium">
+                            Nouveau restant
+                        </p>
+
+                        <p id="restant-preview"
+                           class="text-2xl font-bold text-blue-800 mt-1">
+
+                            {{ number_format(
+                                $restantAvantModification,
+                                0,
+                                ',',
+                                ' '
+                            ) }}
+                            FC
+
+                        </p>
+
+                    </div>
+
+                </div>
+
+
+                <p class="text-xs text-blue-600 mt-2">
+
+                    Le calcul tient compte du remplacement de
+                    l'ancien montant de ce versement.
+
+                </p>
 
             </div>
 
@@ -449,10 +686,10 @@
                 <a href="{{ route('paiements.details-jour', [
                         'date' => $dateRetour
                     ]) }}"
-                class="inline-flex items-center justify-center px-5 py-2.5
-                        rounded-xl bg-white border border-slate-300
-                        text-slate-700 font-medium
-                        hover:bg-slate-100 transition">
+                   class="inline-flex items-center justify-center px-5 py-2.5
+                          rounded-xl bg-white border border-slate-300
+                          text-slate-700 font-medium
+                          hover:bg-slate-100 transition">
 
                     Annuler
 
@@ -487,8 +724,9 @@
 
     </form>
 
-</div>
+@endif
 
+</div>
 
 <script>
 
@@ -500,26 +738,61 @@ document.addEventListener('DOMContentLoaded', function () {
     const restantPreview =
         document.getElementById('restant-preview');
 
+
+    /*
+    |--------------------------------------------------------------------------
+    | Données financières
+    |--------------------------------------------------------------------------
+    */
+
     const montantDu =
         {{ (float) $paiement->montant_du }};
 
+    const montantCumuleAvant =
+        {{ (float) $montantCumuleAvant }};
+
+
+    /*
+    |--------------------------------------------------------------------------
+    | Calcul du nouveau restant
+    |--------------------------------------------------------------------------
+    |
+    | Nouveau total payé =
+    | montant déjà payé avant ce versement
+    | + nouveau montant du versement.
+    |
+    */
 
     function mettreAJourRestant() {
 
-        const montant =
+        if (!montantPaye || !restantPreview) {
+            return;
+        }
+
+
+        const nouveauMontant =
             parseFloat(montantPaye.value) || 0;
+
+
+        const nouveauTotalPaye =
+            montantCumuleAvant + nouveauMontant;
+
 
         const restant =
             Math.max(
-                montantDu - montant,
+                montantDu - nouveauTotalPaye,
                 0
             );
 
+
         restantPreview.textContent =
             new Intl.NumberFormat('fr-FR', {
-                minimumFractionDigits: 2,
-                maximumFractionDigits: 2
+
+                minimumFractionDigits: 0,
+                maximumFractionDigits: 0
+
             }).format(restant) + ' FC';
+
     }
 
 

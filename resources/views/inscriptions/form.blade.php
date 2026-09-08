@@ -1,601 +1,421 @@
+@php
+
+/*
+|--------------------------------------------------------------------------
+| Section actuelle
+|--------------------------------------------------------------------------
+|
+| La base peut contenir "Humanités" alors que le formulaire
+| utilise "humanites".
+|
+*/
+
+$sectionActuelle = '';
+
+if (isset($inscription) && $inscription->classe) {
+
+    $sectionActuelle = strtolower(
+        trim($inscription->classe->section)
+    );
+
+    $sectionActuelle = str_replace(
+        ['é', 'è', 'ê', 'ë'],
+        'e',
+        $sectionActuelle
+    );
+}
+
+
+/*
+|--------------------------------------------------------------------------
+| Section sélectionnée
+|--------------------------------------------------------------------------
+*/
+
+$sectionSelectionnee = old(
+    'section',
+    $sectionActuelle
+);
+
+
+@endphp
+
 <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-4 mb-6">
 
-        <div>
+<div>
+</div>
 
-        </div>
+<a
+    href="{{ route('inscriptions.index') }}"
+    class="inline-flex w-full items-center justify-center gap-2 rounded-xl border border-slate-300 bg-white px-4 py-2.5 text-sm font-medium text-slate-700 shadow-sm transition hover:border-slate-400 hover:bg-slate-50 sm:w-auto"
+>
 
-        <a
-                href="{{ route('inscriptions.index') }}"
-                class="inline-flex w-full items-center justify-center gap-2 rounded-xl border border-slate-300 bg-white px-4 py-2.5 text-sm font-medium text-slate-700 shadow-sm transition hover:border-slate-400 hover:bg-slate-50 sm:w-auto"
-            >
-                <i class="fas fa-arrow-left text-xs" aria-hidden="true"></i>
-                <span>Retour aux élèves</span>
-            </a>
+    <i class="fas fa-arrow-left text-xs" aria-hidden="true"></i>
 
-    </div>
+    <span>Retour aux élèves</span>
+
+</a>
+
+
+</div>
 
 <form
     action="{{ isset($inscription)
         ? route('inscriptions.update', $inscription)
         : route('inscriptions.store') }}"
     method="POST"
-    class="bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden">
+    class="bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden"
+>
 
-    @csrf
-    <div class="p-6 border-b border-slate-200">
+@csrf
 
-        <h1 class="text-2xl font-bold text-slate-700">
-            Nouvelle inscription
-        </h1>
+@isset($inscription)
+    @method('PUT')
+@endisset
 
-        <p class="text-sm text-slate-500 mt-1">
-            Enregistrer l'inscription d'un élève.
+
+{{-- ========================================================= --}}
+{{-- EN-TÊTE --}}
+{{-- ========================================================= --}}
+
+<div class="p-6 border-b border-slate-200">
+
+    <h1 class="text-2xl font-bold text-slate-700">
+
+        {{ isset($inscription)
+            ? 'Modifier l’inscription'
+            : 'Nouvelle inscription' }}
+
+    </h1>
+
+    <p class="text-sm text-slate-500 mt-1">
+
+        {{ isset($inscription)
+            ? 'Modifier les informations de l’inscription.'
+            : 'Enregistrer l’inscription d’un élève.' }}
+
+    </p>
+
+</div>
+
+
+{{-- ========================================================= --}}
+{{-- ERREURS --}}
+{{-- ========================================================= --}}
+
+@if($errors->any())
+
+    <div class="mx-6 mt-6 p-4 rounded-lg
+                bg-red-50 border border-red-200 text-red-700">
+
+        <p class="font-semibold mb-2">
+            Veuillez corriger les erreurs suivantes :
         </p>
 
+        <ul class="list-disc list-inside text-sm">
+
+            @foreach($errors->all() as $error)
+
+                <li>{{ $error }}</li>
+
+            @endforeach
+
+        </ul>
+
     </div>
-    @isset($inscription)
-        @method('PUT')
-    @endisset
+
+@endif
 
 
-    {{-- ========================================================= --}}
-    {{-- ERREURS --}}
-    {{-- ========================================================= --}}
+{{-- ========================================================= --}}
+{{-- ÉLÈVE --}}
+{{-- ========================================================= --}}
 
-    @if($errors->any())
+<div class="p-6 border-b border-slate-200">
 
-        <div class="mx-6 mt-6 p-4 rounded-lg
-                    bg-red-50 border border-red-200 text-red-700">
+    <h2 class="text-lg font-semibold text-slate-700">
+        Élève
+    </h2>
 
-            <p class="font-semibold mb-2">
-                Veuillez corriger les erreurs suivantes :
-            </p>
+    <p class="text-sm text-slate-500 mt-1 mb-6">
 
-            <ul class="list-disc list-inside text-sm">
+        Recherchez et sélectionnez l’élève à inscrire.
 
-                @foreach($errors->all() as $error)
+    </p>
 
-                    <li>{{ $error }}</li>
 
-                @endforeach
+    <div>
 
-            </ul>
+        <label
+            for="searchEleve"
+            class="block text-sm font-medium text-slate-700 mb-2"
+        >
+
+            Élève <span class="text-red-500">*</span>
+
+        </label>
+
+
+        <div class="relative">
+
+            <div
+                class="absolute inset-y-0 left-0
+                       flex items-center pl-4
+                       pointer-events-none"
+            >
+
+                <i class="fas fa-search text-slate-400"></i>
+
+            </div>
+
+
+            <input
+                type="text"
+                id="searchEleve"
+
+                value="{{ old(
+                    'eleve_label',
+                    isset($inscription) && $inscription->eleve
+                        ? $inscription->eleve->matricule
+                          . ' - '
+                          . $inscription->eleve->nom_complet
+                        : ''
+                ) }}"
+
+                placeholder="Rechercher par matricule, nom, postnom ou prénom..."
+
+                autocomplete="off"
+
+                class="w-full border border-slate-300
+                       rounded-lg
+                       pl-11 pr-4 py-3
+                       focus:ring-2
+                       focus:ring-blue-500
+                       focus:border-blue-500
+                       focus:outline-none"
+            >
+
+
+            <div
+                id="eleveResults"
+
+                class="hidden absolute z-50
+                       left-0 right-0 mt-1
+                       bg-white
+                       border border-slate-200
+                       rounded-lg
+                       shadow-lg
+                       max-h-64
+                       overflow-y-auto"
+            >
+            </div>
 
         </div>
 
-    @endif
+
+        {{-- ID réel de l’élève --}}
+
+        <input
+            type="hidden"
+            name="eleve_id"
+            id="eleve_id"
+
+            value="{{ old(
+                'eleve_id',
+                $inscription->eleve_id ?? ''
+            ) }}"
+        >
 
 
-    {{-- ========================================================= --}}
-    {{-- ÉLÈVE --}}
-    {{-- ========================================================= --}}
+        {{-- Élève sélectionné --}}
 
-    <div class="p-6 border-b border-slate-200">
+        <div
+            id="selectedEleve"
 
-        <h2 class="text-lg font-semibold text-slate-700">
-            Élève
-        </h2>
+            class="
+                {{ old(
+                    'eleve_id',
+                    $inscription->eleve_id ?? ''
+                )
+                    ? ''
+                    : 'hidden' }}
 
-        <p class="text-sm text-slate-500 mt-1 mb-6">
-            Recherchez et sélectionnez l'élève à inscrire.
-        </p>
+                mt-3
+                p-4
+                bg-blue-50
+                border border-blue-200
+                rounded-lg
+            "
+        >
 
+            <div class="flex items-center justify-between">
+
+                <div>
+
+                    <p class="text-xs text-blue-600 font-medium">
+                        Élève sélectionné
+                    </p>
+
+                    <p
+                        id="selectedEleveName"
+                        class="font-semibold text-slate-700"
+                    >
+
+                        @if(isset($inscription) && $inscription->eleve)
+
+                            {{ $inscription->eleve->matricule }}
+                            -
+                            {{ $inscription->eleve->nom_complet }}
+
+                        @endif
+
+                    </p>
+
+                </div>
+
+
+                <button
+                    type="button"
+                    id="removeEleve"
+
+                    class="w-8 h-8
+                           flex items-center
+                           justify-center
+                           rounded-full
+                           text-red-500
+                           hover:bg-red-100
+                           hover:text-red-700
+                           transition"
+                >
+
+                    <i class="fas fa-times"></i>
+
+                </button>
+
+            </div>
+
+        </div>
+
+
+        @error('eleve_id')
+
+            <p class="text-red-500 text-sm mt-1">
+                {{ $message }}
+            </p>
+
+        @enderror
+
+    </div>
+
+</div>
+
+
+{{-- ========================================================= --}}
+{{-- ANNÉE SCOLAIRE + DATE --}}
+{{-- ========================================================= --}}
+
+<div class="p-6 border-b border-slate-200">
+
+    <h2 class="text-lg font-semibold text-slate-700">
+        Informations de l'inscription
+    </h2>
+
+    <p class="text-sm text-slate-500 mt-1 mb-6">
+
+        L’année scolaire est automatiquement associée
+        à l’inscription.
+
+    </p>
+
+
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+
+
+        {{-- Année scolaire --}}
 
         <div>
 
             <label
-                for="searchEleve"
-                class="block text-sm font-medium text-slate-700 mb-2">
+                class="block text-sm font-medium text-slate-700 mb-2"
+            >
 
-                Élève <span class="text-red-500">*</span>
+                Année scolaire
 
             </label>
 
 
-            <div class="relative">
-
-                <div
-                    class="absolute inset-y-0 left-0
-                           flex items-center pl-4
-                           pointer-events-none">
-
-                    <i class="fas fa-search text-slate-400"></i>
-
-                </div>
-
-
-                <input
-                    type="text"
-                    id="searchEleve"
-
-                    value="{{ old(
-                        'eleve_label',
-                        isset($inscription)
-                            ? $inscription->eleve->matricule
-                              . ' - '
-                              . $inscription->eleve->nom_complet
-                            : ''
-                    ) }}"
-
-                    placeholder="Rechercher par matricule, nom, postnom ou prénom..."
-
-                    autocomplete="off"
-
-                    class="w-full border border-slate-300
-                           rounded-lg
-                           pl-11 pr-4 py-3
-                           focus:ring-2
-                           focus:ring-blue-500
-                           focus:border-blue-500
-                           focus:outline-none">
-
-
-                <div
-                    id="eleveResults"
-
-                    class="hidden absolute z-50
-                           left-0 right-0 mt-1
-                           bg-white
-                           border border-slate-200
-                           rounded-lg
-                           shadow-lg
-                           max-h-64
-                           overflow-y-auto">
-                </div>
-
-            </div>
-
-
-            {{-- ID réel de l'élève --}}
-
             <input
-                type="hidden"
-                name="eleve_id"
-                id="eleve_id"
+                type="text"
 
-                value="{{ old(
-                    'eleve_id',
-                    $inscription->eleve_id ?? ''
-                ) }}">
+                value="{{ $anneeScolaire->libelle ?? 'Aucune année disponible' }}"
 
+                readonly
 
-            {{-- Élève sélectionné --}}
-
-            <div
-                id="selectedEleve"
-
-                class="
-                    {{ old(
-                        'eleve_id',
-                        $inscription->eleve_id ?? ''
-                    )
-                        ? ''
-                        : 'hidden' }}
-
-                    mt-3
-                    p-4
-                    bg-blue-50
-                    border border-blue-200
-                    rounded-lg
-                ">
-
-                <div class="flex items-center justify-between">
-
-                    <div>
-
-                        <p class="text-xs text-blue-600 font-medium">
-                            Élève sélectionné
-                        </p>
-
-                        <p
-                            id="selectedEleveName"
-                            class="font-semibold text-slate-700">
-
-                            @if(isset($inscription))
-
-                                {{ $inscription->eleve->matricule }}
-                                -
-                                {{ $inscription->eleve->nom_complet }}
-
-                            @endif
-
-                        </p>
-
-                    </div>
+                class="w-full
+                       border border-slate-300
+                       rounded-lg
+                       bg-slate-100
+                       text-slate-600
+                       px-4 py-3
+                       cursor-not-allowed"
+            >
 
 
-                    <button
-                        type="button"
-                        id="removeEleve"
-
-                        class="w-8 h-8
-                               flex items-center
-                               justify-center
-                               rounded-full
-                               text-red-500
-                               hover:bg-red-100
-                               hover:text-red-700
-                               transition">
-
-                        <i class="fas fa-times"></i>
-
-                    </button>
-
-                </div>
-
-            </div>
-
-
-            @error('eleve_id')
+            @if(!$anneeScolaire)
 
                 <p class="text-red-500 text-sm mt-1">
-                    {{ $message }}
+
+                    Aucune année scolaire disponible
+                    pour cette inscription.
+
                 </p>
 
-            @enderror
+            @endif
 
         </div>
 
-    </div>
 
+        {{-- Date --}}
 
-    {{-- ========================================================= --}}
-    {{-- ANNÉE SCOLAIRE + DATE --}}
-    {{-- ========================================================= --}}
-
-    <div class="p-6 border-b border-slate-200">
-
-        <h2 class="text-lg font-semibold text-slate-700">
-            Informations de l'inscription
-        </h2>
-
-        <p class="text-sm text-slate-500 mt-1 mb-6">
-            L'inscription sera automatiquement enregistrée
-            dans l'année scolaire active.
-        </p>
-
-
-        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-
-
-            {{-- Année scolaire active --}}
-
-            <div>
-
-                <label
-                    class="block text-sm font-medium text-slate-700 mb-2">
-
-                    Année scolaire
-
-                </label>
-
-
-                <input
-                    type="text"
-
-                    value="{{ $anneeScolaire->libelle ?? 'Aucune année active' }}"
-
-                    readonly
-
-                    class="w-full
-                           border border-slate-300
-                           rounded-lg
-                           bg-slate-100
-                           text-slate-600
-                           px-4 py-3
-                           cursor-not-allowed">
-
-
-                @if(!$anneeScolaire)
-
-                    <p class="text-red-500 text-sm mt-1">
-
-                        Aucune année scolaire active
-                        n'est actuellement disponible.
-
-                    </p>
-
-                @endif
-
-            </div>
-
-
-            {{-- Date d'inscription --}}
-
-            <div>
-
-                <label
-                    for="date_inscription"
-                    class="block text-sm font-medium text-slate-700 mb-2">
-
-                    Date d'inscription
-                    <span class="text-red-500">*</span>
-
-                </label>
-
-
-                <input
-                    type="date"
-                    name="date_inscription"
-                    id="date_inscription"
-
-                    value="{{ old(
-                        'date_inscription',
-                        isset($inscription)
-                            ? $inscription->date_inscription->format('Y-m-d')
-                            : date('Y-m-d')
-                    ) }}"
-
-                    class="w-full
-                           border border-slate-300
-                           rounded-lg
-                           px-4 py-3
-                           focus:ring-2
-                           focus:ring-blue-500
-                           focus:border-blue-500
-                           focus:outline-none">
-
-
-                @error('date_inscription')
-
-                    <p class="text-red-500 text-sm mt-1">
-                        {{ $message }}
-                    </p>
-
-                @enderror
-
-            </div>
-
-        </div>
-
-    </div>
-
-
-    {{-- ========================================================= --}}
-    {{-- CLASSE --}}
-    {{-- ========================================================= --}}
-
-    <div class="p-6 border-b border-slate-200">
-
-        <h2 class="text-lg font-semibold text-slate-700">
-            Classe
-        </h2>
-
-        <p class="text-sm text-slate-500 mt-1 mb-6">
-            Sélectionnez d'abord la section, puis la classe.
-        </p>
-
-
-        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-
-
-            {{-- Section --}}
-
-            <div>
-
-                <label
-                    for="section"
-                    class="block text-sm font-medium text-slate-700 mb-2">
-
-                    Section <span class="text-red-500">*</span>
-
-                </label>
-
-
-                <select
-                    id="section"
-                    name="section"
-
-                    class="w-full
-                           border border-slate-300
-                           rounded-lg
-                           px-4 py-3
-                           focus:ring-2
-                           focus:ring-blue-500
-                           focus:border-blue-500
-                           focus:outline-none">
-
-                    <option value="">
-                        -- Sélectionner une section --
-                    </option>
-
-
-                    <option
-                        value="maternelle"
-
-                        {{ old(
-                            'section',
-                            $inscription->classe->section ?? ''
-                        ) == 'maternelle'
-                            ? 'selected'
-                            : '' }}>
-
-                        Maternelle
-
-                    </option>
-
-
-                    <option
-                        value="primaire"
-
-                        {{ old(
-                            'section',
-                            $inscription->classe->section ?? ''
-                        ) == 'primaire'
-                            ? 'selected'
-                            : '' }}>
-
-                        Primaire
-
-                    </option>
-
-
-                    <option
-                        value="secondaire"
-
-                        {{ old(
-                            'section',
-                            $inscription->classe->section ?? ''
-                        ) == 'secondaire'
-                            ? 'selected'
-                            : '' }}>
-
-                        Secondaire
-
-                    </option>
-
-
-                    <option
-                        value="humanites"
-
-                        {{ old(
-                            'section',
-                            $inscription->classe->section ?? ''
-                        ) == 'humanites'
-                            ? 'selected'
-                            : '' }}>
-
-                        Humanités
-
-                    </option>
-
-                </select>
-
-
-                @error('section')
-
-                    <p class="text-red-500 text-sm mt-1">
-                        {{ $message }}
-                    </p>
-
-                @enderror
-
-            </div>
-
-
-            {{-- Classe --}}
-
-            <div>
-
-                <label
-                    for="classe_id"
-                    class="block text-sm font-medium text-slate-700 mb-2">
-
-                    Classe <span class="text-red-500">*</span>
-
-                </label>
-
-
-                <select
-                    name="classe_id"
-                    id="classe_id"
-
-                    disabled
-
-                    class="w-full
-                           border border-slate-300
-                           rounded-lg
-                           px-4 py-3
-                           bg-slate-100
-                           text-slate-600
-                           focus:ring-2
-                           focus:ring-blue-500
-                           focus:border-blue-500
-                           focus:outline-none">
-
-                    <option value="">
-                        -- Sélectionner d'abord une section --
-                    </option>
-
-                </select>
-
-
-                @error('classe_id')
-
-                    <p class="text-red-500 text-sm mt-1">
-                        {{ $message }}
-                    </p>
-
-                @enderror
-
-            </div>
-
-        </div>
-
-    </div>
-
-
-    {{-- ========================================================= --}}
-    {{-- MONTANT --}}
-    {{-- ========================================================= --}}
-
-    <div class="p-6 border-b border-slate-200">
-
-        <h2 class="text-lg font-semibold text-slate-700">
-            Paiement
-        </h2>
-
-        <p class="text-sm text-slate-500 mt-1 mb-6">
-            Indiquez le montant versé pour cette inscription.
-        </p>
-
-
-        <div class="max-w-md">
+        <div>
 
             <label
-                for="montant"
-                class="block text-sm font-medium text-slate-700 mb-2">
+                for="date_inscription"
+                class="block text-sm font-medium text-slate-700 mb-2"
+            >
 
-                Montant
+                Date d'inscription
                 <span class="text-red-500">*</span>
 
             </label>
 
 
-            <div class="relative">
+            <input
+                type="date"
+                name="date_inscription"
+                id="date_inscription"
 
-                <input
-                    type="number"
-                    name="montant"
-                    id="montant"
+                value="{{ old(
+                    'date_inscription',
+                    isset($inscription)
+                        ? \Carbon\Carbon::parse(
+                            $inscription->date_inscription
+                        )->format('Y-m-d')
+                        : date('Y-m-d')
+                ) }}"
 
-                    value="{{ old(
-                        'montant',
-                        $inscription->montant ?? ''
-                    ) }}"
-
-                    min="0"
-                    step="0.01"
-
-                    placeholder="Exemple : 150000"
-
-                    class="w-full
-                           border border-slate-300
-                           rounded-lg
-                           px-4 py-3 pr-14
-                           focus:ring-2
-                           focus:ring-blue-500
-                           focus:border-blue-500
-                           focus:outline-none">
+                class="w-full
+                       border border-slate-300
+                       rounded-lg
+                       px-4 py-3
+                       focus:ring-2
+                       focus:ring-blue-500
+                       focus:border-blue-500
+                       focus:outline-none"
+            >
 
 
-                <span
-                    class="absolute
-                           right-4
-                           top-1/2
-                           -translate-y-1/2
-                           text-sm
-                           font-medium
-                           text-slate-400">
-
-                    FC
-
-                </span>
-
-            </div>
-
-
-            @error('montant')
+            @error('date_inscription')
 
                 <p class="text-red-500 text-sm mt-1">
                     {{ $message }}
@@ -607,57 +427,313 @@
 
     </div>
 
-
-    {{-- ========================================================= --}}
-    {{-- BOUTONS --}}
-    {{-- ========================================================= --}}
-
-    <div
-        class="px-6 py-5
-               bg-slate-50
-               flex flex-col-reverse
-               md:flex-row
-               md:justify-end
-               gap-3">
-
-        <a
-            href="{{ route('inscriptions.index') }}"
-
-            class="px-5 py-2.5
-                   rounded-lg
-                   bg-slate-200
-                   text-slate-700
-                   text-center
-                   hover:bg-slate-300
-                   transition">
-
-            Annuler
-
-        </a>
+</div>
 
 
-        <button
-            type="submit"
+{{-- ========================================================= --}}
+{{-- CLASSE --}}
+{{-- ========================================================= --}}
 
-            class="px-5 py-2.5
-                   rounded-lg
-                   bg-blue-600
-                   text-white
-                   hover:bg-blue-700
-                   transition">
+<div class="p-6 border-b border-slate-200">
 
-            <i class="fas fa-save mr-2"></i>
+    <h2 class="text-lg font-semibold text-slate-700">
+        Classe
+    </h2>
 
-            {{ isset($inscription)
-                ? 'Modifier l’inscription'
-                : 'Enregistrer l’inscription' }}
+    <p class="text-sm text-slate-500 mt-1 mb-6">
 
-        </button>
+        Sélectionnez d'abord la section, puis la classe.
+
+        @isset($inscription)
+            La classe actuelle est automatiquement sélectionnée.
+        @endisset
+
+    </p>
+
+
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+
+
+        {{-- Section --}}
+
+        <div>
+
+            <label
+                for="section"
+                class="block text-sm font-medium text-slate-700 mb-2"
+            >
+
+                Section <span class="text-red-500">*</span>
+
+            </label>
+
+
+            <select
+                id="section"
+                name="section"
+
+                class="w-full
+                       border border-slate-300
+                       rounded-lg
+                       px-4 py-3
+                       focus:ring-2
+                       focus:ring-blue-500
+                       focus:border-blue-500
+                       focus:outline-none"
+            >
+
+                <option value="">
+                    -- Sélectionner une section --
+                </option>
+
+
+                <option
+                    value="maternelle"
+                    {{ $sectionSelectionnee == 'maternelle'
+                        ? 'selected'
+                        : '' }}
+                >
+                    Maternelle
+                </option>
+
+
+                <option
+                    value="primaire"
+                    {{ $sectionSelectionnee == 'primaire'
+                        ? 'selected'
+                        : '' }}
+                >
+                    Primaire
+                </option>
+
+
+                <option
+                    value="secondaire"
+                    {{ $sectionSelectionnee == 'secondaire'
+                        ? 'selected'
+                        : '' }}
+                >
+                    Secondaire
+                </option>
+
+
+                <option
+                    value="humanites"
+                    {{ $sectionSelectionnee == 'humanites'
+                        ? 'selected'
+                        : '' }}
+                >
+                    Humanités
+                </option>
+
+            </select>
+
+
+            @error('section')
+
+                <p class="text-red-500 text-sm mt-1">
+                    {{ $message }}
+                </p>
+
+            @enderror
+
+        </div>
+
+
+        {{-- Classe --}}
+
+        <div>
+
+            <label
+                for="classe_id"
+                class="block text-sm font-medium text-slate-700 mb-2"
+            >
+
+                Classe <span class="text-red-500">*</span>
+
+            </label>
+
+
+            <select
+                name="classe_id"
+                id="classe_id"
+
+                disabled
+
+                class="w-full
+                       border border-slate-300
+                       rounded-lg
+                       px-4 py-3
+                       bg-slate-100
+                       text-slate-600
+                       focus:ring-2
+                       focus:ring-blue-500
+                       focus:border-blue-500
+                       focus:outline-none"
+            >
+
+                <option value="">
+                    -- Sélectionner d'abord une section --
+                </option>
+
+            </select>
+
+
+            @error('classe_id')
+
+                <p class="text-red-500 text-sm mt-1">
+                    {{ $message }}
+                </p>
+
+            @enderror
+
+        </div>
 
     </div>
 
-</form>
+</div>
 
+
+{{-- ========================================================= --}}
+{{-- MONTANT --}}
+{{-- ========================================================= --}}
+
+<div class="p-6 border-b border-slate-200">
+
+    <h2 class="text-lg font-semibold text-slate-700">
+        Paiement
+    </h2>
+
+    <p class="text-sm text-slate-500 mt-1 mb-6">
+
+        Indiquez le montant versé pour cette inscription.
+
+    </p>
+
+
+    <div class="max-w-md">
+
+        <label
+            for="montant"
+            class="block text-sm font-medium text-slate-700 mb-2"
+        >
+
+            Montant
+            <span class="text-red-500">*</span>
+
+        </label>
+
+
+        <div class="relative">
+
+            <input
+                type="number"
+                name="montant"
+                id="montant"
+
+                value="{{ old(
+                    'montant',
+                    $inscription->montant ?? ''
+                ) }}"
+
+                min="0"
+                step="0.01"
+
+                placeholder="Exemple : 150000"
+
+                class="w-full
+                       border border-slate-300
+                       rounded-lg
+                       px-4 py-3 pr-14
+                       focus:ring-2
+                       focus:ring-blue-500
+                       focus:border-blue-500
+                       focus:outline-none"
+            >
+
+
+            <span
+                class="absolute
+                       right-4
+                       top-1/2
+                       -translate-y-1/2
+                       text-sm
+                       font-medium
+                       text-slate-400"
+            >
+
+                FC
+
+            </span>
+
+        </div>
+
+
+        @error('montant')
+
+            <p class="text-red-500 text-sm mt-1">
+                {{ $message }}
+            </p>
+
+        @enderror
+
+    </div>
+
+</div>
+
+
+{{-- ========================================================= --}}
+{{-- BOUTONS --}}
+{{-- ========================================================= --}}
+
+<div
+    class="px-6 py-5
+           bg-slate-50
+           flex flex-col-reverse
+           md:flex-row
+           md:justify-end
+           gap-3"
+>
+
+    <a
+        href="{{ route('inscriptions.index') }}"
+
+        class="px-5 py-2.5
+               rounded-lg
+               bg-slate-200
+               text-slate-700
+               text-center
+               hover:bg-slate-300
+               transition"
+    >
+
+        Annuler
+
+    </a>
+
+
+    <button
+        type="submit"
+
+        class="px-5 py-2.5
+               rounded-lg
+               bg-blue-600
+               text-white
+               hover:bg-blue-700
+               transition"
+    >
+
+        <i class="fas fa-save mr-2"></i>
+
+        {{ isset($inscription)
+            ? 'Modifier l’inscription'
+            : 'Enregistrer l’inscription' }}
+
+    </button>
+
+</div>
+
+</form>
 
 <script>
 
@@ -824,11 +900,13 @@ document.addEventListener('DOMContentLoaded', function () {
 
 
                             const nomComplet =
-                                eleve.nom
-                                + ' '
-                                + (eleve.postnom ?? '')
-                                + ' '
-                                + (eleve.prenom ?? '');
+                                [
+                                    eleve.nom,
+                                    eleve.postnom,
+                                    eleve.prenom
+                                ]
+                                .filter(Boolean)
+                                .join(' ');
 
 
                             const label =
@@ -935,10 +1013,13 @@ document.addEventListener('DOMContentLoaded', function () {
         classeSelectionnee = null
     ) {
 
+
         classe.innerHTML = `
+
             <option value="">
                 Chargement des classes...
             </option>
+
         `;
 
         classe.disabled = true;
@@ -947,15 +1028,31 @@ document.addEventListener('DOMContentLoaded', function () {
         if (!sectionValue) {
 
             classe.innerHTML = `
+
                 <option value="">
                     -- Sélectionner d'abord une section --
                 </option>
+
             `;
 
             classe.disabled = true;
 
             return;
         }
+
+
+        /*
+        |--------------------------------------------------------------------------
+        | Normalisation côté JavaScript
+        |--------------------------------------------------------------------------
+        */
+
+        sectionValue =
+            sectionValue
+                .toLowerCase()
+                .trim()
+                .normalize('NFD')
+                .replace(/[\u0300-\u036f]/g, '');
 
 
         fetch(
@@ -991,18 +1088,22 @@ document.addEventListener('DOMContentLoaded', function () {
         .then(data => {
 
             classe.innerHTML = `
+
                 <option value="">
                     -- Sélectionner une classe --
                 </option>
+
             `;
 
 
             if (data.length === 0) {
 
                 classe.innerHTML = `
+
                     <option value="">
                         Aucune classe disponible
                     </option>
+
                 `;
 
                 classe.disabled = true;
@@ -1025,10 +1126,17 @@ document.addEventListener('DOMContentLoaded', function () {
                     item.nom_complet;
 
 
+                /*
+                |--------------------------------------------------------------------------
+                | Restaurer la classe actuelle
+                |--------------------------------------------------------------------------
+                */
+
                 if (
-                    classeSelectionnee
+                    classeSelectionnee !== null
                     &&
-                    classeSelectionnee == item.id
+                    String(classeSelectionnee)
+                        === String(item.id)
                 ) {
 
                     option.selected = true;
@@ -1054,9 +1162,11 @@ document.addEventListener('DOMContentLoaded', function () {
 
 
             classe.innerHTML = `
+
                 <option value="">
                     Erreur lors du chargement
                 </option>
+
             `;
 
             classe.disabled = true;
@@ -1076,8 +1186,14 @@ document.addEventListener('DOMContentLoaded', function () {
         'change',
         function () {
 
+            /*
+            | Lorsque l'utilisateur change de section,
+            | on ne conserve pas l'ancienne classe.
+            */
+
             chargerClasses(
-                this.value
+                this.value,
+                null
             );
 
         }
@@ -1090,19 +1206,29 @@ document.addEventListener('DOMContentLoaded', function () {
     |--------------------------------------------------------------------------
     */
 
-    @if(isset($inscription))
+    @if(isset($inscription) && $inscription->classe)
+
+        /*
+        | En modification :
+        | - on récupère la section actuelle
+        | - on récupère l'ID exact de la classe actuelle
+        | - l'AJAX recharge les classes
+        | - la classe actuelle est automatiquement sélectionnée
+        */
 
         chargerClasses(
-            @json($inscription->classe->section),
+            @json($sectionActuelle),
             @json($inscription->classe_id)
         );
 
     @else
 
         classe.innerHTML = `
+
             <option value="">
                 -- Sélectionner d'abord une section --
             </option>
+
         `;
 
         classe.disabled = true;
