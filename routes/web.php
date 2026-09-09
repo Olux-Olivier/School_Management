@@ -575,6 +575,11 @@ Route::prefix('paiements')
             'recu'
         ])->name('recu');
 
+        Route::delete('/versement/{historique}/annuler', [
+            PaiementController::class,
+            'annulerVersement'
+        ])->name('versement.annuler');
+
 
 
     });

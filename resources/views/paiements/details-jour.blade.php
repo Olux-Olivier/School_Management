@@ -427,6 +427,27 @@
 
                                 </a>
 
+                                {{-- Annuler versement --}}
+                                <form
+                                    action="{{ route('paiements.versement.annuler', $paiement->id) }}"
+                                    method="POST"
+                                    class="form-annulation-versement inline-block"
+                                >
+                                    @csrf
+                                    @method('DELETE')
+
+                                    <button
+                                        type="submit"
+                                        class="inline-flex items-center justify-center px-3 py-2
+                                            bg-red-600 hover:bg-red-700
+                                            text-white text-sm font-medium rounded-lg
+                                            transition"
+                                        title="Annuler ce versement"
+                                    >
+                                        <i class="fas fa-ban"></i>
+                                    </button>
+                                </form>
+
                             </div>
 
                         </td>
@@ -530,4 +551,38 @@
 
 </div>
 
+<script>
+document.addEventListener('DOMContentLoaded', function () {
+
+    document.querySelectorAll('.form-annulation-versement')
+        .forEach(function (form) {
+
+            form.addEventListener('submit', function (event) {
+
+                event.preventDefault();
+
+                Swal.fire({
+                    title: 'Annuler ce versement ?',
+                    text: 'Ce versement sera supprimé et le montant payé sera recalculé. Cette action est irréversible.',
+                    icon: 'warning',
+                    showCancelButton: true,
+                    confirmButtonColor: '#dc2626',
+                    cancelButtonColor: '#6b7280',
+                    confirmButtonText: 'Oui, annuler',
+                    cancelButtonText: 'Non, conserver',
+                    reverseButtons: true
+                }).then(function (result) {
+
+                    if (result.isConfirmed) {
+                        form.submit();
+                    }
+
+                });
+
+            });
+
+        });
+
+});
+</script>
 @endsection
