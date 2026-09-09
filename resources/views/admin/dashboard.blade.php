@@ -43,7 +43,15 @@
         @endforeach
     </div>
 
-    <div class="grid grid-cols-1 gap-6 lg:grid-cols-3">
+        <a href="{{ route('annees.index') }}" class="group block rounded-2xl border border-slate-200 bg-white p-6 shadow-sm transition hover:-translate-y-0.5 hover:border-orange-300 hover:shadow-md">
+        <div class="flex h-14 w-14 items-center justify-center rounded-xl bg-orange-100 text-orange-600">
+            <i class="fas fa-calendar-alt text-2xl" aria-hidden="true"></i>
+        </div>
+        <h2 class="mt-5 text-xl font-bold text-slate-800 group-hover:text-orange-600">Années scolaires</h2>
+        <p class="mt-2 text-sm leading-relaxed text-slate-500">Créer, modifier et activer les années scolaires de l’établissement.</p>
+        <span class="mt-5 inline-flex items-center font-semibold text-orange-600">Gérer les années scolaires <i class="fas fa-arrow-right ml-2 transition group-hover:translate-x-1" aria-hidden="true"></i></span>
+    </a>
+<div class="grid grid-cols-1 gap-6 lg:grid-cols-3">
         <a href="{{ route('users.index') }}" class="group rounded-2xl border border-slate-200 bg-white p-6 shadow-sm transition hover:-translate-y-0.5 hover:border-blue-300 hover:shadow-md">
             <div class="flex h-14 w-14 items-center justify-center rounded-xl bg-blue-100 text-blue-600">
                 <i class="fas fa-users-cog text-2xl"></i>

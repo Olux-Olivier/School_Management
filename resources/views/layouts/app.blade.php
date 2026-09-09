@@ -174,16 +174,6 @@
 
             </a>
 
-            <a href="{{ route('annees.index') }}" data-label="Années scolaires" aria-label="Années scolaires"
-
-                class="flex items-center px-6 py-3 transition {{ request()->routeIs('annees.*') ? 'bg-blue-600 text-white' : 'hover:bg-slate-100' }}">
-
-                <i class="fas fa-calendar-days w-6" aria-hidden="true"></i>
-
-                <span>Années scolaires</span>
-
-            </a>
-
             <a href="{{ route('classes.index') }}" data-label="Classes" aria-label="Classes"
 
                 class="flex items-center px-6 py-3 transition {{ request()->routeIs('classes.*') ? 'bg-blue-600 text-white' : 'hover:bg-slate-100' }}">
@@ -434,7 +424,7 @@
         <!-- CONTENU -->
         <!-- ========================= -->
 
-        <section class="page-content flex-1 min-h-0 overflow-y-auto overflow-x-hidden p-3 sm:p-5 lg:p-8">
+        <section data-module-content class="page-content flex-1 min-h-0 overflow-y-auto overflow-x-hidden p-3 sm:p-5 lg:p-8">
 
             <div class="max-w-7xl mx-auto min-w-0">
 
@@ -585,6 +575,7 @@ Swal.fire({
 </script>
 
 @endif
+@include('layouts.entrance-animations')
 </body>
 
 </html>

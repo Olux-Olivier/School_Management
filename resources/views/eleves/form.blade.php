@@ -16,7 +16,7 @@
         </div>
 
         <a
-                href="{{ route('annees.index') }}"
+                href="{{ route('eleves.index') }}"
                 class="inline-flex w-full items-center justify-center gap-2 rounded-xl border border-slate-300 bg-white px-4 py-2.5 text-sm font-medium text-slate-700 shadow-sm transition hover:border-slate-400 hover:bg-slate-50 sm:w-auto"
             >
                 <i class="fas fa-arrow-left text-xs" aria-hidden="true"></i>

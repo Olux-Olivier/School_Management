@@ -1,4 +1,4 @@
-@extends('layouts.app')
+@extends('layouts.admin')
 
 @section('title', 'Années scolaires')
 
@@ -453,7 +453,7 @@ function toggleStatus(id, actif)
 
 
         fetch(
-            `/annees-scolaires/${id}/toggle-status`,
+            @json(route('annees.toggle-status', ['annee' => '__ANNEE__'])).replace('__ANNEE__', encodeURIComponent(id)),
             {
 
                 method: 'PATCH',

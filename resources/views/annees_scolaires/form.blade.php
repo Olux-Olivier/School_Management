@@ -1,4 +1,4 @@
-@extends('layouts.app')
+@extends('layouts.admin')
 
 @section('title', isset($annee) ? 'Modifier une année scolaire' : 'Ajouter une année scolaire')
 

@@ -41,7 +41,7 @@ class AnneeScolaireController extends Controller
             'date_debut' => $request->date_debut,
             'date_fin' => $request->date_fin,
             'actif' => false,
-            'created_by' => auth()->id(),
+            'created_by' => auth('admin')->id(),
         ]);
 
         return redirect()
@@ -85,7 +85,7 @@ class AnneeScolaireController extends Controller
             'libelle' => $request->libelle,
             'date_debut' => $request->date_debut,
             'date_fin' => $request->date_fin,
-            'updated_by' => auth()->id(),
+            'updated_by' => auth('admin')->id(),
         ]);
 
         return redirect()
@@ -110,11 +110,11 @@ class AnneeScolaireController extends Controller
         AnneeScolaire::where('id', '!=', $annee->id)
             ->update([
                 'actif' => false,
-                'updated_by' => auth()->id(),
+                'updated_by' => auth('admin')->id(),
             ]);
 
         $annee->actif = true;
-        $annee->updated_by = auth()->id();
+        $annee->updated_by = auth('admin')->id();
         $annee->save();
 
         return response()->json([

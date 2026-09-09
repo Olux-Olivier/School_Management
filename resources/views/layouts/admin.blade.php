@@ -71,6 +71,9 @@
                     <i class="fas fa-tags w-5" aria-hidden="true"></i><span>Gestion des frais</span>
                 </a>
 
+                <a href="{{ route('annees.index') }}" aria-label="Années scolaires" class="flex items-center gap-3 rounded-xl px-4 py-3 transition {{ request()->routeIs('annees.*') ? 'bg-blue-600 text-white' : 'hover:bg-slate-100 dark:hover:bg-slate-800' }}">
+                    <i class="fas fa-calendar-alt w-5" aria-hidden="true"></i><span>Années scolaires</span>
+                </a>
             </nav>
 
             <div class="border-t border-slate-200 p-4 dark:border-slate-800">
@@ -107,7 +110,7 @@
                 </div>
             </header>
 
-            <section class="p-4 sm:p-6 lg:p-8">
+            <section data-module-content class="p-4 sm:p-6 lg:p-8">
                 <div class="mx-auto max-w-7xl">@yield('content')</div>
             </section>
         </main>
@@ -148,5 +151,6 @@
     @if(session('error'))
         <script>Swal.fire({icon:'error', title:'Erreur', text:@json(session('error'))});</script>
     @endif
+@include('layouts.entrance-animations')
 </body>
 </html>
