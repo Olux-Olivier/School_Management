@@ -2115,6 +2115,186 @@ return view(
         );
     }
 
+    /*
+    |--------------------------------------------------------------------------
+    | ANNULER VERSEMENT
+    |--------------------------------------------------------------------------
+    |
+    | Annulation d'un versement historique.
+    |
+    | Le cumul du paiement principal est recalculé.
+    |
+    | Le versement est supprimé de l'historique.
+    |
+    | IMPORTANT :
+    |
+    | On ne supprime pas le paiement principal, même si le cumul devient nul.
+    |
+    */
+    public function annulerVersement(HistoriquePaiement $historique)
+    {
+        /*
+        |--------------------------------------------------------------------------
+        | Paiement associé
+        |--------------------------------------------------------------------------
+        */
+
+        $paiement = $historique->paiement;
+
+        if (!$paiement) {
+            return back()->with(
+                'error',
+                'Le paiement associé à ce versement est introuvable.'
+            );
+        }
+
+
+        /*
+        |--------------------------------------------------------------------------
+        | Date de retour
+        |--------------------------------------------------------------------------
+        */
+
+        $dateRetour = $historique->date_paiement
+            ? \Carbon\Carbon::parse($historique->date_paiement)->format('Y-m-d')
+            : now()->format('Y-m-d');
+
+
+        /*
+        |--------------------------------------------------------------------------
+        | Annulation du versement
+        |--------------------------------------------------------------------------
+        */
+
+        DB::transaction(function () use ($historique) {
+
+            /*
+            |--------------------------------------------------------------------------
+            | Verrouiller le paiement principal
+            |--------------------------------------------------------------------------
+            */
+
+            $paiement = Paiement::whereKey($historique->paiement_id)
+                ->lockForUpdate()
+                ->first();
+
+            if (!$paiement) {
+                throw new \RuntimeException(
+                    'Le paiement associé est introuvable.'
+                );
+            }
+
+
+            /*
+            |--------------------------------------------------------------------------
+            | Verrouiller le versement à annuler
+            |--------------------------------------------------------------------------
+            */
+
+            $versement = HistoriquePaiement::whereKey($historique->id)
+                ->where('paiement_id', $paiement->id)
+                ->lockForUpdate()
+                ->first();
+
+            if (!$versement) {
+                throw new \RuntimeException(
+                    'Le versement est introuvable.'
+                );
+            }
+
+
+            /*
+            |--------------------------------------------------------------------------
+            | Supprimer uniquement ce versement
+            |--------------------------------------------------------------------------
+            */
+
+            $versement->delete();
+
+
+            /*
+            |--------------------------------------------------------------------------
+            | Recalculer le montant payé
+            |--------------------------------------------------------------------------
+            */
+
+            $nouveauMontantPaye = (float) HistoriquePaiement::where(
+                'paiement_id',
+                $paiement->id
+            )->sum('montant');
+
+
+            /*
+            |--------------------------------------------------------------------------
+            | S'il ne reste plus aucun versement
+            |--------------------------------------------------------------------------
+            */
+
+            if ($nouveauMontantPaye <= 0) {
+
+                $paiement->delete();
+
+                return;
+            }
+
+
+            /*
+            |--------------------------------------------------------------------------
+            | Nouveau montant restant
+            |--------------------------------------------------------------------------
+            */
+
+            $nouveauRestant = max(
+                0,
+                (float) $paiement->montant_du - $nouveauMontantPaye
+            );
+
+
+            /*
+            |--------------------------------------------------------------------------
+            | Nouvelle date du dernier versement
+            |--------------------------------------------------------------------------
+            */
+
+            $nouvelleDatePaiement = HistoriquePaiement::where(
+                'paiement_id',
+                $paiement->id
+            )
+                ->orderByDesc('date_paiement')
+                ->orderByDesc('id')
+                ->value('date_paiement');
+
+
+            /*
+            |--------------------------------------------------------------------------
+            | Mise à jour du paiement cumulatif
+            |--------------------------------------------------------------------------
+            */
+
+            $paiement->update([
+                'montant_paye' => $nouveauMontantPaye,
+                'restant' => $nouveauRestant,
+                'date_paiement' => $nouvelleDatePaiement,
+                'updated_by' => auth()->id(),
+            ]);
+        });
+
+
+        /*
+        |--------------------------------------------------------------------------
+        | Retour
+        |--------------------------------------------------------------------------
+        */
+
+        return redirect()
+            ->route('paiements.details-jour', [
+                'date' => $dateRetour,
+            ])
+            ->with(
+                'success',
+                'Le versement a été annulé avec succès.'
+            );
+    }
 
 }
 
