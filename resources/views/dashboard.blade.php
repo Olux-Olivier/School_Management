@@ -1,6 +1,6 @@
 @extends('layouts.app')
 
-@section('title', 'Tableau de bord')
+@section('title', 'Accueil')
 
 @section('content')
 
@@ -13,11 +13,11 @@
     <div class="mb-8">
 
         <h1 class="text-3xl font-bold text-slate-800">
-            Tableau de bord
+            Bienvenue dans votre espace de gestion scolaire.
         </h1>
 
         <p class="text-slate-500 mt-2">
-            Bienvenue dans votre espace de gestion scolaire.
+            Vous trouverez ici tous les outils nécessaires à la gestion de votre établissement scolaire.
         </p>
 
     </div>

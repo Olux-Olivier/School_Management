@@ -580,7 +580,15 @@ Route::prefix('paiements')
             'annulerVersement'
         ])->name('versement.annuler');
 
+        Route::get(
+            '/paiements/rapport-quotidien/pdf',
+            [PaiementController::class, 'rapportQuotidienPdf']
+        )->name('rapport-quotidien.pdf');
 
+        Route::get(
+            '/paiements/rapport-quotidien/excel',
+            [PaiementController::class, 'rapportQuotidienExcel']
+        )->name('rapport-quotidien.excel');
 
     });
 

@@ -521,15 +521,23 @@
                 </p>
 
 
-                <button
-                    type="button"
-                    disabled
-                    class="px-4 py-2 bg-slate-200 text-slate-400 rounded-lg cursor-not-allowed"
-                >
+                <div class="flex flex-wrap gap-3 mt-4">
 
-                    PDF / Excel bientôt disponible
+                    <a href="{{ route('paiements.rapport-quotidien.pdf') }}"
+                    class="inline-flex items-center gap-2 px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition">
 
-                </button>
+                        <i class="fa-solid fa-file-pdf"></i>
+                        Télécharger PDF
+                    </a>
+
+                    <a href="{{ route('paiements.rapport-quotidien.excel') }}"
+                    class="inline-flex items-center gap-2 px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition">
+
+                        <i class="fa-solid fa-file-excel"></i>
+                        Télécharger Excel
+                    </a>
+
+                </div>
 
             </div>
 

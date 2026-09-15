@@ -2296,5 +2296,451 @@ return view(
             );
     }
 
+    /*
+    |--------------------------------------------------------------------------
+    RAPPORTS QUOTIDIENS
+    |--------------------------------------------------------------------------
+    */
+
+    /*
+|--------------------------------------------------------------------------
+| RAPPORT QUOTIDIEN PDF
+|--------------------------------------------------------------------------
+|
+| Génère le rapport de tous les versements effectués aujourd'hui.
+|
+*/
+public function rapportQuotidienPdf(Request $request)
+{
+    // Si aucune date n'est fournie, on utilise automatiquement aujourd'hui.
+    $date = $request->input('date', now()->format('Y-m-d'));
+
+    // Récupération de l'année scolaire active.
+    $anneeScolaireActive = AnneeScolaire::where('actif', true)->first();
+
+    if (!$anneeScolaireActive) {
+        return back()->with(
+            'error',
+            'Aucune année scolaire active n\'est configurée.'
+        );
+    }
+
+    // Récupération des versements réellement encaissés
+    // à la date demandée et pour l'année scolaire active.
+    $paiements = HistoriquePaiement::with([
+        'paiement.eleve',
+        'paiement.frais',
+        'paiement.anneeScolaire',
+        'createdBy',
+        'updatedBy',
+    ])
+        ->whereDate('date_paiement', $date)
+        ->whereHas('paiement', function ($query) use ($anneeScolaireActive) {
+            $query->where(
+                'annee_scolaire_id',
+                $anneeScolaireActive->id
+            );
+        })
+        ->orderBy('date_paiement')
+        ->orderBy('id')
+        ->get();
+
+    // Total des versements de la journée.
+    $totalJour = $paiements->sum('montant');
+
+    // Nombre de versements.
+    $nombrePaiements = $paiements->count();
+
+    // Génération du PDF.
+    $pdf = Pdf::loadView('paiements.rapport-quotidien', [
+        'paiements' => $paiements,
+        'anneeScolaireActive' => $anneeScolaireActive,
+        'date' => $date,
+        'totalJour' => $totalJour,
+        'nombrePaiements' => $nombrePaiements,
+    ]);
+
+    return $pdf->stream(
+        'rapport-quotidien-' . $date . '.pdf'
+    );
+}
+
+
+/*
+|--------------------------------------------------------------------------
+| RAPPORT QUOTIDIEN EXCEL
+|--------------------------------------------------------------------------
+|
+| Génère le fichier Excel des versements du jour.
+|
+*/
+public function rapportQuotidienExcel(Request $request)
+{
+    $date = $request->input('date', now()->format('Y-m-d'));
+
+    $anneeScolaireActive = AnneeScolaire::where('actif', true)->first();
+
+    if (!$anneeScolaireActive) {
+        return back()->with(
+            'error',
+            'Aucune année scolaire active n\'est configurée.'
+        );
+    }
+
+    /*
+    |--------------------------------------------------------------------------
+    | Récupération des versements du jour
+    |--------------------------------------------------------------------------
+    */
+
+    $paiements = HistoriquePaiement::with([
+        'paiement.eleve',
+        'paiement.frais',
+        'paiement.anneeScolaire',
+        'createdBy',
+        'updatedBy',
+    ])
+        ->whereDate('date_paiement', $date)
+        ->whereHas('paiement', function ($query) use ($anneeScolaireActive) {
+            $query->where(
+                'annee_scolaire_id',
+                $anneeScolaireActive->id
+            );
+        })
+        ->orderBy('date_paiement')
+        ->orderBy('id')
+        ->get();
+
+    /*
+    |--------------------------------------------------------------------------
+    | Récupération des inscriptions
+    |--------------------------------------------------------------------------
+    */
+
+    $eleveIds = $paiements
+        ->map(fn ($historique) => $historique->paiement?->eleve_id)
+        ->filter()
+        ->unique()
+        ->values();
+
+    $inscriptions = Inscription::with('classe')
+        ->where('annee_scolaire_id', $anneeScolaireActive->id)
+        ->whereIn('eleve_id', $eleveIds)
+        ->get()
+        ->keyBy('eleve_id');
+
+    /*
+    |--------------------------------------------------------------------------
+    | Nombre de versements et total
+    |--------------------------------------------------------------------------
+    */
+
+    $nombreVersements = $paiements->count();
+
+    $totalJour = $paiements->sum('montant');
+
+    /*
+    |--------------------------------------------------------------------------
+    | Nom du fichier
+    |--------------------------------------------------------------------------
+    */
+
+    $filename = 'rapport-quotidien-' . $date . '.csv';
+
+    /*
+    |--------------------------------------------------------------------------
+    | En-têtes HTTP
+    |--------------------------------------------------------------------------
+    */
+
+    $headers = [
+        'Content-Type' => 'text/csv; charset=UTF-8',
+        'Content-Disposition' => 'attachment; filename="' . $filename . '"',
+        'Pragma' => 'no-cache',
+        'Cache-Control' => 'must-revalidate, post-check=0, pre-check=0',
+    ];
+
+    /*
+    |--------------------------------------------------------------------------
+    | Génération du CSV
+    |--------------------------------------------------------------------------
+    */
+
+    return response()->streamDownload(function () use (
+        $paiements,
+        $inscriptions,
+        $anneeScolaireActive,
+        $date,
+        $nombreVersements,
+        $totalJour
+    ) {
+
+        $handle = fopen('php://output', 'w');
+
+        /*
+        |--------------------------------------------------------------------------
+        | BOM UTF-8
+        |--------------------------------------------------------------------------
+        |
+        | Permet notamment à Excel de reconnaître correctement
+        | les accents et caractères français.
+        |
+        */
+
+        fwrite($handle, "\xEF\xBB\xBF");
+
+        /*
+        |--------------------------------------------------------------------------
+        | TITRE
+        |--------------------------------------------------------------------------
+        */
+
+        fputcsv($handle, [
+            'RAPPORT QUOTIDIEN DES VERSEMENTS'
+        ], ';');
+
+        /*
+        |--------------------------------------------------------------------------
+        | INFORMATIONS DU RAPPORT
+        |--------------------------------------------------------------------------
+        */
+
+        fputcsv($handle, [
+            'Date',
+            \Carbon\Carbon::parse($date)->format('d/m/Y')
+        ], ';');
+
+        fputcsv($handle, [
+            'Année scolaire',
+            $anneeScolaireActive->libelle
+                ?? $anneeScolaireActive->nom
+                ?? '—'
+        ], ';');
+
+        fputcsv($handle, [
+            'Nombre de versements',
+            $nombreVersements
+        ], ';');
+
+        fputcsv($handle, [
+            'Généré le',
+            now()->format('d/m/Y à H:i')
+        ], ';');
+
+        /*
+        |--------------------------------------------------------------------------
+        | LIGNE VIDE
+        |--------------------------------------------------------------------------
+        */
+
+        fputcsv($handle, [], ';');
+
+        /*
+        |--------------------------------------------------------------------------
+        | EN-TÊTES DU TABLEAU
+        |--------------------------------------------------------------------------
+        */
+
+        fputcsv($handle, [
+            'N°',
+            'Référence',
+            'Matricule',
+            'Élève',
+            'Section',
+            'Frais',
+            'Mois',
+            'Montant',
+            'Mode de paiement',
+            'Date',
+            'Agent',
+        ], ';');
+
+        /*
+        |--------------------------------------------------------------------------
+        | VERSEMENTS
+        |--------------------------------------------------------------------------
+        */
+
+        foreach ($paiements as $index => $historique) {
+
+            $paiement = $historique->paiement;
+
+            $eleve = $paiement?->eleve;
+
+            /*
+            |--------------------------------------------------------------------------
+            | Inscription de l'élève
+            |--------------------------------------------------------------------------
+            */
+
+            $inscription = $eleve
+                ? $inscriptions->get($eleve->id)
+                : null;
+
+            $classe = $inscription?->classe;
+
+            /*
+            |--------------------------------------------------------------------------
+            | Section
+            |--------------------------------------------------------------------------
+            */
+
+            $section = match ((int) ($classe?->niveau ?? -1)) {
+                0 => 'Maternelle',
+                1 => 'Primaire',
+                2 => 'Secondaire',
+                3 => 'Humanités',
+                default => '—',
+            };
+
+            /*
+            |--------------------------------------------------------------------------
+            | Classe + option
+            |--------------------------------------------------------------------------
+            */
+
+            if ($classe) {
+
+                $classeLibelle = trim(
+                    ($classe->nom ?? '') . ' ' .
+                    ($classe->option ?? '')
+                );
+
+                $sectionLibelle = $classeLibelle !== ''
+                    ? $classeLibelle . ' (' . $section . ')'
+                    : $section;
+
+            } else {
+
+                $sectionLibelle = '—';
+            }
+
+            /*
+            |--------------------------------------------------------------------------
+            | Nom complet de l'élève
+            |--------------------------------------------------------------------------
+            */
+
+            if ($eleve) {
+
+                $nomEleve = trim(
+                    ($eleve->nom ?? '') . ' ' .
+                    ($eleve->postnom ?? '') . ' ' .
+                    ($eleve->prenom ?? '')
+                );
+
+            } else {
+
+                $nomEleve = 'Élève supprimé';
+            }
+
+            /*
+            |--------------------------------------------------------------------------
+            | Frais
+            |--------------------------------------------------------------------------
+            */
+
+            $frais = $paiement?->frais?->intitule ?? '—';
+
+            /*
+            |--------------------------------------------------------------------------
+            | Mois
+            |--------------------------------------------------------------------------
+            */
+
+            $mois = $paiement?->mois ?? 'Pas disponible';
+
+            /*
+            |--------------------------------------------------------------------------
+            | Mode de paiement
+            |--------------------------------------------------------------------------
+            */
+
+            $modePaiement = $historique->mode_paiement
+                ?? $paiement?->mode_paiement
+                ?? '—';
+
+            /*
+            |--------------------------------------------------------------------------
+            | Date du versement
+            |--------------------------------------------------------------------------
+            */
+
+            $datePaiement = $historique->date_paiement
+                ? \Carbon\Carbon::parse(
+                    $historique->date_paiement
+                )->format('d/m/Y')
+                : '—';
+
+            /*
+            |--------------------------------------------------------------------------
+            | Agent
+            |--------------------------------------------------------------------------
+            */
+
+            $agent = $historique->createdBy?->nom_complet ?? '—';
+
+            /*
+            |--------------------------------------------------------------------------
+            | Ligne du versement
+            |--------------------------------------------------------------------------
+            */
+
+            fputcsv($handle, [
+                $index + 1,
+                $historique->reference ?? '—',
+                $eleve?->matricule ?? '—',
+                $nomEleve,
+                $sectionLibelle,
+                $frais,
+                $mois,
+                number_format(
+                    (float) ($historique->montant ?? 0),
+                    2,
+                    '.',
+                    ''
+                ),
+                $modePaiement,
+                $datePaiement,
+                $agent,
+            ], ';');
+        }
+
+        /*
+        |--------------------------------------------------------------------------
+        | LIGNE DU TOTAL
+        |--------------------------------------------------------------------------
+        */
+
+        fputcsv($handle, [
+            '',
+            '',
+            '',
+            '',
+            '',
+            '',
+            'TOTAL',
+            number_format(
+                (float) $totalJour,
+                2,
+                '.',
+                ''
+            ),
+            '',
+            '',
+            '',
+        ], ';');
+
+        /*
+        |--------------------------------------------------------------------------
+        | Fermeture du fichier
+        |--------------------------------------------------------------------------
+        */
+
+        fclose($handle);
+
+    }, $filename, $headers);
+}
+
 }
 
