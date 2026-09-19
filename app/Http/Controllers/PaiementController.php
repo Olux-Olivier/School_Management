@@ -12,6 +12,7 @@ use App\Models\HistoriquePaiement;
 use Barryvdh\DomPDF\Facade\Pdf;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Str;
 use Illuminate\Validation\ValidationException;
 
 class PaiementController extends Controller
@@ -428,713 +429,652 @@ class PaiementController extends Controller
     |
     */
 
-    public function store(Request $request)
-    {
-        $validated = $request->validate([
+public function store(Request $request)
+{
+    /*
+    |--------------------------------------------------------------------------
+    | Validation
+    |--------------------------------------------------------------------------
+    */
 
-            'eleve_id' => [
-                'required',
-                'integer',
-                'exists:eleves,id',
-            ],
-
-            'annee_scolaire_id' => [
-                'required',
-                'integer',
-                'exists:annee_scolaires,id',
-            ],
-
-            'frais_id' => [
-                'required',
-                'integer',
-                'exists:frais,id',
-            ],
-
-            'mois' => [
-                'nullable',
-                'string',
-            ],
-
-            'montant_paye' => [
-                'required',
-                'numeric',
-                'min:1',
-            ],
-
-            'date_paiement' => [
-                'required',
-                'date',
-            ],
-
-            'mode_paiement' => [
-                'required',
-                'string',
-                'max:50',
-            ],
-
-        ], [
-
-            'eleve_id.required' =>
-                'Veuillez sélectionner un élève.',
-
-            'eleve_id.exists' =>
-                'L’élève sélectionné n’existe pas.',
-
-            'annee_scolaire_id.required' =>
-                'Veuillez sélectionner une année scolaire.',
-
-            'annee_scolaire_id.exists' =>
-                'L’année scolaire sélectionnée n’existe pas.',
-
-            'frais_id.required' =>
-                'Veuillez sélectionner un frais.',
-
-            'frais_id.exists' =>
-                'Le frais sélectionné n’existe pas.',
-
-            'montant_paye.required' =>
-                'Veuillez saisir le montant payé.',
-
-            'montant_paye.numeric' =>
-                'Le montant payé doit être numérique.',
-
-            'montant_paye.min' =>
-                'Le montant payé doit être supérieur à zéro.',
-
-            'date_paiement.required' =>
-                'La date du paiement est obligatoire.',
-
-            'date_paiement.date' =>
-                'La date du paiement est invalide.',
-
-            'mode_paiement.required' =>
-                'Veuillez sélectionner le mode de paiement.',
-        ]);
+    $validated = $request->validate([
+        'eleve_id' => 'required|exists:eleves,id',
+        'frais_id' => 'required|exists:frais,id',
+        'mois' => 'nullable|string|max:50',
+        'montant_paye' => 'required|numeric|min:0.01',
+        'date_paiement' => 'required|date',
+        'mode_paiement' => 'required|string|max:50',
+    ]);
 
 
-        $eleve = Eleve::find(
-            $validated['eleve_id']
+    /*
+    |--------------------------------------------------------------------------
+    | Année scolaire active
+    |--------------------------------------------------------------------------
+    */
+
+    $anneeScolaire = AnneeScolaire::where('actif', true)->first();
+
+    if (!$anneeScolaire) {
+        return back()
+            ->withInput()
+            ->with('error', 'Aucune année scolaire active.');
+    }
+
+
+    /*
+    |--------------------------------------------------------------------------
+    | Vérification de l'inscription de l'élève
+    |--------------------------------------------------------------------------
+    */
+
+    $inscription = Inscription::with('classe')
+        ->where('eleve_id', $validated['eleve_id'])
+        ->where('annee_scolaire_id', $anneeScolaire->id)
+        ->first();
+
+    if (!$inscription) {
+        return back()
+            ->withInput()
+            ->with(
+                'error',
+                'Cet élève n\'est pas inscrit pour l\'année scolaire active.'
+            );
+    }
+
+
+    /*
+    |--------------------------------------------------------------------------
+    | Récupération des frais
+    |--------------------------------------------------------------------------
+    */
+
+    $frais = Frais::find($validated['frais_id']);
+
+    if (!$frais) {
+        return back()
+            ->withInput()
+            ->with(
+                'error',
+                'Les frais sélectionnés sont introuvables.'
+            );
+    }
+
+
+    /*
+    |--------------------------------------------------------------------------
+    | Motif
+    |--------------------------------------------------------------------------
+    |
+    | Le formulaire n'envoie pas de champ "motif".
+    | Le motif est toujours déterminé à partir de l'intitulé du frais.
+    |
+    */
+
+    $motif = trim($frais->intitule);
+
+
+    /*
+    |--------------------------------------------------------------------------
+    | Vérification de l'année scolaire des frais
+    |--------------------------------------------------------------------------
+    */
+
+    if (
+        (int) $frais->annee_scolaire_id !==
+        (int) $anneeScolaire->id
+    ) {
+        return back()
+            ->withInput()
+            ->with(
+                'error',
+                'Ces frais ne correspondent pas à l\'année scolaire active.'
+            );
+    }
+
+
+    /*
+    |--------------------------------------------------------------------------
+    | Vérification de la classe
+    |--------------------------------------------------------------------------
+    */
+
+    if (
+        (int) $frais->classe_id !==
+        (int) $inscription->classe_id
+    ) {
+        return back()
+            ->withInput()
+            ->with(
+                'error',
+                'Ces frais ne correspondent pas à la classe de l\'élève.'
+            );
+    }
+
+
+    /*
+    |--------------------------------------------------------------------------
+    | Détermination de la section
+    |--------------------------------------------------------------------------
+    |
+    | Les valeurs utilisées correspondent aux valeurs réelles
+    | enregistrées dans la table frais :
+    |
+    | Maternelle
+    | Primaire
+    | Secondaire
+    | Humanités
+    |
+    */
+
+    $sectionEleve = match ((int) $inscription->classe->niveau) {
+
+        0 => 'Maternelle',
+        1 => 'Primaire',
+        2 => 'Secondaire',
+        3 => 'Humanités',
+
+        default => 'Autre',
+    };
+
+
+    /*
+    |--------------------------------------------------------------------------
+    | Normalisation de la section
+    |--------------------------------------------------------------------------
+    |
+    | Cette fonction permet d'éviter les problèmes liés à :
+    |
+    | Humanités
+    | humanités
+    | HUMANITÉS
+    | humanites
+    | HUMANITES
+    |
+    */
+
+    $normaliserSection = function ($section) {
+
+        $section = trim((string) $section);
+
+        $section = mb_strtolower(
+            $section,
+            'UTF-8'
         );
 
-        if (!$eleve) {
+        $section = strtr(
+            $section,
+            [
+                'à' => 'a',
+                'á' => 'a',
+                'â' => 'a',
+                'ä' => 'a',
+                'ã' => 'a',
+                'å' => 'a',
 
-            return back()
-                ->withInput()
-                ->withErrors([
-                    'eleve_id' =>
-                        'L’élève sélectionné n’existe pas.',
-                ]);
-        }
+                'ç' => 'c',
 
+                'è' => 'e',
+                'é' => 'e',
+                'ê' => 'e',
+                'ë' => 'e',
 
-        $anneeScolaire = AnneeScolaire::find(
-            $validated['annee_scolaire_id']
+                'ì' => 'i',
+                'í' => 'i',
+                'î' => 'i',
+                'ï' => 'i',
+
+                'ñ' => 'n',
+
+                'ò' => 'o',
+                'ó' => 'o',
+                'ô' => 'o',
+                'ö' => 'o',
+                'õ' => 'o',
+
+                'ù' => 'u',
+                'ú' => 'u',
+                'û' => 'u',
+                'ü' => 'u',
+
+                'ý' => 'y',
+                'ÿ' => 'y',
+            ]
         );
 
-        if (!$anneeScolaire) {
+        return $section;
+    };
 
+
+    /*
+    |--------------------------------------------------------------------------
+    | Comparaison de la section
+    |--------------------------------------------------------------------------
+    */
+
+    $sectionEleveNormalisee =
+        $normaliserSection($sectionEleve);
+
+    $sectionFraisNormalisee =
+        $normaliserSection($frais->section);
+
+
+    if (
+        $sectionEleveNormalisee !==
+        $sectionFraisNormalisee
+    ) {
+        return back()
+            ->withInput()
+            ->with(
+                'error',
+                'Ces frais ne correspondent pas à la section de l\'élève.'
+            );
+    }
+
+
+    /*
+    |--------------------------------------------------------------------------
+    | Gestion du mois
+    |--------------------------------------------------------------------------
+    */
+
+    $estMinerval =
+        mb_strtolower(
+            trim($motif),
+            'UTF-8'
+        ) === 'minerval';
+
+
+    if ($estMinerval) {
+
+        if (
+            empty($validated['mois']) ||
+            mb_strtolower(
+                trim($validated['mois']),
+                'UTF-8'
+            ) === 'pas disponible'
+        ) {
             return back()
                 ->withInput()
-                ->withErrors([
-                    'annee_scolaire_id' =>
-                        'L’année scolaire sélectionnée n’existe pas.',
-                ]);
+                ->with(
+                    'error',
+                    'Le mois est obligatoire pour le minerval.'
+                );
         }
+
+    } else {
+
+        /*
+        |--------------------------------------------------------------------------
+        | Les autres frais n'ont pas de mois
+        |--------------------------------------------------------------------------
+        */
+
+        $validated['mois'] = 'Pas disponible';
+    }
+
+
+    /*
+    |--------------------------------------------------------------------------
+    | Montant des frais
+    |--------------------------------------------------------------------------
+    */
+
+    $montantDu = (float) $frais->montant;
+
+    $montantVerse = (float) $validated['montant_paye'];
+
+
+    if ($montantVerse <= 0) {
+        return back()
+            ->withInput()
+            ->with(
+                'error',
+                'Le montant versé doit être supérieur à zéro.'
+            );
+    }
+
+
+    /*
+    |--------------------------------------------------------------------------
+    | Transaction
+    |--------------------------------------------------------------------------
+    */
+
+    try {
+
+        DB::beginTransaction();
 
 
         /*
         |--------------------------------------------------------------------------
-        | Vérification inscription
+        | Recherche du paiement existant
         |--------------------------------------------------------------------------
+        |
+        | Minerval :
+        | élève + année + frais + mois
+        |
+        | Autres frais :
+        | élève + année + frais
+        |
         */
 
-        $inscription = Inscription::with('classe')
+        $paiementQuery = Paiement::query()
             ->where(
                 'eleve_id',
-                $eleve->id
+                $validated['eleve_id']
             )
             ->where(
                 'annee_scolaire_id',
                 $anneeScolaire->id
             )
-            ->first();
-
-        if (!$inscription) {
-
-            return back()
-                ->withInput()
-                ->with(
-                    'error',
-                    'Cet élève n’est pas inscrit dans l’année scolaire sélectionnée.'
-                );
-        }
-
-
-        if (!$inscription->classe) {
-
-            return back()
-                ->withInput()
-                ->with(
-                    'error',
-                    'La classe associée à l’inscription de cet élève est introuvable.'
-                );
-        }
-
-
-        /*
-        |--------------------------------------------------------------------------
-        | Section
-        |--------------------------------------------------------------------------
-        */
-
-        $section = match ((int) $inscription->classe->niveau) {
-
-            0 => 'maternelle',
-            1 => 'primaire',
-            2 => 'secondaire',
-            3 => 'humanites',
-
-            default => null,
-        };
-
-        if (!$section) {
-
-            return back()
-                ->withInput()
-                ->with(
-                    'error',
-                    'La section de l’élève est invalide.'
-                );
-        }
-
-
-        /*
-        |--------------------------------------------------------------------------
-        | Vérification du frais
-        |--------------------------------------------------------------------------
-        */
-
-        $frais = Frais::where(
-            'id',
-            $validated['frais_id']
-        )
             ->where(
-                'annee_scolaire_id',
-                $anneeScolaire->id
+                'frais_id',
+                $validated['frais_id']
             )
-            ->where(
-                'section',
-                $section
-            )
-            ->first();
-
-        if (!$frais) {
-
-            return back()
-                ->withInput()
-                ->with(
-                    'error',
-                    'Le frais sélectionné n’est pas disponible pour la section de cet élève.'
-                );
-        }
-
-
-        /*
-        |--------------------------------------------------------------------------
-        | Motif
-        |--------------------------------------------------------------------------
-        */
-
-        $motif = $frais->intitule;
-
-
-        /*
-        |--------------------------------------------------------------------------
-        | Minerval
-        |--------------------------------------------------------------------------
-        */
-
-        $estMinerval =
-            $motif === 'Minerval' ||
-            $motif === 'minerval';
+            ->lockForUpdate();
 
 
         if ($estMinerval) {
 
-            if (empty($validated['mois'])) {
-
-                return back()
-                    ->withInput()
-                    ->withErrors([
-                        'mois' =>
-                            'Veuillez sélectionner le mois du minerval.',
-                    ]);
-            }
-
-            $mois = $validated['mois'];
-
-        } else {
-
-            $mois = 'Pas disponible';
+            $paiementQuery->where(
+                'mois',
+                $validated['mois']
+            );
         }
 
 
-        /*
-        |--------------------------------------------------------------------------
-        | Montants
-        |--------------------------------------------------------------------------
-        */
-
-        $montantDu = (float) $frais->montant;
-
-        $montantVerse = (float) $validated['montant_paye'];
+        $paiement = $paiementQuery->first();
 
 
         /*
         |--------------------------------------------------------------------------
-        | Transaction
+        | Paiement existant
         |--------------------------------------------------------------------------
         */
 
-        try {
+        if ($paiement) {
 
-            $paiement = DB::transaction(function () use (
-                $validated,
-                $eleve,
-                $anneeScolaire,
-                $frais,
-                $section,
-                $motif,
-                $mois,
-                $montantDu,
-                $montantVerse,
-                $estMinerval
-            ) {
+            $montantDejaPaye =
+                (float) $paiement->montant_paye;
 
-                /*
-                |--------------------------------------------------------------------------
-                | Recherche du paiement existant
-                |--------------------------------------------------------------------------
-                */
 
-                $paiementExistant = Paiement::where(
-                    'eleve_id',
-                    $eleve->id
-                )
-                    ->where(
-                        'annee_scolaire_id',
-                        $anneeScolaire->id
-                    )
-                    ->where(
-                        'frais_id',
-                        $frais->id
-                    )
-                    ->when(
-                        $estMinerval,
-                        function ($query) use ($mois) {
-
-                            $query->where(
-                                'mois',
-                                $mois
-                            );
-                        }
-                    )
-                    ->lockForUpdate()
-                    ->first();
-
-
-                /*
-                |--------------------------------------------------------------------------
-                | Déterminer le paiement et le restant
-                |--------------------------------------------------------------------------
-                */
-
-                if ($paiementExistant) {
-
-                    /*
-                    | Paiement déjà soldé
-                    */
-
-                    if (
-                        (float) $paiementExistant->restant <= 0
-                    ) {
-
-                        if ($estMinerval) {
-
-                            throw ValidationException::withMessages([
-                                'frais_id' =>
-                                    'Le minerval du mois de '
-                                    . $mois
-                                    . ' a déjà été entièrement payé.',
-                            ]);
-                        }
-
-                        throw ValidationException::withMessages([
-                            'frais_id' =>
-                                'Ce frais a déjà été entièrement payé pour cet élève pendant cette année scolaire.',
-                        ]);
-                    }
-
-
-                    /*
-                    | Montant restant
-                    */
-
-                    $restantActuel =
-                        (float) $paiementExistant->restant;
-
-
-                    /*
-                    | Le versement ne peut pas dépasser
-                    | le restant
-                    */
-
-                    if ($montantVerse > $restantActuel) {
-
-                        throw ValidationException::withMessages([
-                            'montant_paye' =>
-                                'Le montant payé dépasse le montant restant de '
-                                . number_format(
-                                    $restantActuel,
-                                    2,
-                                    ',',
-                                    ' '
-                                )
-                                . ' FC.',
-                        ]);
-                    }
-
-
-                    /*
-                    | Nouveau cumul
-                    */
-
-                    $nouveauMontantPaye =
-                        (float) $paiementExistant->montant_paye
-                        + $montantVerse;
-
-
-                    $nouveauRestant =
-                        $restantActuel
-                        - $montantVerse;
-
-
-                    /*
-                    |--------------------------------------------------------------------------
-                    | Mise à jour du paiement principal
-                    |--------------------------------------------------------------------------
-                    */
-
-                    $paiementExistant->update([
-
-                        'montant_paye' =>
-                            $nouveauMontantPaye,
-
-                        'restant' =>
-                            $nouveauRestant,
-
-                        'date_paiement' =>
-                            $validated['date_paiement'],
-
-                        'updated_by' =>
-                            auth()->id(),
-                    ]);
-
-
-                    $paiement = $paiementExistant;
-
-                } else {
-
-                    /*
-                    |--------------------------------------------------------------------------
-                    | Nouveau paiement
-                    |--------------------------------------------------------------------------
-                    */
-
-                    if ($montantVerse > $montantDu) {
-
-                        throw ValidationException::withMessages([
-                            'montant_paye' =>
-                                'Le montant payé ne peut pas être supérieur au montant du frais.',
-                        ]);
-                    }
-
-
-                    $restant =
-                        $montantDu - $montantVerse;
-
-
-                    /*
-                    |--------------------------------------------------------------------------
-                    | Création du paiement principal
-                    |--------------------------------------------------------------------------
-                    |
-                    | IMPORTANT :
-                    | reference et mode_paiement ne sont plus ici.
-                    |
-                    */
-
-                    $paiement = Paiement::create([
-
-                        'eleve_id' =>
-                            $eleve->id,
-
-                        'annee_scolaire_id' =>
-                            $anneeScolaire->id,
-
-                        'frais_id' =>
-                            $frais->id,
-
-                        'motif' =>
-                            $motif,
-
-                        'mois' =>
-                            $mois,
-
-                        'montant_du' =>
-                            $montantDu,
-
-                        'montant_paye' =>
-                            $montantVerse,
-
-                        'restant' =>
-                            $restant,
-
-                        'date_paiement' =>
-                            $validated['date_paiement'],
-
-                        'created_by' =>
-                            auth()->id(),
-                    ]);
-                }
-
-
-                /*
-                |--------------------------------------------------------------------------
-                | Génération de la référence
-                |--------------------------------------------------------------------------
-                |
-                | La référence appartient maintenant à l'historique.
-                |
-                | Exemple :
-                |
-                | ESP-00001-PRIM
-                | MM-00002-HUM
-                | VIR-00003-SEC
-                |
-                |--------------------------------------------------------------------------
-                */
-
-                $suffixeSection = match ($section) {
-
-                    'humanites' => 'HUM',
-                    'secondaire' => 'SEC',
-                    'primaire' => 'PRIM',
-                    'maternelle' => 'MAT',
-
-                    default => 'AUT',
-                };
-
-
-                $prefixeMode = match (
-                    strtolower(
-                        trim(
-                            $validated['mode_paiement']
-                        )
-                    )
-                ) {
-
-                    'especes',
-                    'espèces',
-                    'espece',
-                    'espèce'
-                        => 'ESP',
-
-                    'mobile_money',
-                    'mobile money'
-                        => 'MM',
-
-                    'virement'
-                        => 'VIR',
-
-                    'cheque',
-                    'chèque'
-                        => 'CHQ',
-
-                    default
-                        => 'PAY',
-                };
-
-
-                /*
-                |--------------------------------------------------------------------------
-                | Numéro global des références
-                |--------------------------------------------------------------------------
-                |
-                | Le compteur est maintenant recherché dans
-                | historique_paiements.
-                |
-                */
-
-                $dernierNumero = HistoriquePaiement::query()
-                    ->whereHas(
-                        'paiement',
-                        function ($query) use ($anneeScolaire) {
-
-                            $query->where(
-                                'annee_scolaire_id',
-                                $anneeScolaire->id
-                            );
-                        }
-                    )
-                    ->lockForUpdate()
-                    ->get()
-                    ->map(function ($historique) {
-
-                        $parties = explode(
-                            '-',
-                            $historique->reference
-                        );
-
-                        if (
-                            isset($parties[1]) &&
-                            is_numeric($parties[1])
-                        ) {
-                            return (int) $parties[1];
-                        }
-
-                        return 0;
-                    })
-                    ->max();
-
-
-                $numero =
-                    ($dernierNumero ?? 0) + 1;
-
-
-                $reference =
-                    $prefixeMode
-                    . '-'
-                    . str_pad(
-                        $numero,
-                        5,
-                        '0',
-                        STR_PAD_LEFT
-                    )
-                    . '-'
-                    . $suffixeSection;
-
-
-                /*
-                |--------------------------------------------------------------------------
-                | Sécurité contre les doublons
-                |--------------------------------------------------------------------------
-                */
-
-                while (
-                    HistoriquePaiement::where(
-                        'reference',
-                        $reference
-                    )->exists()
-                ) {
-
-                    $numero++;
-
-                    $reference =
-                        $prefixeMode
-                        . '-'
-                        . str_pad(
-                            $numero,
-                            5,
-                            '0',
-                            STR_PAD_LEFT
-                        )
-                        . '-'
-                        . $suffixeSection;
-                }
-
-
-                /*
-                |--------------------------------------------------------------------------
-                | Création de l'historique
-                |--------------------------------------------------------------------------
-                |
-                | C'est ici que sont enregistrés :
-                |
-                | - montant
-                | - date
-                | - mode
-                | - référence
-                | - utilisateur
-                |
-                |--------------------------------------------------------------------------
-                */
-
-                HistoriquePaiement::create([
-
-                    'paiement_id' =>
-                        $paiement->id,
-
-                    'montant' =>
-                        $montantVerse,
-
-                    'date_paiement' =>
-                        $validated['date_paiement'],
-
-                    'mode_paiement' =>
-                        $validated['mode_paiement'],
-
-                    'reference' =>
-                        $reference,
-
-                    'created_by' =>
-                        auth()->id(),
-                ]);
-
-
-                return $paiement;
-            });
+            $restantAvant = max(
+                0,
+                $montantDu - $montantDejaPaye
+            );
 
 
             /*
             |--------------------------------------------------------------------------
-            | Retour
+            | Paiement déjà soldé
             |--------------------------------------------------------------------------
             */
 
-            return redirect()
-                ->route('paiements.show', [
-                    'eleve' =>
-                        $eleve->id,
+            if ($restantAvant <= 0) {
 
-                    'annee_scolaire_id' =>
-                        $anneeScolaire->id,
-                ])
-                ->with(
-                    'success',
-                    'Le paiement a été enregistré avec succès.'
+                DB::rollBack();
+
+                return back()
+                    ->withInput()
+                    ->with(
+                        'error',
+                        $estMinerval
+                            ? 'Ce minerval est déjà entièrement payé pour ce mois.'
+                            : 'Ces frais sont déjà entièrement payés.'
+                    );
+            }
+
+
+            /*
+            |--------------------------------------------------------------------------
+            | Vérification du montant restant
+            |--------------------------------------------------------------------------
+            */
+
+            if ($montantVerse > $restantAvant) {
+
+                DB::rollBack();
+
+                return back()
+                    ->withInput()
+                    ->with(
+                        'error',
+                        'Le montant versé dépasse le montant restant de '
+                        . number_format(
+                            $restantAvant,
+                            2,
+                            ',',
+                            ' '
+                        )
+                        . ' FC.'
+                    );
+            }
+
+
+            /*
+            |--------------------------------------------------------------------------
+            | Nouveau montant payé
+            |--------------------------------------------------------------------------
+            */
+
+            $nouveauMontantPaye =
+                $montantDejaPaye + $montantVerse;
+
+
+            $nouveauRestant =
+                max(
+                    0,
+                    $montantDu - $nouveauMontantPaye
                 );
 
 
-        } catch (ValidationException $e) {
+            /*
+            |--------------------------------------------------------------------------
+            | Mise à jour du paiement
+            |--------------------------------------------------------------------------
+            */
 
-            return back()
-                ->withInput()
-                ->withErrors(
-                    $e->errors()
+            $paiement->update([
+                'motif' => $motif,
+                'mois' => $validated['mois'],
+                'montant_du' => $montantDu,
+                'montant_paye' => $nouveauMontantPaye,
+                'restant' => $nouveauRestant,
+                'date_paiement' => $validated['date_paiement'],
+                'mode_paiement' => $validated['mode_paiement'],
+                'updated_by' => auth()->id(),
+            ]);
+
+        } else {
+
+            /*
+            |--------------------------------------------------------------------------
+            | Premier versement
+            |--------------------------------------------------------------------------
+            */
+
+            if ($montantVerse > $montantDu) {
+
+                DB::rollBack();
+
+                return back()
+                    ->withInput()
+                    ->with(
+                        'error',
+                        'Le montant versé ne peut pas dépasser '
+                        . number_format(
+                            $montantDu,
+                            2,
+                            ',',
+                            ' '
+                        )
+                        . ' FC.'
+                    );
+            }
+
+
+            $restant =
+                max(
+                    0,
+                    $montantDu - $montantVerse
                 );
 
 
-        } catch (\Throwable $e) {
+            /*
+            |--------------------------------------------------------------------------
+            | Création du paiement
+            |--------------------------------------------------------------------------
+            */
 
-            return back()
-                ->withInput()
-                ->with(
-                    'error',
-                    'Une erreur est survenue lors de l’enregistrement du paiement.'
-                );
+            $paiement = Paiement::create([
+                'eleve_id' => $validated['eleve_id'],
+                'annee_scolaire_id' => $anneeScolaire->id,
+                'frais_id' => $validated['frais_id'],
+                'motif' => $motif,
+                'mois' => $validated['mois'],
+                'montant_du' => $montantDu,
+                'montant_paye' => $montantVerse,
+                'restant' => $restant,
+                'date_paiement' => $validated['date_paiement'],
+                'mode_paiement' => $validated['mode_paiement'],
+                'created_by' => auth()->id(),
+            ]);
         }
+
+
+        /*
+        |--------------------------------------------------------------------------
+        | Préfixe selon le mode de paiement
+        |--------------------------------------------------------------------------
+        */
+
+        $prefixeMode = match (
+            mb_strtolower(
+                trim(
+                    $validated['mode_paiement']
+                ),
+                'UTF-8'
+            )
+        ) {
+
+            'especes',
+            'espèces',
+            'espece',
+            'espèce'
+                => 'ESP',
+
+            'mobile_money',
+            'mobile money'
+                => 'MM',
+
+            'virement'
+                => 'VIR',
+
+            'cheque',
+            'chèque'
+                => 'CHQ',
+
+            default
+                => 'PAY',
+        };
+
+
+        /*
+        |--------------------------------------------------------------------------
+        | Génération d'une référence globalement unique
+        |--------------------------------------------------------------------------
+        |
+        | Exemple :
+        |
+        | ESP-7K4P9-X2Q8M-A6R3T
+        | MM-9F2KD-P7L3Q-Z8W1A
+        | VIR-A7K2P-9QX4M-L5T8R
+        |
+        | La vérification porte sur tout l'historique,
+        | quelle que soit l'année scolaire.
+        |
+        */
+
+        do {
+
+            $reference =
+                $prefixeMode
+                . '-'
+                . strtoupper(Str::random(5))
+                . '-'
+                . strtoupper(Str::random(5))
+                . '-'
+                . strtoupper(Str::random(5));
+
+        } while (
+            HistoriquePaiement::where(
+                'reference',
+                $reference
+            )->exists()
+        );
+
+
+        /*
+        |--------------------------------------------------------------------------
+        | Création de l'historique du versement
+        |--------------------------------------------------------------------------
+        */
+
+        HistoriquePaiement::create([
+            'paiement_id' => $paiement->id,
+            'montant' => $montantVerse,
+            'date_paiement' => $validated['date_paiement'],
+            'mode_paiement' => $validated['mode_paiement'],
+            'reference' => $reference,
+            'created_by' => auth()->id(),
+        ]);
+
+
+        /*
+        |--------------------------------------------------------------------------
+        | Validation de la transaction
+        |--------------------------------------------------------------------------
+        */
+
+        DB::commit();
+
+
+        /*
+        |--------------------------------------------------------------------------
+        | Redirection
+        |--------------------------------------------------------------------------
+        */
+
+        return redirect()
+            ->route(
+                'paiements.show',
+                $validated['eleve_id']
+            )
+            ->with(
+                'success',
+                'Versement enregistré avec succès. Référence : '
+                . $reference
+            );
+
+
+    } catch (\Throwable $e) {
+
+        DB::rollBack();
+
+        return back()
+            ->withInput()
+            ->with(
+                'error',
+                'Une erreur est survenue lors de l\'enregistrement du paiement : '
+                . $e->getMessage()
+            );
     }
+}
+
+
+
+
 
 
     /*
@@ -2741,6 +2681,133 @@ public function rapportQuotidienExcel(Request $request)
 
     }, $filename, $headers);
 }
+
+/*
+|--------------------------------------------------------------------------
+| MÉTHODE DE VERIFICATION DES PAIEMENTS
+|*-------------------------------------------------------------------------
+*/
+
+public function verification(Request $request)
+{
+    $reference = trim($request->input('reference', ''));
+
+    // Aucun numéro fourni : afficher simplement le formulaire
+    if ($reference === '') {
+        return view('paiements.verification');
+    }
+
+    /*
+    |--------------------------------------------------------------------------
+    | Recherche du versement par sa référence
+    |--------------------------------------------------------------------------
+    */
+    $historique = HistoriquePaiement::with([
+        'paiement.eleve',
+        'paiement.anneeScolaire',
+        'paiement.frais',
+        'paiement.createdBy',
+        'paiement.updatedBy',
+    ])
+    ->where('reference', $reference)
+    ->first();
+
+    /*
+    |--------------------------------------------------------------------------
+    | Référence inexistante
+    |--------------------------------------------------------------------------
+    */
+    if (!$historique) {
+        return view('paiements.verification', [
+            'reference' => $reference,
+            'historique' => null,
+        ])->with(
+            'error',
+            'Aucun versement ne correspond à cette référence.'
+        );
+    }
+
+    $paiement = $historique->paiement;
+
+    /*
+    |--------------------------------------------------------------------------
+    | Récupérer l'inscription de l'élève pour l'année concernée
+    |--------------------------------------------------------------------------
+    */
+    $inscription = $paiement->eleve
+        ->inscriptions()
+        ->with('classe')
+        ->where('annee_scolaire_id', $paiement->annee_scolaire_id)
+        ->first();
+
+    /*
+    |--------------------------------------------------------------------------
+    | Calcul du montant AVANT ce versement
+    |--------------------------------------------------------------------------
+    |
+    | On additionne uniquement les versements enregistrés avant
+    | celui que nous sommes en train de vérifier.
+    |
+    */
+
+    $montantAvant = $paiement->historiques()
+        ->where(function ($query) use ($historique) {
+
+            $query->where('date_paiement', '<', $historique->date_paiement)
+                ->orWhere(function ($query) use ($historique) {
+
+                    $query->whereDate(
+                        'date_paiement',
+                        $historique->date_paiement
+                    )
+                    ->where('id', '<', $historique->id);
+
+                });
+
+        })
+        ->sum('montant');
+
+    /*
+    |--------------------------------------------------------------------------
+    | Montant de ce versement
+    |--------------------------------------------------------------------------
+    */
+    $montantVersement = (float) $historique->montant;
+
+    /*
+    |--------------------------------------------------------------------------
+    | Montant APRÈS ce versement
+    |--------------------------------------------------------------------------
+    */
+    $montantApres = (float) $montantAvant + $montantVersement;
+
+    /*
+    |--------------------------------------------------------------------------
+    | Solde après ce versement
+    |--------------------------------------------------------------------------
+    */
+    $soldeApres = max(
+        0,
+        (float) $paiement->montant_du - $montantApres
+    );
+
+    return view('paiements.verification', [
+        'reference' => $reference,
+        'historique' => $historique,
+        'paiement' => $paiement,
+        'inscription' => $inscription,
+
+        // Informations financières du versement
+        'montantAvant' => $montantAvant,
+        'montantVersement' => $montantVersement,
+        'montantApres' => $montantApres,
+        'soldeApres' => $soldeApres,
+    ]);
+}
+
+
+
+
 
 }
 

@@ -530,6 +530,10 @@ Route::prefix('paiements')
             'dashboard'
         ])->name('dashboard');
 
+        // Vérification d'un paiement par numero de reference
+        Route::get('/verification', [PaiementController::class, 'verification'])
+            ->name('verification');
+
         // Détails des paiements d'une journée
         Route::get('/details-jour', [PaiementController::class, 'detailsJour'])
         ->name('details-jour');
@@ -589,6 +593,7 @@ Route::prefix('paiements')
             '/paiements/rapport-quotidien/excel',
             [PaiementController::class, 'rapportQuotidienExcel']
         )->name('rapport-quotidien.excel');
+
 
     });
 
