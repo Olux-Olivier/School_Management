@@ -24,15 +24,7 @@
                 Dashboard des paiements
             </h1>
 
-            <a href="{{ route('paiements.verification') }}"
-                class="flex items-center gap-2 px-4 py-2 rounded-lg
-                        text-slate-700 hover:bg-slate-100 transition">
 
-                    <i class="fas fa-search-dollar"></i>
-
-                    <span>Vérifier un paiement</span>
-
-                </a>
 
             @if($anneeScolaireActive)
 
@@ -47,6 +39,19 @@
                 </p>
 
             @endif
+
+        </div>
+        <div>
+            <a href="{{ route('paiements.verification') }}"
+                    class="inline-flex items-center justify-center gap-2
+                                    rounded-xl bg-blue-600 px-5 py-2.5
+                                    font-medium text-white
+                                    transition hover:bg-blue-700">
+                <i class="fas fa-search-dollar"></i>
+
+                <span>Vérifier un paiement</span>
+
+            </a>
 
         </div>
 

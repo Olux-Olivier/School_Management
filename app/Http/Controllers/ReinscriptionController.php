@@ -11,24 +11,14 @@ use Illuminate\Support\Facades\DB;
 
 class ReinscriptionController extends Controller
 {
+
     public function index(Request $request)
     {
-        /*
-        |--------------------------------------------------------------------------
-        | Année scolaire active
-        |--------------------------------------------------------------------------
-        */
-
+        // Année scolaire active
         $anneeScolaireActive = AnneeScolaire::where('actif', true)
             ->firstOrFail();
 
-
-        /*
-        |--------------------------------------------------------------------------
-        | Année scolaire précédente
-        |--------------------------------------------------------------------------
-        */
-
+        // Année scolaire précédente
         $anneeScolairePrecedente = AnneeScolaire::where(
             'date_fin',
             '<',
@@ -37,195 +27,126 @@ class ReinscriptionController extends Controller
             ->orderByDesc('date_fin')
             ->first();
 
+        // Déterminer si une recherche a été lancée
+        $rechercheEffectuee = $request->boolean('rechercher');
 
-        /*
-        |--------------------------------------------------------------------------
-        | Aucune année précédente
-        |--------------------------------------------------------------------------
-        */
+        // Vérifier qu'au moins un critère est renseigné
+        $criteresRenseignes =
+            $request->filled('search')
+            || $request->filled('section')
+            || $request->filled('classe_id');
 
-        if (!$anneeScolairePrecedente) {
-
-            $inscriptions = Inscription::whereRaw('1 = 0')
-                ->paginate(25);
-
-            $classes = collect();
-
-            return view(
-                'reinscriptions.index',
-                compact(
-                    'anneeScolaireActive',
-                    'anneeScolairePrecedente',
-                    'inscriptions',
-                    'classes'
-                )
-            );
-        }
-
-
-        /*
-        |--------------------------------------------------------------------------
-        | Inscriptions de l'année précédente
-        |--------------------------------------------------------------------------
-        |
-        | IMPORTANT :
-        |
-        | On exclut directement les élèves qui possèdent déjà
-        | une inscription dans l'année scolaire active.
-        |
-        */
-
-        $query = Inscription::with([
-            'eleve',
-            'classe',
-            'anneeScolaire',
-        ])
-            ->where(
-                'annee_scolaire_id',
-                $anneeScolairePrecedente->id
-            )
-            ->whereNotExists(function ($subQuery) use ($anneeScolaireActive) {
-
-                $subQuery->selectRaw('1')
-                    ->from('inscriptions as inscriptions_actives')
-                    ->whereColumn(
-                        'inscriptions_actives.eleve_id',
-                        'inscriptions.eleve_id'
-                    )
-                    ->where(
-                        'inscriptions_actives.annee_scolaire_id',
-                        $anneeScolaireActive->id
-                    );
-
-            });
-
-
-        /*
-        |--------------------------------------------------------------------------
-        | Recherche élève
-        |--------------------------------------------------------------------------
-        */
-
-        if ($request->filled('search')) {
-
-            $search = trim($request->search);
-
-            $query->whereHas('eleve', function ($q) use ($search) {
-
-                $q->where('matricule', 'like', "%{$search}%")
-                    ->orWhere('nom', 'like', "%{$search}%")
-                    ->orWhere('postnom', 'like', "%{$search}%")
-                    ->orWhere('prenom', 'like', "%{$search}%");
-
-            });
-        }
-
-
-        /*
-        |--------------------------------------------------------------------------
-        | Section → Niveau
-        |--------------------------------------------------------------------------
-        |
-        | Maternelle = 0
-        | Primaire   = 1
-        | Secondaire = 2
-        | Humanités  = 3
-        |
-        */
-
-        $niveau = null;
-
-        if ($request->filled('section')) {
-
-            $niveau = match ($request->section) {
-
-                'maternelle' => 0,
-
-                'primaire' => 1,
-
-                'secondaire' => 2,
-
-                'humanites' => 3,
-
-                default => null,
-
-            };
-        }
-
-
-        /*
-        |--------------------------------------------------------------------------
-        | Filtre par section
-        |--------------------------------------------------------------------------
-        */
-
-        if ($niveau !== null) {
-
-            $query->whereHas('classe', function ($q) use ($niveau) {
-
-                $q->where(
-                    'niveau',
-                    $niveau
-                );
-
-            });
-        }
-
-
-        /*
-        |--------------------------------------------------------------------------
-        | Filtre par classe
-        |--------------------------------------------------------------------------
-        */
-
-        if ($request->filled('classe_id')) {
-
-            $query->where(
-                'classe_id',
-                $request->classe_id
-            );
-        }
-
-
-        /*
-        |--------------------------------------------------------------------------
-        | Pagination
-        |--------------------------------------------------------------------------
-        */
-
-        $inscriptions = $query
-            ->latest('id')
+        // Initialiser les résultats sans charger la liste complète
+        $inscriptions = Inscription::whereRaw('1 = 0')
             ->paginate(25)
             ->withQueryString();
 
+        // Identifiants des élèves déjà inscrits dans l'année active
+        $elevesDejaInscrits = [];
 
-        /*
-        |--------------------------------------------------------------------------
-        | Classes ayant des inscriptions dans l'année précédente
-        |--------------------------------------------------------------------------
-        */
+        // Classes disponibles dans les filtres
+        $classes = collect();
 
-        $classes = Classe::whereHas(
-            'inscriptions',
-            function ($query) use ($anneeScolairePrecedente) {
+        if ($anneeScolairePrecedente) {
 
-                $query->where(
-                    'annee_scolaire_id',
-                    $anneeScolairePrecedente->id
-                );
+            /*
+            * Classes ayant des inscriptions pendant l'année précédente.
+            * On conserve les classes historiques pour la consultation.
+            */
+            $classes = Classe::whereHas(
+                'inscriptions',
+                function ($query) use ($anneeScolairePrecedente) {
+                    $query->where(
+                        'annee_scolaire_id',
+                        $anneeScolairePrecedente->id
+                    );
+                }
+            )
+                ->orderBy('niveau')
+                ->orderBy('nom')
+                ->get();
 
+            /*
+            * Effectuer la recherche uniquement si :
+            * - le formulaire a été soumis ;
+            * - au moins un critère est renseigné.
+            *
+            * On conserve les élèves déjà réinscrits afin de pouvoir
+            * afficher le bouton « Déjà inscrit ».
+            */
+            if ($rechercheEffectuee && $criteresRenseignes) {
+
+                $query = Inscription::with([
+                    'eleve',
+                    'classe',
+                    'anneeScolaire',
+                ])
+                    ->where(
+                        'annee_scolaire_id',
+                        $anneeScolairePrecedente->id
+                    );
+
+                // Recherche par matricule, nom, postnom ou prénom
+                if ($request->filled('search')) {
+
+                    $search = trim($request->search);
+
+                    $query->whereHas('eleve', function ($q) use ($search) {
+                        $q->where('matricule', 'like', "%{$search}%")
+                            ->orWhere('nom', 'like', "%{$search}%")
+                            ->orWhere('postnom', 'like', "%{$search}%")
+                            ->orWhere('prenom', 'like', "%{$search}%");
+                    });
+                }
+
+                // Section vers niveau
+                $niveau = match ($request->section) {
+                    'maternelle' => 0,
+                    'primaire' => 1,
+                    'secondaire' => 2,
+                    'humanites' => 3,
+                    default => null,
+                };
+
+                if ($request->filled('section') && $niveau !== null) {
+                    $query->whereHas('classe', function ($q) use ($niveau) {
+                        $q->where('niveau', $niveau);
+                    });
+                }
+
+                // Filtre par classe
+                if ($request->filled('classe_id')) {
+                    $query->where('classe_id', $request->classe_id);
+                }
+
+                // Résultats paginés
+                $inscriptions = $query
+                    ->latest('id')
+                    ->paginate(25)
+                    ->withQueryString();
+
+                /*
+                * Vérifier en une seule requête quels élèves affichés
+                * possèdent déjà une inscription dans l'année active.
+                */
+                if ($inscriptions->isNotEmpty()) {
+
+                    $idsEleves = $inscriptions->getCollection()
+                        ->pluck('eleve_id')
+                        ->unique()
+                        ->values();
+
+                    $elevesDejaInscrits = Inscription::where(
+                        'annee_scolaire_id',
+                        $anneeScolaireActive->id
+                    )
+                        ->whereIn('eleve_id', $idsEleves)
+                        ->pluck('eleve_id')
+                        ->map(fn ($id) => (int) $id)
+                        ->all();
+                }
             }
-        )
-            ->orderBy('niveau')
-            ->orderBy('nom')
-            ->get();
-
-
-        /*
-        |--------------------------------------------------------------------------
-        | Retour vers la vue
-        |--------------------------------------------------------------------------
-        */
+        }
 
         return view(
             'reinscriptions.index',
@@ -233,7 +154,10 @@ class ReinscriptionController extends Controller
                 'anneeScolaireActive',
                 'anneeScolairePrecedente',
                 'inscriptions',
-                'classes'
+                'classes',
+                'rechercheEffectuee',
+                'criteresRenseignes',
+                'elevesDejaInscrits'
             )
         );
     }

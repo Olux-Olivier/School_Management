@@ -215,6 +215,8 @@
             method="GET"
             action="{{ route('reinscriptions.index') }}">
 
+            <input type="hidden" name="rechercher" value="1">
+
             <div
                 class="grid grid-cols-1
                        lg:grid-cols-3
@@ -492,376 +494,223 @@
         </form>
 
 
+        {{-- ========================================================= --}}
+        {{-- LISTE : AFFICHAGE UNIQUEMENT APRÈS UNE RECHERCHE --}}
+        {{-- ========================================================= --}}
 
+        @if($rechercheEffectuee && $criteresRenseignes)
 
+            {{-- EN-TÊTE DU TABLEAU --}}
 
-    {{-- ========================================================= --}}
-    {{-- LISTE --}}
-    {{-- ========================================================= --}}
+            <div
+                class="px-6 py-5 border-b border-t mt-5 border-slate-200
+                    flex flex-col sm:flex-row sm:items-center
+                    sm:justify-between gap-3">
 
+                <div>
+                    <h2 class="text-lg font-semibold text-slate-800">
+                        Résultats de la recherche
+                    </h2>
 
-        {{-- ===================================================== --}}
-        {{-- EN-TÊTE TABLEAU --}}
-        {{-- ===================================================== --}}
-
-        <div
-            class="px-6
-                   py-5
-                   border-b border-t mt-5 border-slate-200
-                   flex
-                   flex-col
-                   sm:flex-row
-                   sm:items-center
-                   sm:justify-between
-                   gap-3">
-
-            <div>
-
-                <h2 class="text-lg font-semibold text-slate-800">
-
-                    Élèves à réinscrire
-
-                </h2>
-
-                <p class="text-sm text-slate-500 mt-1">
-
-                    {{ $inscriptions->total() }}
-                    élève(s) à réinscrire
-
-                </p>
+                    <p class="text-sm text-slate-500 mt-1">
+                        {{ $inscriptions->total() }} résultat(s) trouvé(s)
+                    </p>
+                </div>
 
             </div>
 
-        </div>
+            @if($inscriptions->count())
 
+                {{-- TABLEAU --}}
 
+                <div class="w-full max-w-full overflow-x-auto">
 
-        {{-- ===================================================== --}}
-        {{-- TABLEAU --}}
-        {{-- ===================================================== --}}
+                    <table class="w-full min-w-full table-fixed divide-y divide-slate-200">
 
-        @if($inscriptions->count())
+                        <thead class="bg-slate-50">
+                            <tr>
+                                <th class="w-[35%] px-6 py-3 text-left text-xs font-semibold uppercase tracking-wider text-slate-500">
+                                    Élève
+                                </th>
 
-            <div class="overflow-x-auto">
+                                <th class="w-[18%] px-6 py-3 text-left text-xs font-semibold uppercase tracking-wider text-slate-500">
+                                    Matricule
+                                </th>
 
-                <table class="min-w-full divide-y divide-slate-200">
+                                <th class="w-[15%] px-6 py-3 text-left text-xs font-semibold uppercase tracking-wider text-slate-500">
+                                    Section
+                                </th>
 
-                    <thead class="bg-slate-50">
+                                <th class="w-[17%] px-6 py-3 text-left text-xs font-semibold uppercase tracking-wider text-slate-500">
+                                    Classe précédente
+                                </th>
 
-                        <tr>
-
-                            <th
-                                class="px-6
-                                       py-3
-                                       text-left
-                                       text-xs
-                                       font-semibold
-                                       uppercase
-                                       tracking-wider
-                                       text-slate-500">
-
-                                Élève
-
-                            </th>
-
-
-                            <th
-                                class="px-6
-                                       py-3
-                                       text-left
-                                       text-xs
-                                       font-semibold
-                                       uppercase
-                                       tracking-wider
-                                       text-slate-500">
-
-                                Matricule
-
-                            </th>
-
-
-                            <th
-                                class="px-6
-                                       py-3
-                                       text-left
-                                       text-xs
-                                       font-semibold
-                                       uppercase
-                                       tracking-wider
-                                       text-slate-500">
-
-                                Section
-
-                            </th>
-
-
-                            <th
-                                class="px-6
-                                       py-3
-                                       text-left
-                                       text-xs
-                                       font-semibold
-                                       uppercase
-                                       tracking-wider
-                                       text-slate-500">
-
-                                Classe précédente
-
-                            </th>
-
-
-                            <th
-                                class="px-6
-                                       py-3
-                                       text-right
-                                       text-xs
-                                       font-semibold
-                                       uppercase
-                                       tracking-wider
-                                       text-slate-500">
-
-                                Action
-
-                            </th>
-
-                        </tr>
-
-                    </thead>
-
-
-                    <tbody
-                        class="bg-white
-                               divide-y
-                               divide-slate-100">
-
-                        @foreach($inscriptions as $inscription)
-
-                            <tr
-                                class="hover:bg-slate-50
-                                       transition">
-
-
-                                {{-- Élève --}}
-
-                                <td class="px-6 py-4">
-
-                                    <div class="flex items-center gap-3">
-
-                                        <div
-                                            class="w-10 h-10
-                                                   flex-shrink-0
-                                                   rounded-full
-                                                   bg-blue-100
-                                                   flex items-center
-                                                   justify-center
-                                                   text-blue-600">
-
-                                            <i class="fas fa-user"></i>
-
-                                        </div>
-
-
-                                        <div>
-
-                                            <p
-                                                class="font-semibold
-                                                       text-slate-800">
-
-                                                {{ $inscription->eleve->nom }}
-                                                {{ $inscription->eleve->postnom }}
-                                                {{ $inscription->eleve->prenom }}
-
-                                            </p>
-
-                                        </div>
-
-                                    </div>
-
-                                </td>
-
-
-
-                                {{-- Matricule --}}
-
-                                <td
-                                    class="px-6
-                                           py-4
-                                           text-sm
-                                           font-medium
-                                           text-blue-600">
-
-                                    {{ $inscription->eleve->matricule }}
-
-                                </td>
-
-
-
-                                {{-- Section --}}
-
-                                <td class="px-6 py-4">
-
-                                    @php
-
-                                        $section = match(
-                                            $inscription->classe->niveau
-                                        ) {
-
-                                            0 => 'Maternelle',
-
-                                            1 => 'Primaire',
-
-                                            2 => 'Secondaire',
-
-                                            3 => 'Humanités',
-
-                                            default => 'Inconnue',
-
-                                        };
-
-                                    @endphp
-
-
-                                    <span
-                                        class="inline-flex
-                                               items-center
-                                               px-2.5
-                                               py-1
-                                               rounded-full
-                                               text-xs
-                                               font-medium
-                                               bg-slate-100
-                                               text-slate-700">
-
-                                        {{ $section }}
-
-                                    </span>
-
-                                </td>
-
-
-
-                                {{-- Classe --}}
-
-                                <td
-                                    class="px-6
-                                           py-4
-                                           text-sm
-                                           text-slate-700">
-
-                                    {{ $inscription->classe->nom_complet }}
-
-                                </td>
-
-
-
-                                {{-- Action --}}
-
-                                <td
-                                    class="px-6
-                                           py-4
-                                           text-right">
-
-                                    <a
-                                        href="{{ route(
-                                            'reinscriptions.create',
-                                            $inscription
-                                        ) }}"
-
-                                        class="inline-flex
-                                               items-center
-                                               px-4
-                                               py-2
-                                               rounded-lg
-                                               bg-blue-600
-                                               text-white
-                                               text-sm
-                                               font-medium
-                                               hover:bg-blue-700
-                                               transition">
-
-                                        <i
-                                            class="fas fa-user-plus mr-2">
-                                        </i>
-
-                                        Réinscrire
-
-                                    </a>
-
-                                </td>
-
+                                <th class="w-[15%] px-6 py-3 text-right text-xs font-semibold uppercase tracking-wider text-slate-500">
+                                    Action
+                                </th>
                             </tr>
+                        </thead>
 
-                        @endforeach
+                        <tbody class="bg-white divide-y divide-slate-100">
 
-                    </tbody>
+                            @foreach($inscriptions as $inscription)
 
-                </table>
+                                <tr class="hover:bg-slate-50 transition">
 
-            </div>
+                                    {{-- Élève --}}
 
+                                    <td class="px-6 py-4">
+                                        <div class="flex items-center gap-3 min-w-0">
 
-            {{-- ================================================= --}}
-            {{-- PAGINATION --}}
-            {{-- ================================================= --}}
+                                            <div class="w-10 h-10 flex-shrink-0 rounded-full bg-blue-100 flex items-center justify-center text-blue-600">
+                                                <i class="fas fa-user"></i>
+                                            </div>
 
-            <div
-                class="px-6
-                       py-4
-                       border-t border-slate-200">
+                                            <div class="min-w-0">
+                                                <p class="font-semibold text-slate-800 break-words">
+                                                    {{ $inscription->eleve->nom }}
+                                                    {{ $inscription->eleve->postnom }}
+                                                    {{ $inscription->eleve->prenom }}
+                                                </p>
+                                            </div>
 
-                {{ $inscriptions->links() }}
+                                        </div>
+                                    </td>
 
-            </div>
+                                    {{-- Matricule --}}
 
+                                    <td class="px-6 py-4 text-sm font-medium text-blue-600 break-words">
+                                        {{ $inscription->eleve->matricule }}
+                                    </td>
 
-        @else
+                                    {{-- Section --}}
 
-            {{-- ================================================= --}}
-            {{-- AUCUN ÉLÈVE --}}
-            {{-- ================================================= --}}
+                                    <td class="px-6 py-4">
 
-            <div
-                class="px-6
-                       py-16
-                       text-center">
+                                        @php
+                                            $section = match ($inscription->classe->niveau) {
+                                                0 => 'Maternelle',
+                                                1 => 'Primaire',
+                                                2 => 'Secondaire',
+                                                3 => 'Humanités',
+                                                default => 'Inconnue',
+                                            };
+                                        @endphp
 
-                <div
-                    class="w-16
-                           h-16
-                           mx-auto
-                           rounded-full
-                           bg-green-100
-                           flex
-                           items-center
-                           justify-center
-                           text-green-600
-                           text-2xl">
+                                        <span class="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-medium bg-slate-100 text-slate-700">
+                                            {{ $section }}
+                                        </span>
 
-                    <i class="fas fa-check"></i>
+                                    </td>
+
+                                    {{-- Classe précédente --}}
+
+                                    <td class="px-6 py-4 text-sm text-slate-700 break-words">
+                                        {{ $inscription->classe->nom_complet }}
+                                    </td>
+
+                                    {{-- Action --}}
+
+                                    <td class="px-6 py-4 text-right">
+
+                                        @if(in_array(
+                                            (int) $inscription->eleve_id,
+                                            $elevesDejaInscrits,
+                                            true
+                                        ))
+
+                                            <button
+                                                type="button"
+                                                disabled
+                                                class="inline-flex items-center justify-center
+                                                    px-4 py-2 rounded-lg
+                                                    bg-slate-200 text-slate-500
+                                                    text-sm font-medium cursor-not-allowed
+                                                    whitespace-nowrap">
+
+                                                <i class="fas fa-check-circle mr-2"></i>
+                                                Déjà inscrit
+
+                                            </button>
+
+                                        @else
+
+                                            <a
+                                                href="{{ route('reinscriptions.create', $inscription) }}"
+                                                class="inline-flex items-center justify-center
+                                                    px-4 py-2 rounded-lg
+                                                    bg-blue-600 text-white text-sm
+                                                    font-medium hover:bg-blue-700
+                                                    transition whitespace-nowrap">
+
+                                                <i class="fas fa-user-plus mr-2"></i>
+                                                Réinscrire
+
+                                            </a>
+
+                                        @endif
+
+                                    </td>
+
+                                </tr>
+
+                            @endforeach
+
+                        </tbody>
+
+                    </table>
 
                 </div>
 
+                {{-- PAGINATION --}}
 
-                <h3
-                    class="mt-4
-                           text-lg
-                           font-semibold
-                           text-slate-800">
+                <div class="px-6 py-4 border-t border-slate-200">
+                    {{ $inscriptions->links() }}
+                </div>
 
-                    Aucun élève à réinscrire
+            @else
 
+                {{-- AUCUN RÉSULTAT --}}
+
+                <div class="px-6 py-16 text-center">
+
+                    <div class="w-16 h-16 mx-auto rounded-full bg-slate-100
+                                flex items-center justify-center text-slate-500 text-2xl">
+                        <i class="fas fa-search"></i>
+                    </div>
+
+                    <h3 class="mt-4 text-lg font-semibold text-slate-800">
+                        Aucun élève trouvé
+                    </h3>
+
+                    <p class="mt-1 text-sm text-slate-500">
+                        Aucun élève de l'année précédente ne correspond
+                        aux critères de votre recherche.
+                    </p>
+
+                </div>
+
+            @endif
+
+        @else
+
+            {{-- ÉTAT INITIAL : AUCUNE LISTE CHARGÉE --}}
+
+            <div class="mt-5 px-6 py-12 text-center border-t border-slate-200">
+
+                <div class="w-16 h-16 mx-auto rounded-full bg-blue-50
+                            flex items-center justify-center text-blue-600 text-2xl">
+                    <i class="fas fa-search"></i>
+                </div>
+
+                <h3 class="mt-4 text-lg font-semibold text-slate-800">
+                    Rechercher un élève
                 </h3>
 
-
-                <p
-                    class="mt-1
-                           text-sm
-                           text-slate-500">
-
-                    Tous les élèves concernés ont déjà été
-                    réinscrits dans l'année scolaire active,
-                    ou aucun élève ne correspond à votre recherche.
-
+                <p class="mt-1 text-sm text-slate-500">
+                    Saisissez un matricule, un nom, un postnom ou un prénom,
+                    ou sélectionnez une section ou une classe, puis cliquez
+                    sur « Rechercher ».
                 </p>
 
             </div>

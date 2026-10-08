@@ -12,6 +12,40 @@
     {{-- ================================================================
          FILTRES
     ================================================================= --}}
+    <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-4 mb-8">
+
+    <div>
+
+        <h1 class="text-2xl font-bold text-slate-700">
+            Filtrage des élèves inscrits
+        </h1>
+
+        @if($anneeScolaireActive)
+            <p class="text-sm text-slate-500 mt-1">
+                Année scolaire :
+                <span class="font-semibold text-slate-700">
+                    {{ $anneeScolaireActive->libelle ?? $anneeScolaireActive->nom }}
+                </span>
+            </p>
+        @endif
+
+    </div>
+    <div>
+        <a href="{{ route('paiements.verification') }}"
+                class="inline-flex items-center justify-center gap-2
+                                   rounded-xl bg-blue-600 px-5 py-2.5
+                                   font-medium text-white
+                                   transition hover:bg-blue-700">
+            <i class="fas fa-search-dollar"></i>
+
+            <span>Vérifier un paiement</span>
+
+        </a>
+
+    </div>
+
+
+</div>
 
     <div class="mb-6 rounded-2xl border border-slate-200 bg-white p-5 shadow-sm sm:p-6">
 

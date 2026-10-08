@@ -10,6 +10,7 @@ use App\Models\Inscription;
 use App\Models\Paiement;
 use App\Models\HistoriquePaiement;
 use Barryvdh\DomPDF\Facade\Pdf;
+use F9WebLtd\QrCode\Facades\QrCode;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
@@ -1953,108 +1954,157 @@ return view(
     | Génération d'un reçu pour un versement historique.
     |
     */
-    public function recu(HistoriquePaiement $historique)
-    {
-        /*
-        |--------------------------------------------------------------------------
-        | Charger le versement et toutes les informations nécessaires
-        |--------------------------------------------------------------------------
-        */
+public function recu(HistoriquePaiement $historique)
+{
+    /*
+    |--------------------------------------------------------------------------
+    | Charger les informations nécessaires
+    |--------------------------------------------------------------------------
+    */
 
-        $historique->load([
-            'paiement.eleve',
-            'paiement.frais',
-            'paiement.anneeScolaire',
-            'paiement.historiques',
-            'createdBy',
-        ]);
+    $historique->load([
+        'paiement.eleve',
+        'paiement.frais',
+        'paiement.anneeScolaire',
+        'paiement.historiques',
+        'createdBy',
+    ]);
 
-        $paiement = $historique->paiement;
+    $paiement = $historique->paiement;
 
-        /*
-        |--------------------------------------------------------------------------
-        | Vérification
-        |--------------------------------------------------------------------------
-        */
-
-        if (!$paiement) {
-            abort(404, 'Paiement introuvable.');
-        }
-
-        /*
-        |--------------------------------------------------------------------------
-        | Récupérer l'inscription de l'élève pour cette année scolaire
-        |--------------------------------------------------------------------------
-        */
-
-        $inscription = Inscription::with([
-            'classe',
-        ])
-            ->where('eleve_id', $paiement->eleve_id)
-            ->where('annee_scolaire_id', $paiement->annee_scolaire_id)
-            ->first();
-
-        /*
-        |--------------------------------------------------------------------------
-        | Calcul du cumul payé au moment de ce versement
-        |--------------------------------------------------------------------------
-        |
-        | On utilise l'ordre des ID des historiques.
-        | Cela permet qu'un ancien reçu conserve le cumul correspondant
-        | au moment où ce versement a été enregistré.
-        |
-        */
-
-        $montantCumule = $paiement->historiques
-            ->filter(function ($item) use ($historique) {
-                return $item->id <= $historique->id;
-            })
-            ->sum('montant');
-
-        /*
-        |--------------------------------------------------------------------------
-        | Solde restant après ce versement
-        |--------------------------------------------------------------------------
-        */
-
-        $montantDu = (float) $paiement->montant_du;
-
-        $restant = max(
-            0,
-            $montantDu - (float) $montantCumule
-        );
-
-        /*
-        |--------------------------------------------------------------------------
-        | Génération du PDF
-        |--------------------------------------------------------------------------
-        */
-
-        $pdf = Pdf::loadView('paiements.recu', [
-            'historique' => $historique,
-            'paiement' => $paiement,
-            'eleve' => $paiement->eleve,
-            'frais' => $paiement->frais,
-            'anneeScolaire' => $paiement->anneeScolaire,
-            'inscription' => $inscription,
-            'montantDu' => $montantDu,
-            'montantCumule' => $montantCumule,
-            'restant' => $restant,
-        ]);
-
-        /*
-        |--------------------------------------------------------------------------
-        | Configuration du document
-        |--------------------------------------------------------------------------
-        */
-
-        $pdf->setPaper('A4', 'portrait');
-
-        return $pdf->stream(
-            'recu-' . $historique->reference . '.pdf'
-        );
+    if (!$paiement) {
+        abort(404, 'Paiement introuvable.');
     }
 
+
+    /*
+    |--------------------------------------------------------------------------
+    | Récupérer l'inscription correspondant à l'année du paiement
+    |--------------------------------------------------------------------------
+    */
+
+    $inscription = Inscription::with([
+        'classe',
+    ])
+        ->where('eleve_id', $paiement->eleve_id)
+        ->where(
+            'annee_scolaire_id',
+            $paiement->annee_scolaire_id
+        )
+        ->first();
+
+
+    /*
+    |--------------------------------------------------------------------------
+    | Calcul du montant cumulé jusqu'à ce versement
+    |--------------------------------------------------------------------------
+    */
+
+    $montantCumule = $paiement->historiques
+        ->filter(function ($item) use ($historique) {
+            return $item->id <= $historique->id;
+        })
+        ->sum('montant');
+
+
+    /*
+    |--------------------------------------------------------------------------
+    | Montant dû
+    |--------------------------------------------------------------------------
+    */
+
+    $montantDu = (float) $paiement->montant_du;
+
+
+    /*
+    |--------------------------------------------------------------------------
+    | Solde restant après ce versement
+    |--------------------------------------------------------------------------
+    */
+
+    $restant = max(
+        0,
+        $montantDu - (float) $montantCumule
+    );
+
+
+    /*
+    |--------------------------------------------------------------------------
+    | URL de vérification
+    |--------------------------------------------------------------------------
+    */
+
+    $urlVerification = route('paiements.verification', [
+        'reference' => $historique->reference,
+    ]);
+
+
+    /*
+    |--------------------------------------------------------------------------
+    | Génération du QR Code
+    |
+    | SVG utilisé pour éviter Imagick
+    |--------------------------------------------------------------------------
+    */
+
+    $qrCode = QrCode::format('svg')
+        ->size(180)
+        ->margin(1)
+        ->generate($urlVerification);
+
+
+    /*
+    |--------------------------------------------------------------------------
+    | Génération du PDF
+    |--------------------------------------------------------------------------
+    */
+
+    $pdf = Pdf::loadView('paiements.recu', [
+
+        'historique' => $historique,
+
+        'paiement' => $paiement,
+
+        'eleve' => $paiement->eleve,
+
+        'frais' => $paiement->frais,
+
+        'anneeScolaire' => $paiement->anneeScolaire,
+
+        'inscription' => $inscription,
+
+        'montantDu' => $montantDu,
+
+        'montantCumule' => $montantCumule,
+
+        'restant' => $restant,
+
+        'urlVerification' => $urlVerification,
+
+        'qrCode' => $qrCode,
+
+    ]);
+
+
+    /*
+    |--------------------------------------------------------------------------
+    | Format du document
+    |--------------------------------------------------------------------------
+    */
+
+    $pdf->setPaper('A4', 'portrait');
+
+
+    /*
+    |--------------------------------------------------------------------------
+    | Afficher le reçu
+    |--------------------------------------------------------------------------
+    */
+
+    return $pdf->stream(
+        'recu-' . $historique->reference . '.pdf'
+    );
+}
     /*
     |--------------------------------------------------------------------------
     | ANNULER VERSEMENT

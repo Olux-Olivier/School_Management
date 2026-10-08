@@ -4,7 +4,9 @@
 <head>
     <meta charset="UTF-8">
 
-    <title>Reçu de paiement - {{ $historique->reference }}</title>
+    <title>
+        Reçu de paiement - {{ $historique->reference }}
+    </title>
 
     <style>
         @page {
@@ -21,16 +23,16 @@
             font-family: DejaVu Sans, Arial, sans-serif;
             font-size: 11px;
             color: #1f2937;
-            background: #ffffff;
+            background: #fff;
         }
 
         .page {
             width: 100%;
         }
 
-        /* ---------------------------------------------------------
+        /* =====================================================
            EN-TÊTE
-        --------------------------------------------------------- */
+        ====================================================== */
 
         .header {
             width: 100%;
@@ -96,9 +98,9 @@
             letter-spacing: 0.5px;
         }
 
-        /* ---------------------------------------------------------
+        /* =====================================================
            TITRE
-        --------------------------------------------------------- */
+        ====================================================== */
 
         .main-title {
             text-align: center;
@@ -120,9 +122,9 @@
             letter-spacing: 1px;
         }
 
-        /* ---------------------------------------------------------
-           BLOCS
-        --------------------------------------------------------- */
+        /* =====================================================
+           SECTIONS
+        ====================================================== */
 
         .section {
             margin-bottom: 16px;
@@ -139,6 +141,10 @@
             color: #111827;
             margin-bottom: 8px;
         }
+
+        /* =====================================================
+           INFORMATIONS ÉLÈVE
+        ====================================================== */
 
         .info-table {
             width: 100%;
@@ -163,9 +169,19 @@
             color: #111827;
         }
 
-        /* ---------------------------------------------------------
-           MONTANT
-        --------------------------------------------------------- */
+        /* =====================================================
+           DÉTAILS DU PAIEMENT
+        ====================================================== */
+
+        .payment-info {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        .payment-info td {
+            padding: 7px 8px;
+            border-bottom: 1px solid #e5e7eb;
+        }
 
         .amount-box {
             border: 1px solid #d1d5db;
@@ -194,9 +210,9 @@
             margin-left: 4px;
         }
 
-        /* ---------------------------------------------------------
+        /* =====================================================
            SITUATION FINANCIÈRE
-        --------------------------------------------------------- */
+        ====================================================== */
 
         .financial-table {
             width: 100%;
@@ -225,23 +241,52 @@
             font-weight: bold;
         }
 
-        /* ---------------------------------------------------------
-           MODE DE PAIEMENT
-        --------------------------------------------------------- */
+        /* =====================================================
+           QR CODE
+        ====================================================== */
 
-        .payment-info {
-            width: 100%;
-            border-collapse: collapse;
+        .qr-section {
+            margin-top: 18px;
+            text-align: center;
+            page-break-inside: avoid;
         }
 
-        .payment-info td {
-            padding: 7px 8px;
-            border-bottom: 1px solid #e5e7eb;
+        .qr-title {
+            font-size: 9px;
+            font-weight: bold;
+            text-transform: uppercase;
+            letter-spacing: 0.7px;
+            color: #4b5563;
+            margin-bottom: 7px;
         }
 
-        /* ---------------------------------------------------------
+        .qr-code {
+            text-align: center;
+            margin: 0 auto;
+        }
+
+        .qr-code svg {
+            width: 110px;
+            height: 110px;
+        }
+
+        .qr-reference {
+            margin-top: 5px;
+            font-size: 8px;
+            color: #6b7280;
+        }
+
+        .qr-url {
+            margin-top: 3px;
+            font-size: 8px;
+            font-weight: bold;
+            color: #374151;
+            letter-spacing: 0.4px;
+        }
+
+        /* =====================================================
            SIGNATURES
-        --------------------------------------------------------- */
+        ====================================================== */
 
         .signature-table {
             width: 100%;
@@ -279,9 +324,9 @@
             color: #6b7280;
         }
 
-        /* ---------------------------------------------------------
+        /* =====================================================
            NOTE
-        --------------------------------------------------------- */
+        ====================================================== */
 
         .note {
             margin-top: 25px;
@@ -294,9 +339,9 @@
             text-align: center;
         }
 
-        /* ---------------------------------------------------------
-           PIED DE PAGE
-        --------------------------------------------------------- */
+        /* =====================================================
+           FOOTER
+        ====================================================== */
 
         .footer {
             position: fixed;
@@ -312,26 +357,6 @@
             border-top: 1px solid #e5e7eb;
             margin-bottom: 5px;
         }
-
-        /* ---------------------------------------------------------
-           PETITES CLASSES
-        --------------------------------------------------------- */
-
-        .text-right {
-            text-align: right;
-        }
-
-        .text-center {
-            text-align: center;
-        }
-
-        .uppercase {
-            text-transform: uppercase;
-        }
-
-        .muted {
-            color: #6b7280;
-        }
     </style>
 </head>
 
@@ -339,23 +364,28 @@
 
 <div class="page">
 
-    {{-- =========================================================
+    {{-- =====================================================
          EN-TÊTE
-    ========================================================== --}}
+    ====================================================== --}}
 
     <div class="header">
 
         <table class="header-table">
+
             <tr>
 
                 <td class="logo-cell">
+
                     @if(file_exists(public_path('images/logo.png')))
+
                         <img
                             src="{{ public_path('images/logo.png') }}"
                             class="logo"
                             alt="Logo"
                         >
+
                     @endif
+
                 </td>
 
                 <td class="school-cell">
@@ -385,18 +415,21 @@
                 </td>
 
             </tr>
+
         </table>
 
     </div>
 
 
-    {{-- =========================================================
+    {{-- =====================================================
          TITRE
-    ========================================================== --}}
+    ====================================================== --}}
 
     <div class="main-title">
 
-        <h1>REÇU DE PAIEMENT</h1>
+        <h1>
+            REÇU DE PAIEMENT
+        </h1>
 
         <div class="subtitle">
             Justificatif officiel de versement scolaire
@@ -405,9 +438,9 @@
     </div>
 
 
-    {{-- =========================================================
-         INFORMATIONS ÉLÈVE
-    ========================================================== --}}
+    {{-- =====================================================
+         INFORMATIONS DE L'ÉLÈVE
+    ====================================================== --}}
 
     <div class="section">
 
@@ -418,6 +451,7 @@
         <table class="info-table">
 
             <tr>
+
                 <td class="label">
                     Matricule
                 </td>
@@ -433,15 +467,26 @@
                 <td class="value">
                     {{ $anneeScolaire->nom ?? $anneeScolaire->libelle ?? '—' }}
                 </td>
+
             </tr>
 
             <tr>
+
                 <td class="label">
                     Nom complet
                 </td>
 
                 <td class="value">
-                    {{ $eleve->nom_complet ?? trim(($eleve->nom ?? '') . ' ' . ($eleve->postnom ?? '') . ' ' . ($eleve->prenom ?? '')) }}
+
+                    {{
+                        $eleve->nom_complet
+                        ?? trim(
+                            ($eleve->nom ?? '') . ' ' .
+                            ($eleve->postnom ?? '') . ' ' .
+                            ($eleve->prenom ?? '')
+                        )
+                    }}
+
                 </td>
 
                 <td class="label">
@@ -455,17 +500,23 @@
                         {{ $inscription->classe->nom }}
 
                         @if(!empty($inscription->classe->option))
+
                             {{ ' ' . $inscription->classe->option }}
+
                         @endif
 
                     @else
+
                         —
+
                     @endif
 
                 </td>
+
             </tr>
 
             <tr>
+
                 <td class="label">
                     Sexe
                 </td>
@@ -502,13 +553,17 @@
 
                             @default
                                 —
+
                         @endswitch
 
                     @else
+
                         —
+
                     @endif
 
                 </td>
+
             </tr>
 
         </table>
@@ -516,9 +571,9 @@
     </div>
 
 
-    {{-- =========================================================
+    {{-- =====================================================
          DÉTAILS DU PAIEMENT
-    ========================================================== --}}
+    ====================================================== --}}
 
     <div class="section">
 
@@ -543,10 +598,13 @@
                 </td>
 
                 <td class="value">
-                    {{ $historique->date_paiement
+
+                    {{
+                        $historique->date_paiement
                         ? \Carbon\Carbon::parse($historique->date_paiement)->format('d/m/Y')
                         : '—'
                     }}
+
                 </td>
 
             </tr>
@@ -563,9 +621,13 @@
                         isset($paiement->mois)
                         && strtolower(trim($paiement->mois)) !== 'pas disponible'
                     )
+
                         {{ $paiement->mois }}
+
                     @else
+
                         —
+
                     @endif
 
                 </td>
@@ -587,17 +649,24 @@
                 </td>
 
                 <td class="value">
+
                     @if($historique->createdBy)
-                        {{ $historique->createdBy->nom_complet
+
+                        {{
+                            $historique->createdBy->nom_complet
                             ?? trim(
                                 ($historique->createdBy->nom ?? '') . ' ' .
                                 ($historique->createdBy->postnom ?? '') . ' ' .
                                 ($historique->createdBy->prenom ?? '')
                             )
                         }}
+
                     @else
+
                         —
+
                     @endif
+
                 </td>
 
                 <td class="label">
@@ -613,8 +682,6 @@
         </table>
 
 
-        {{-- Montant du versement --}}
-
         <div class="amount-box">
 
             <div class="amount-label">
@@ -623,12 +690,7 @@
 
             <div class="amount">
 
-                {{ number_format(
-                    (float) $historique->montant,
-                    0,
-                    ',',
-                    ' '
-                ) }}
+                {{ number_format((float) $historique->montant, 0, ',', ' ') }}
 
                 <span class="currency">
                     FC
@@ -641,9 +703,9 @@
     </div>
 
 
-    {{-- =========================================================
+    {{-- =====================================================
          SITUATION FINANCIÈRE
-    ========================================================== --}}
+    ====================================================== --}}
 
     <div class="section">
 
@@ -660,13 +722,7 @@
                 </td>
 
                 <td class="financial-value">
-                    {{ number_format(
-                        $montantDu,
-                        0,
-                        ',',
-                        ' '
-                    ) }}
-                    FC
+                    {{ number_format($montantDu, 0, ',', ' ') }} FC
                 </td>
 
                 <td class="financial-label">
@@ -674,13 +730,7 @@
                 </td>
 
                 <td class="financial-value">
-                    {{ number_format(
-                        $montantCumule,
-                        0,
-                        ',',
-                        ' '
-                    ) }}
-                    FC
+                    {{ number_format($montantCumule, 0, ',', ' ') }} FC
                 </td>
 
             </tr>
@@ -695,13 +745,7 @@
                     colspan="3"
                     class="financial-value remaining"
                 >
-                    {{ number_format(
-                        $restant,
-                        0,
-                        ',',
-                        ' '
-                    ) }}
-                    FC
+                    {{ number_format($restant, 0, ',', ' ') }} FC
                 </td>
 
             </tr>
@@ -711,9 +755,36 @@
     </div>
 
 
-    {{-- =========================================================
+    {{-- =====================================================
+         QR CODE DE VÉRIFICATION
+    ====================================================== --}}
+
+    <div class="qr-section">
+
+        <div class="qr-title">
+            Vérification du versement
+        </div>
+
+        <div class="qr-code">
+
+            {!! $qrCode !!}
+
+        </div>
+
+        <div class="qr-reference">
+            Scanner ce QR Code pour vérifier ce versement
+        </div>
+
+        <div class="qr-url">
+            {{ $historique->reference }}
+        </div>
+
+    </div>
+
+
+    {{-- =====================================================
          SIGNATURES
-    ========================================================== --}}
+    ====================================================== --}}
 
     <table class="signature-table">
 
@@ -732,13 +803,16 @@
                 @if($historique->createdBy)
 
                     <div class="signature-name">
-                        {{ $historique->createdBy->nom_complet
+
+                        {{
+                            $historique->createdBy->nom_complet
                             ?? trim(
                                 ($historique->createdBy->nom ?? '') . ' ' .
                                 ($historique->createdBy->postnom ?? '') . ' ' .
                                 ($historique->createdBy->prenom ?? '')
                             )
                         }}
+
                     </div>
 
                 @endif
@@ -766,9 +840,9 @@
     </table>
 
 
-    {{-- =========================================================
-         NOTE ADMINISTRATIVE
-    ========================================================== --}}
+    {{-- =====================================================
+         NOTE
+    ====================================================== --}}
 
     <div class="note">
 
@@ -782,9 +856,9 @@
 </div>
 
 
-{{-- =============================================================
-     PIED DE PAGE
-============================================================= --}}
+{{-- =====================================================
+     FOOTER
+====================================================== --}}
 
 <div class="footer">
 
@@ -796,4 +870,5 @@
 </div>
 
 </body>
+
 </html>

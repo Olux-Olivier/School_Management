@@ -19,96 +19,96 @@ class InscriptionController extends Controller
 
     public function index(Request $request)
     {
-        $query = Inscription::with([
-            'eleve',
-            'classe',
-            'anneeScolaire',
-            'createdBy',
-        ]);
+        // Années scolaires disponibles
+        $anneesScolaires = AnneeScolaire::orderByDesc('id')->get();
 
-
-        /*
-        |--------------------------------------------------------------------------
-        | Recherche élève
-        |--------------------------------------------------------------------------
-        */
-
-        if ($request->filled('search')) {
-
-            $search = $request->search;
-
-            $query->whereHas('eleve', function ($q) use ($search) {
-
-                $q->where('matricule', 'like', "%{$search}%")
-                    ->orWhere('nom', 'like', "%{$search}%")
-                    ->orWhere('postnom', 'like', "%{$search}%")
-                    ->orWhere('prenom', 'like', "%{$search}%");
-
-            });
-
-        }
-
-
-        /*
-        |--------------------------------------------------------------------------
-        | Filtre année scolaire
-        |--------------------------------------------------------------------------
-        */
-
-        if ($request->filled('annee_scolaire_id')) {
-
-            $query->where(
-                'annee_scolaire_id',
-                $request->annee_scolaire_id
-            );
-
-        }
-
-
-        /*
-        |--------------------------------------------------------------------------
-        | Filtre statut
-        |--------------------------------------------------------------------------
-        */
-
-        if ($request->has('actif') && $request->actif !== '') {
-
-            $query->where(
-                'actif',
-                $request->actif
-            );
-
-        }
-
-
-        /*
-        |--------------------------------------------------------------------------
-        | Pagination
-        |--------------------------------------------------------------------------
-        */
-
-        $inscriptions = $query
-            ->latest('id')
-            ->paginate(25);
-
-
-        /*
-        |--------------------------------------------------------------------------
-        | Années scolaires pour le filtre
-        |--------------------------------------------------------------------------
-        */
-
-        $anneesScolaires = AnneeScolaire::orderByDesc('id')
+        // Toutes les classes, y compris celles qui sont inactives,
+        // afin de pouvoir consulter les inscriptions historiques.
+        $classes = Classe::orderBy('niveau')
+            ->orderBy('nom')
             ->get();
 
+        $rechercheEffectuee = $request->boolean('rechercher');
 
-        return view(
-            'inscriptions.index',
-            compact(
-                'inscriptions',
-                'anneesScolaires'
-            )
-        );
+        $criteresRenseignes =
+            $request->filled('annee_scolaire_id')
+            || $request->filled('section')
+            || $request->filled('classe_id')
+            || $request->filled('search');
+
+        // Par défaut, aucune inscription n'est affichée.
+        $inscriptions = Inscription::whereRaw('1 = 0')
+            ->paginate(25)
+            ->withQueryString();
+
+        if ($rechercheEffectuee && $criteresRenseignes) {
+            $query = Inscription::with([
+                'eleve',
+                'classe',
+                'anneeScolaire',
+                'createdBy',
+            ]);
+
+            // Filtre par année scolaire
+            if ($request->filled('annee_scolaire_id')) {
+                $query->where(
+                    'annee_scolaire_id',
+                    $request->annee_scolaire_id
+                );
+            }
+
+            // Filtre par section : le niveau de la classe
+            if ($request->filled('section')) {
+                $niveau = match ($request->section) {
+                    'maternelle' => 0,
+                    'primaire' => 1,
+                    'secondaire' => 2,
+                    'humanites' => 3,
+                    default => null,
+                };
+
+                if ($niveau !== null) {
+                    $query->whereHas('classe', function ($q) use ($niveau) {
+                        $q->where('niveau', $niveau);
+                    });
+                } else {
+                    // Une section invalide ne doit pas afficher de résultats.
+                    $query->whereRaw('1 = 0');
+                }
+            }
+
+            // Filtre par classe
+            if ($request->filled('classe_id')) {
+                $query->where('classe_id', $request->classe_id);
+            }
+
+            // Recherche facultative par élève
+            if ($request->filled('search')) {
+                $search = trim($request->search);
+
+                $query->whereHas('eleve', function ($q) use ($search) {
+                    $q->where(function ($subQuery) use ($search) {
+                        $subQuery->where('matricule', 'like', "%{$search}%")
+                            ->orWhere('nom', 'like', "%{$search}%")
+                            ->orWhere('postnom', 'like', "%{$search}%")
+                            ->orWhere('prenom', 'like', "%{$search}%");
+                    });
+                });
+            }
+
+            $inscriptions = $query
+                ->latest('id')
+                ->paginate(25)
+                ->withQueryString();
+        }
+
+        return view('inscriptions.index', compact(
+            'inscriptions',
+            'anneesScolaires',
+            'classes',
+            'rechercheEffectuee',
+            'criteresRenseignes'
+        ));
     }
 
 

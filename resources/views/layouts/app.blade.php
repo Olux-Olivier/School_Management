@@ -138,7 +138,7 @@
 
         <!-- Logo -->
 
-        <div class="h-20 flex-shrink-0 flex items-center justify-center border-b border-slate-200 relative">
+        <div class="h-20 flex-shrink-0 flex items-center justify-center  border-slate-200 relative">
 
             <div class="text-center">
 
@@ -233,6 +233,7 @@
                 <span>Paiements</span>
 
             </a>
+
 
             <a href="{{ route('solvabilites.index') }}" data-label="Solvabilités" aria-label="Solvabilités"
 
