@@ -17,38 +17,45 @@ class EleveController extends Controller
     |--------------------------------------------------------------------------
     */
 
+
     public function index(Request $request)
     {
-        $search = $request->search;
+        $search = trim((string) $request->input('search', ''));
 
-        $eleves = Eleve::query()
+        // La recherche est considérée comme effectuée
+        // uniquement si elle a été lancée avec un terme non vide.
+        $rechercheEffectuee = $request->boolean('rechercher')
+            && $search !== '';
 
-            ->when($search, function ($query) use ($search) {
+        // État initial : aucun élève chargé.
+        $eleves = Eleve::whereRaw('1 = 0')
+            ->paginate(25)
+            ->withQueryString();
 
-                $query->where(function ($q) use ($search) {
+        // Exécuter la requête uniquement après une recherche.
+        if ($rechercheEffectuee) {
 
-                    $q->where('matricule', 'like', "%{$search}%")
+            $eleves = Eleve::query()
+                ->where(function ($query) use ($search) {
+
+                    $query->where('matricule', 'like', "%{$search}%")
                         ->orWhere('nom', 'like', "%{$search}%")
                         ->orWhere('postnom', 'like', "%{$search}%")
                         ->orWhere('prenom', 'like', "%{$search}%")
                         ->orWhere('telephone', 'like', "%{$search}%");
 
-                });
+                })
+                ->orderBy('nom')
+                ->orderBy('postnom')
+                ->orderBy('prenom')
+                ->paginate(25)
+                ->withQueryString();
+        }
 
-            })
-
-            ->orderBy('nom')
-            ->orderBy('postnom')
-            ->orderBy('prenom')
-
-            ->paginate(25)
-
-            ->withQueryString();
-
-
-            return view('eleves.index', compact(
-                'eleves',
-                'search'
+        return view('eleves.index', compact(
+            'eleves',
+            'search',
+            'rechercheEffectuee'
         ));
     }
 
